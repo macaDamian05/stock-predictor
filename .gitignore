@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+
+# ML storage
+StockPredictor.ML/storage/trainingsdaten/
+
+# .NET
+bin/
+obj/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
