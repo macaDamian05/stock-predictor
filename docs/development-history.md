@@ -204,6 +204,29 @@ Warum dieser Schritt wichtig ist:
 - die Datenstruktur fuer Karten, Tickeruebersicht und Korbvergleiche ist bereits festgelegt
 - damit wird der naechste Entwicklungsschritt klar: jetzt kann die Oberflaeche gebaut werden, statt weiter an der Datenaufbereitung zu arbeiten
 
+## Phase 12: Erste echte Blazor-Dashboard-UI
+
+Im naechsten Schritt wurde der Handover nicht nur dokumentiert, sondern direkt in der App umgesetzt.
+
+Wichtige Merkmale dieser Phase:
+
+- Ersetzung des Blazor-Standardtemplates durch ein echtes dunkles Dashboard
+- Einfuehrung eines kleinen C#-Datendienstes fuer `dashboard_payload.json`
+- Startseite mit Kennzahlenkarten, Featured-Tickern und Korbvergleichen
+- bewusste Trennung zwischen ML-Export und App-Darstellung
+
+Warum diese Phase wichtig ist:
+
+- das Projekt ist damit nicht mehr nur eine ML- und Auswertungsumgebung, sondern besitzt erstmals eine zusammenhaengende Bedienoberflaeche
+- die Visualisierung basiert nicht mehr auf Notebook-Plots allein, sondern auf einer reproduzierbaren UI-Schicht
+- die Bachelorarbeit kann damit nicht nur Modelle und Metriken, sondern auch die Systemintegration eines Dashboards dokumentieren
+
+Wichtige Abgrenzung:
+
+- die App trainiert die Modelle noch nicht selbst live
+- sie zeigt den aktuellen exportierten Forschungsstand an
+- damit bleibt die Architektur sauber: ML erzeugt Ergebnisse, die UI praesentiert sie
+
 ## Zwischenfazit fuer die Bachelorarbeit
 
 Der Entwicklungsverlauf zeigt bewusst keine lineare Bewegung zu einer sofort "perfekten" Loesung. Stattdessen ist sichtbar:

@@ -40,7 +40,7 @@ Der ML-Prototyp in `StockPredictor.ML/` kann derzeit:
 - bei neueren Marktdaten ein inkrementelles Weitertraining ausfuehren
 - historische Vorhersagen, Zukunftsprognosen, RSI, durchschnittliche Prognose-Steigung sowie einfache Guetemasse ausgeben
 
-Der Webteil in `StockPredictor.App/` ist aktuell noch Projektgeruest und dient als Ziel fuer die spaetere Integration.
+Der Webteil in `StockPredictor.App/` liest jetzt den kompakt exportierten Dashboard-Payload und zeigt die wichtigsten ML-Ergebnisse in einer dunklen Dashboard-Oberflaeche.
 
 ## Repository-Struktur
 
@@ -112,6 +112,17 @@ dotnet build StockPredictor.slnx
 dotnet run --project StockPredictor.App
 ```
 
+Die Startseite liest den aktuellen Export aus:
+
+- `StockPredictor.ML/storage/dashboard/LATEST/dashboard_payload.json`
+
+Wenn die App keine Daten findet oder die UI aktualisiert werden soll:
+
+```powershell
+cd StockPredictor.ML
+.\.venv\Scripts\python.exe export_dashboard_payload.py
+```
+
 ## Persistente Daten
 
 Laufzeit-Artefakte werden pro Ticker unter `StockPredictor.ML/storage/trainingsdaten/<ticker>/` abgelegt:
@@ -153,7 +164,7 @@ Im aktuellen Mehrfachvergleich ueber `AAPL`, `TSLA` und `DOU.DE` ist die naive P
 
 ## Naechste sinnvolle Schritte
 
-- UI in `StockPredictor.App/` auf Basis von `docs/ui-handoff.md` und `storage/dashboard/LATEST/dashboard_payload.json` umsetzen
+- Dashboard um weitere Detailansichten, Filter und spaetere API-Anbindung erweitern
 - saubere Train/Validation/Test-Aufteilung nach Zeitachsen weiter verfeinern
 - Feature-Sets und Hyperparameter kontrolliert vergleichen
 - BA-Ergebnispaket und Dashboard-Export nach groesseren neuen Runs aktualisieren

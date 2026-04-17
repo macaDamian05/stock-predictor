@@ -1,32 +1,35 @@
-﻿<script type="module" src="@Assets["Components/Layout/NavMenu.razor.js"]"></script>
-
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">StockPredictor.App</a>
+<nav class="dashboard-nav">
+    <div class="brand-block">
+        <div class="brand-mark">SP</div>
+        <div class="brand-copy">
+            <span class="brand-eyebrow">Bachelor Research</span>
+            <a class="brand-link" href="">Stock Predictor</a>
+            <p class="brand-caption">Forecast dashboard for benchmark results, featured tickers and thesis exports.</p>
+        </div>
     </div>
-</div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+    <div class="menu-section">
+        <span class="menu-label">Navigate</span>
+        <a class="menu-link" href="#overview">Overview</a>
+        <a class="menu-link" href="#ticker-lab">Ticker Lab</a>
+        <a class="menu-link" href="#benchmarks">Benchmarks</a>
+        <a class="menu-link" href="#notes">Research Notes</a>
+    </div>
 
-<div id="nav-scrollable" class="nav-scrollable">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
+    <div class="menu-section">
+        <span class="menu-label">Context</span>
+        <div class="status-card">
+            <span class="status-dot"></span>
+            <div>
+                <strong>Payload Driven</strong>
+                <span>UI reads the latest ML export instead of raw notebook files.</span>
+            </div>
         </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
+        <div class="status-card muted">
+            <div>
+                <strong>Dark Mode UI</strong>
+                <span>Focused on thesis reporting, comparison and forecast inspection.</span>
+            </div>
         </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-    </nav>
-</div>
-
+    </div>
+</nav>

@@ -64,4 +64,16 @@ Wenn die Blazor-App als naechstes umgesetzt wird, ist diese Reihenfolge sinnvoll
 
 ## Aktueller Status
 
-Aus ML-Sicht ist der naechste sinnvolle Block jetzt die UI-Umsetzung.
+Die erste UI-Umsetzung in `StockPredictor.App/` ist erfolgt:
+
+- dunkles Dashboard statt Blazor-Template
+- Startseite mit Kennzahlenkarten aus `summary_cards`
+- Featured-Ticker-Bereich mit interaktiver Auswahl aus `featured_tickers`
+- Korbvergleich fuer `bachelor_core` und `bachelor_diversified`
+- direkter Dateizugriff der App auf `dashboard_payload.json` ueber einen kleinen C#-Datendienst
+
+Die naechsten UI-Schritte sind damit nicht mehr Grundintegration, sondern Ausbau:
+
+- weitere Detailansichten
+- spaetere API-Schicht statt direktem Dateizugriff
+- Filter, Sortierung und eventuell Chart-Erweiterungen

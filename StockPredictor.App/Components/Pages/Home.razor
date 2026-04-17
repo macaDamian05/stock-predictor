@@ -1,7 +1,431 @@
-﻿@page "/"
+@page "/"
+@rendermode InteractiveServer
+@using System.Globalization
+@inject DashboardDataService DashboardDataService
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Stock Predictor Dashboard</PageTitle>
 
-<h1>Hello, world!</h1>
+@if (_isLoading)
+{
+    <section class="dashboard-empty panel-shell">
+        <span class="section-kicker">Loading</span>
+        <h1>Building the research dashboard...</h1>
+        <p>The app is loading the latest dashboard payload from the ML export pipeline.</p>
+    </section>
+}
+else if (_snapshot?.Payload is null)
+{
+    <section class="dashboard-empty panel-shell">
+        <span class="section-kicker">Payload missing</span>
+        <h1>No dashboard data found yet</h1>
+        <p>@(_snapshot?.ErrorMessage ?? "The dashboard payload could not be loaded.")</p>
+        <div class="empty-state-meta">
+            <span class="meta-pill">Expected file</span>
+            <code>@_snapshot?.ResolvedPath</code>
+        </div>
+        <div class="empty-state-command">
+            <span class="meta-pill">Generate it with</span>
+            <code>.\StockPredictor.ML\.venv\Scripts\python.exe StockPredictor.ML\export_dashboard_payload.py</code>
+        </div>
+    </section>
+}
+else
+{
+    var payload = _snapshot.Payload;
+    var activeTicker = GetActiveTicker(payload);
+    var starterSummary = payload.SummaryCards.StarterBestExperiment;
+    var coreSummary = payload.SummaryCards.BestCoreProfile;
+    var diversifiedSummary = payload.SummaryCards.BestDiversifiedProfile;
+    var starterBeaters = payload.SummaryCards.StarterTickersBeatingBaseline;
 
-Welcome to your new app.
+    <div class="dashboard-page">
+        <section class="hero-shell panel-shell" id="overview">
+            <div class="hero-copy">
+                <span class="section-kicker">Research Dashboard</span>
+                <h1>Stock forecasting results, benchmarks and 5-day outlooks in one dark workspace.</h1>
+                <p>
+                    This UI reads the latest thesis export and turns the ML pipeline into a dashboard you can actually inspect:
+                    benchmark baskets, featured tickers, forecast paths and the current gap against the baseline.
+                </p>
+            </div>
+
+            <div class="hero-meta">
+                <div class="meta-pill">Generated @FormatDateTime(payload.GeneratedAt)</div>
+                <div class="meta-pill">Contract v@payload.UiContractVersion</div>
+                <div class="meta-pill">Source thesis run: @payload.SourceRuns.ThesisRun</div>
+            </div>
+        </section>
+
+        <section class="summary-grid">
+            <article class="summary-card panel-shell accent-starter">
+                <div class="card-header-row">
+                    <span class="section-kicker">Starter Best</span>
+                    <span class="tone-pill @(GetGapTone(starterSummary.MeanBestLearnedMinusBaselineRmse))">
+                        Gap @FormatSignedRmse(starterSummary.MeanBestLearnedMinusBaselineRmse)
+                    </span>
+                </div>
+                <strong class="card-value">@starterSummary.FeatureProfile.Replace("_", " ") / @starterSummary.Lags lags</strong>
+                <p class="card-copy">
+                    Dominant model: @starterSummary.DominantBestModelLabel. Mean directional accuracy
+                    @FormatPercent(starterSummary.MeanBestLearnedDirectionalAccuracy * 100).
+                </p>
+                <div class="card-metrics">
+                    <span>Best learned RMSE <strong>@FormatRmse(starterSummary.MeanBestLearnedRmse)</strong></span>
+                    <span>Baseline RMSE <strong>@FormatRmse(starterSummary.MeanWalkForwardBaselineRmse)</strong></span>
+                </div>
+            </article>
+
+            <article class="summary-card panel-shell accent-core">
+                <div class="card-header-row">
+                    <span class="section-kicker">Bachelor Core</span>
+                    <span class="tone-pill @(GetGapTone(coreSummary.MeanBestLearnedMinusBaselineRmse))">@coreSummary.DominantBestModelLabel</span>
+                </div>
+                <strong class="card-value">@coreSummary.FeatureProfileLabel</strong>
+                <p class="card-copy">
+                    Best profile across @coreSummary.TickerCount tickers. Mean learned RMSE
+                    @FormatRmse(coreSummary.MeanBestLearnedRmse).
+                </p>
+                <div class="card-metrics">
+                    <span>Baseline @FormatRmse(coreSummary.MeanWalkForwardBaselineRmse)</span>
+                    <span>Direction @FormatPercent(coreSummary.MeanBestLearnedDirectionalAccuracy * 100)</span>
+                </div>
+            </article>
+
+            <article class="summary-card panel-shell accent-diversified">
+                <div class="card-header-row">
+                    <span class="section-kicker">Diversified Basket</span>
+                    <span class="tone-pill @(GetGapTone(diversifiedSummary.MeanBestLearnedMinusBaselineRmse))">@diversifiedSummary.DominantBestModelLabel</span>
+                </div>
+                <strong class="card-value">@diversifiedSummary.FeatureProfileLabel</strong>
+                <p class="card-copy">
+                    Broader basket with @diversifiedSummary.TickerCount tickers. Mean learned RMSE
+                    @FormatRmse(diversifiedSummary.MeanBestLearnedRmse).
+                </p>
+                <div class="card-metrics">
+                    <span>Baseline @FormatRmse(diversifiedSummary.MeanWalkForwardBaselineRmse)</span>
+                    <span>Direction @FormatPercent(diversifiedSummary.MeanBestLearnedDirectionalAccuracy * 100)</span>
+                </div>
+            </article>
+
+            <article class="summary-card panel-shell accent-neutral">
+                <div class="card-header-row">
+                    <span class="section-kicker">Baseline Pressure</span>
+                    <span class="tone-pill @(starterBeaters.Count > 0 ? "tone-positive" : "tone-neutral")">
+                        @(starterBeaters.Count > 0 ? "Some wins" : "No wins")
+                    </span>
+                </div>
+                <strong class="card-value">@starterBeaters.Count / @starterSummary.TickerCount</strong>
+                <p class="card-copy">
+                    Starter tickers that beat the naive persistence baseline on walk-forward RMSE.
+                </p>
+                <div class="card-metrics">
+                    <span>Winning tickers</span>
+                    <strong>@(starterBeaters.Count > 0 ? string.Join(", ", starterBeaters) : "None yet")</strong>
+                </div>
+            </article>
+        </section>
+
+        <section class="workspace-grid" id="ticker-lab">
+            <article class="ticker-lab panel-shell">
+                <div class="panel-header">
+                    <div>
+                        <span class="section-kicker">Featured Tickers</span>
+                        <h2>Inspect the current forecast candidates</h2>
+                    </div>
+                    <div class="meta-pill">Payload source: @Path.GetFileName(_snapshot.ResolvedPath)</div>
+                </div>
+
+                <div class="ticker-lab-grid">
+                    <div class="ticker-selector">
+                        @foreach (var ticker in payload.FeaturedTickers)
+                        {
+                            <button class="ticker-card @(ticker.Ticker == activeTicker.Ticker ? "is-active" : string.Empty)"
+                                    type="button"
+                                    @onclick="() => SelectTicker(ticker.Ticker)">
+                                <div class="ticker-card-row">
+                                    <strong>@ticker.Ticker</strong>
+                                    <span class="tone-pill @(GetTrendTone(ticker.ForecastHorizonChangePct))">
+                                        @FormatPercent(ticker.ForecastHorizonChangePct)
+                                    </span>
+                                </div>
+                                <span class="ticker-card-model">@ticker.ForecastModelLabel / @ticker.FeatureProfileLabel</span>
+                                <div class="ticker-card-row muted">
+                                    <span>RMSE @FormatRmse(ticker.WalkForwardBestRmse)</span>
+                                    <span>RSI @ticker.AverageRecentRsi.ToString("0.0", CultureInfo.InvariantCulture)</span>
+                                </div>
+                            </button>
+                        }
+                    </div>
+
+                    <div class="ticker-detail">
+                        <div class="detail-hero">
+                            <div>
+                                <div class="detail-title-row">
+                                    <h2>@activeTicker.Ticker</h2>
+                                    <span class="tone-pill @(GetTrendTone(activeTicker.ForecastHorizonChangePct))">
+                                        5D @FormatPercent(activeTicker.ForecastHorizonChangePct)
+                                    </span>
+                                </div>
+                                <p>
+                                    Forecasted with @activeTicker.ForecastModelLabel on @activeTicker.FeatureProfileLabel.
+                                    Data window: @FormatDate(activeTicker.DataStart) to @FormatDate(activeTicker.DataEnd).
+                                </p>
+                            </div>
+                            <div class="detail-badges">
+                                <span class="meta-pill">Holdout winner: @FormatModelLabel(activeTicker.HoldoutBestModel, activeTicker.ForecastModelLabel)</span>
+                                <span class="meta-pill">Walk-forward winner: @FormatModelLabel(activeTicker.WalkForwardBestModel, activeTicker.ForecastModelLabel)</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-stats-grid">
+                            <article class="mini-stat">
+                                <span>Last close</span>
+                                <strong>@FormatPrice(activeTicker.LastClose)</strong>
+                                <small>@FormatDate(activeTicker.LastCloseDate)</small>
+                            </article>
+                            <article class="mini-stat">
+                                <span>Next forecast</span>
+                                <strong>@FormatPrice(activeTicker.NextPredictedClose)</strong>
+                                <small>@FormatPercent(activeTicker.NextPredictedChangePct)</small>
+                            </article>
+                            <article class="mini-stat">
+                                <span>Directional accuracy</span>
+                                <strong>@FormatPercent(activeTicker.WalkForwardBestDirectionalAccuracy * 100)</strong>
+                                <small>Walk-forward</small>
+                            </article>
+                            <article class="mini-stat">
+                                <span>Baseline gap</span>
+                                <strong class="@GetGapTone(activeTicker.WalkForwardBestRmse - activeTicker.WalkForwardBaselineRmse)">
+                                    @FormatSignedRmse(activeTicker.WalkForwardBestRmse - activeTicker.WalkForwardBaselineRmse)
+                                </strong>
+                                <small>@(activeTicker.BeatsBaselineRmse ? "Beats baseline" : "Baseline still stronger")</small>
+                            </article>
+                        </div>
+
+                        <div class="forecast-panel">
+                            <div class="forecast-panel-header">
+                                <div>
+                                    <span class="section-kicker">5-Day Path</span>
+                                    <h3>Projected close trajectory</h3>
+                                </div>
+                                <div class="forecast-legend">
+                                    <span class="legend-dot"></span>
+                                    <span>Last close + forecast closes</span>
+                                </div>
+                            </div>
+                            <ForecastSparkline Values="@GetSparklineValues(activeTicker)"
+                                               TrendTone="@MapToneToSparkline(activeTicker.ForecastHorizonChangePct)"
+                                               AriaLabel="@($"{activeTicker.Ticker} forecast path")" />
+                        </div>
+
+                        <div class="forecast-strip">
+                            @foreach (var point in activeTicker.ForecastPath)
+                            {
+                                <article class="forecast-day">
+                                    <span>@FormatDate(point.Date)</span>
+                                    <strong>@FormatPrice(point.PredictedClose)</strong>
+                                    <small class="@GetTrendTone(point.PredictedReturn * 100)">@FormatPercent(point.PredictedReturn * 100)</small>
+                                </article>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <aside class="insight-rail">
+                <article class="panel-shell rail-card">
+                    <span class="section-kicker">Pipeline Context</span>
+                    <h3>What feeds this dashboard</h3>
+                    <div class="run-list">
+                        <div>
+                            <span>Thesis export</span>
+                            <strong>@payload.SourceRuns.ThesisRun</strong>
+                        </div>
+                        <div>
+                            <span>Starter suite</span>
+                            <strong>@payload.SourceRuns.StarterSuite</strong>
+                        </div>
+                        <div>
+                            <span>Core comparison</span>
+                            <strong>@payload.SourceRuns.CoreProfileComparison</strong>
+                        </div>
+                        <div>
+                            <span>Diversified comparison</span>
+                            <strong>@payload.SourceRuns.DiversifiedProfileComparison</strong>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="panel-shell rail-card" id="notes">
+                    <span class="section-kicker">Research Notes</span>
+                    <h3>Current takeaways</h3>
+                    <ul class="note-list">
+                        @foreach (var note in payload.Notes)
+                        {
+                            <li>@note</li>
+                        }
+                    </ul>
+                </article>
+            </aside>
+        </section>
+
+        <section class="benchmark-grid" id="benchmarks">
+            @foreach (var basket in payload.BasketSummaries)
+            {
+                <article class="panel-shell benchmark-card">
+                    <div class="panel-header">
+                        <div>
+                            <span class="section-kicker">@basket.BasketLabel</span>
+                            <h2>@basket.BestProfileLabel leads this basket</h2>
+                        </div>
+                        <span class="tone-pill @(GetGapTone(basket.MeanGapVsBaseline))">
+                            Gap @FormatSignedRmse(basket.MeanGapVsBaseline)
+                        </span>
+                    </div>
+
+                    <div class="benchmark-metrics">
+                        <div>
+                            <span>Best learned RMSE</span>
+                            <strong>@FormatRmse(basket.MeanBestLearnedRmse)</strong>
+                        </div>
+                        <div>
+                            <span>Baseline RMSE</span>
+                            <strong>@FormatRmse(basket.MeanWalkForwardBaselineRmse)</strong>
+                        </div>
+                        <div>
+                            <span>Dominant model</span>
+                            <strong>@basket.DominantBestModelLabel</strong>
+                        </div>
+                    </div>
+
+                    <div class="profile-balance">
+                        <div class="balance-header">
+                            <span>Technical Extended wins</span>
+                            <strong>@basket.TechnicalExtendedBetterCount</strong>
+                        </div>
+                        <div class="balance-track">
+                            <div class="balance-fill positive" style="width:@GetShare(basket.TechnicalExtendedBetterCount, basket.TechnicalExtendedBetterCount + basket.LagOnlyBetterCount)%;"></div>
+                        </div>
+                        <div class="balance-header alternate">
+                            <span>Lag Only wins</span>
+                            <strong>@basket.LagOnlyBetterCount</strong>
+                        </div>
+                    </div>
+
+                    <div class="benchmark-lists">
+                        <div>
+                            <span class="tag-label">Technical Extended better</span>
+                            <div class="tag-list">
+                                @foreach (var ticker in basket.TechnicalExtendedBetterTickers)
+                                {
+                                    <span class="ticker-tag positive">@ticker</span>
+                                }
+                            </div>
+                        </div>
+                        <div>
+                            <span class="tag-label">Lag Only better</span>
+                            <div class="tag-list">
+                                @foreach (var ticker in basket.LagOnlyBetterTickers)
+                                {
+                                    <span class="ticker-tag muted">@ticker</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            }
+        </section>
+    </div>
+}
+
+@code {
+    private static readonly CultureInfo UiCulture = CultureInfo.InvariantCulture;
+
+    private DashboardDataSnapshot? _snapshot;
+    private string? _selectedTickerSymbol;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _snapshot = await DashboardDataService.GetLatestAsync();
+        _selectedTickerSymbol = _snapshot.Payload?.FeaturedTickers.FirstOrDefault()?.Ticker;
+        _isLoading = false;
+    }
+
+    private void SelectTicker(string tickerSymbol)
+    {
+        _selectedTickerSymbol = tickerSymbol;
+    }
+
+    private FeaturedTicker GetActiveTicker(DashboardPayload payload)
+    {
+        return payload.FeaturedTickers.FirstOrDefault(ticker => ticker.Ticker == _selectedTickerSymbol)
+            ?? payload.FeaturedTickers.First();
+    }
+
+    private static string FormatDate(DateOnly date) => date.ToString("dd MMM yyyy", UiCulture);
+
+    private static string FormatDateTime(DateTime dateTime) => dateTime.ToString("dd MMM yyyy | HH:mm", UiCulture);
+
+    private static string FormatPrice(double value) => value.ToString("N2", UiCulture);
+
+    private static string FormatRmse(double value) => value.ToString("0.000", UiCulture);
+
+    private static string FormatSignedRmse(double value) => $"{(value >= 0 ? "+" : string.Empty)}{value.ToString("0.000", UiCulture)}";
+
+    private static string FormatPercent(double value) => $"{(value >= 0 ? "+" : string.Empty)}{value.ToString("0.00", UiCulture)}%";
+
+    private static string FormatModelLabel(string rawValue, string fallback)
+    {
+        return rawValue switch
+        {
+            "random_forest" => "Random Forest",
+            "ridge_regression" => "Ridge Regression",
+            "decision_tree" => "Decision Tree",
+            _ when !string.IsNullOrWhiteSpace(rawValue) => rawValue.Replace("_", " "),
+            _ => fallback,
+        };
+    }
+
+    private static string GetTrendTone(double value)
+    {
+        return value switch
+        {
+            > 0.01 => "tone-positive",
+            < -0.01 => "tone-negative",
+            _ => "tone-neutral",
+        };
+    }
+
+    private static string MapToneToSparkline(double value)
+    {
+        return value switch
+        {
+            > 0.01 => "up",
+            < -0.01 => "down",
+            _ => "flat",
+        };
+    }
+
+    private static string GetGapTone(double value)
+    {
+        return value switch
+        {
+            < 0 => "tone-positive",
+            > 0 => "tone-negative",
+            _ => "tone-neutral",
+        };
+    }
+
+    private static IReadOnlyList<double> GetSparklineValues(FeaturedTicker ticker)
+    {
+        var values = new List<double> { ticker.LastClose };
+        values.AddRange(ticker.ForecastPath.Select(point => point.PredictedClose));
+        return values;
+    }
+
+    private static double GetShare(int value, int total)
+    {
+        return total == 0 ? 0 : (value / (double)total) * 100;
+    }
+}
