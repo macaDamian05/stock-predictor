@@ -5,6 +5,8 @@ import math
 
 import pandas as pd
 
+from .indicators import calculate_rsi
+
 
 TARGET_COLUMN = "target_close_next"
 RETURN_TARGET_COLUMN = "target_return_next"
@@ -36,6 +38,30 @@ def build_next_close_dataset(data: pd.DataFrame, lags: int) -> NextCloseDataset:
     for lag in range(0, lags):
         column_name = f"return_lag_{lag}"
         feature_frame[column_name] = return_series.shift(lag)
+        feature_columns.append(column_name)
+
+    sma_5 = close_series.rolling(window=5, min_periods=5).mean()
+    sma_20 = close_series.rolling(window=20, min_periods=20).mean()
+    volatility_5 = return_series.rolling(window=5, min_periods=5).std()
+    volatility_20 = return_series.rolling(window=20, min_periods=20).std()
+    rsi_14 = calculate_rsi(close_series, window=14)
+    momentum_5 = close_series.pct_change(periods=5)
+    momentum_20 = close_series.pct_change(periods=20)
+
+    engineered_features = {
+        "return_mean_5": return_series.rolling(window=5, min_periods=5).mean(),
+        "return_mean_20": return_series.rolling(window=20, min_periods=20).mean(),
+        "sma_5_gap": (close_series / sma_5) - 1.0,
+        "sma_20_gap": (close_series / sma_20) - 1.0,
+        "volatility_5": volatility_5,
+        "volatility_20": volatility_20,
+        "momentum_5": momentum_5,
+        "momentum_20": momentum_20,
+        "rsi_14": rsi_14 / 100.0,
+    }
+
+    for column_name, values in engineered_features.items():
+        feature_frame[column_name] = values
         feature_columns.append(column_name)
 
     latest_features = feature_frame.dropna().tail(1).copy()

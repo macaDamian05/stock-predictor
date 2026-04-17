@@ -5,7 +5,6 @@ Stand: 2026-04-17
 ## Kanonische Entscheidungen
 
 - `stock-predictor/` ist das einzige aktive Hauptprojekt.
-- `../ki-projekt-legacy/` ist nur noch Archivmaterial aus dem frueheren lokalen Arbeitsstand.
 - Die urspruenglichen Notebooks liegen als Archivkopie in `StockPredictor.ML/notebooks/legacy/`.
 - Die aktive ML-Logik lebt in `StockPredictor.ML/`.
 - Die aktive App-Logik lebt in `StockPredictor.App/`.
@@ -17,8 +16,13 @@ Stand: 2026-04-17
 - klassische Zeitreihen-Pipeline fuer den ersten Modellvergleich
 - Persistence-Baseline und `RandomForestRegressor` mit Lag-Features
 - Trainingsziel im klassischen Pfad: naechste Tagesrendite, Ausgabe weiterhin als naechster Schlusskurs
+- zusaetzliche Features im klassischen Pfad: Momentum, gleitende Durchschnitte, Volatilitaet und RSI
 - CSV- oder Ticker-basierter Datenimport fuer den klassischen Pfad
 - chronologischer Train/Test-Split ohne Shuffling
+- Walk-Forward-Backtesting mit expandierendem Trainingsfenster fuer den klassischen Pfad
+- gespeicherte Diagramme fuer Kurshistorie, Testperiode und Zukunftsforecast
+- zusaetzliche gespeicherte Walk-Forward-Metriken, Fold-Ergebnisse und ein Walk-Forward-Plot
+- Mehrfachvergleich mehrerer Ticker mit gemeinsamer Benchmark-Zusammenfassung
 - Single-Ticker-Training und -Prognose mit einem LSTM auf Basis historischer Schlusskurse
 - persistente Speicherung pro Ticker
 - inkrementelles Weitertraining bei neuen Marktdaten
@@ -30,7 +34,7 @@ Noch nicht umgesetzt:
 - Unternehmensranking
 - ETF-Unterstuetzung
 - News- oder Sentimentdaten
-- Backtesting auf Forschungsniveau
+- Backtesting ueber mehrere Assets und Marktphasen auf Forschungsniveau
 
 ## Lokale Umgebungsannahmen
 
@@ -49,7 +53,7 @@ Noch nicht umgesetzt:
 
 ## Naechste technische Schritte
 
-- Walk-Forward-Evaluation fuer den klassischen Pfad
-- Feature-Set erweitern
-- Mehrfachvergleich mehrerer Assets entwerfen
+- Walk-Forward-Ergebnisse ueber mehrere Ticker vergleichen
+- Feature-Set weiter testen und dokumentieren
+- Benchmark auf groessere Asset-Koerbe erweitern
 - Datenaustausch zwischen Python und Blazor sauber definieren

@@ -9,6 +9,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 STORAGE_DIR = PROJECT_ROOT / "storage"
 TRAINING_DATA_DIR = STORAGE_DIR / "trainingsdaten"
 CLASSICAL_DATA_DIR = STORAGE_DIR / "classical"
+BENCHMARK_DATA_DIR = STORAGE_DIR / "benchmarks"
 
 
 @dataclass(frozen=True)
@@ -30,15 +31,33 @@ class ClassicalArtifactPaths:
     model: Path
     metrics: Path
     predictions: Path
+    walk_forward_metrics: Path
+    walk_forward_predictions: Path
     forecast: Path
+    summary: Path
     metadata: Path
-    plot: Path
+    history_plot: Path
+    test_plot: Path
+    walk_forward_plot: Path
+    forecast_plot: Path
+
+
+@dataclass(frozen=True)
+class BenchmarkArtifactPaths:
+    run_name: str
+    safe_name: str
+    base_dir: Path
+    summary_csv: Path
+    summary_json: Path
+    comparison_plot: Path
+    report: Path
 
 
 def ensure_runtime_directories() -> None:
     STORAGE_DIR.mkdir(parents=True, exist_ok=True)
     TRAINING_DATA_DIR.mkdir(parents=True, exist_ok=True)
     CLASSICAL_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    BENCHMARK_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def sanitize_name(value: str, uppercase: bool = False) -> str:
@@ -78,7 +97,29 @@ def get_classical_artifact_paths(source_name: str) -> ClassicalArtifactPaths:
         model=base_dir / "random_forest.joblib",
         metrics=base_dir / "metrics.json",
         predictions=base_dir / "predictions.csv",
+        walk_forward_metrics=base_dir / "walk_forward_metrics.json",
+        walk_forward_predictions=base_dir / "walk_forward_predictions.csv",
         forecast=base_dir / "forecast.json",
+        summary=base_dir / "summary.json",
         metadata=base_dir / "metadata.json",
-        plot=base_dir / "test_predictions.png",
+        history_plot=base_dir / "price_history.png",
+        test_plot=base_dir / "test_predictions.png",
+        walk_forward_plot=base_dir / "walk_forward_predictions.png",
+        forecast_plot=base_dir / "future_forecast.png",
+    )
+
+
+def get_benchmark_artifact_paths(run_name: str) -> BenchmarkArtifactPaths:
+    safe_name = sanitize_name(run_name, uppercase=True)
+    base_dir = BENCHMARK_DATA_DIR / safe_name
+    base_dir.mkdir(parents=True, exist_ok=True)
+
+    return BenchmarkArtifactPaths(
+        run_name=run_name,
+        safe_name=safe_name,
+        base_dir=base_dir,
+        summary_csv=base_dir / "benchmark_summary.csv",
+        summary_json=base_dir / "benchmark_summary.json",
+        comparison_plot=base_dir / "benchmark_comparison.png",
+        report=base_dir / "benchmark_report.md",
     )

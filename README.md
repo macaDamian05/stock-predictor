@@ -9,8 +9,7 @@ Dieses Repository ist das aktive Hauptprojekt fuer die Bachelorarbeit. Ziel ist 
 Wichtige Leitlinien:
 
 - `stock-predictor/` ist die einzige aktive Codebasis.
-- Der alte lokale Arbeitsstand wurde nach `../ki-projekt-legacy/` archiviert.
-- Die urspruenglichen Colab-Notebooks wurden nach `StockPredictor.ML/notebooks/legacy/` uebernommen.
+- Die urspruenglichen Colab-Notebooks wurden nach `StockPredictor.ML/notebooks/legacy/` uebernommen und bleiben dort nur als Referenz.
 - Persistente Modelle und Scaler werden lokal gespeichert, aber nicht nach Git committed.
 
 ## Aktueller Funktionsumfang
@@ -22,7 +21,12 @@ Der ML-Prototyp in `StockPredictor.ML/` kann derzeit:
 - Lag-Features ohne Data Leakage erzeugen
 - fuer den klassischen Pfad die naechste Tagesrendite modellieren und daraus den naechsten Schlusskurs ableiten
 - einen chronologischen Train/Test-Split fuer die Auswertung nutzen
+- technische Features wie Momentum, gleitende Durchschnitte, Volatilitaet und RSI als Eingaben verwenden
 - MSE, RMSE, MAE und Directional Accuracy fuer die Testperiode berechnen
+- zusaetzlich ein Walk-Forward-Backtesting mit expandierendem Trainingsfenster durchfuehren
+- mehrere gespeicherte Grafiken erzeugen: Kurshistorie, Testvorhersagen und Zukunftsforecast
+- zusaetzlich Walk-Forward-Vorhersagen, Fold-Metriken und einen eigenen Walk-Forward-Plot speichern
+- mehrere Ticker in einem Benchmark-Lauf vergleichen und gemeinsame Ergebnisdateien erzeugen
 - Modell, Metriken, Vorhersagen und Prognoseartefakte lokal speichern
 - Kursdaten per `yfinance` laden
 - pro Ticker ein LSTM-Modell auf Basis von Schlusskursen trainieren
@@ -76,6 +80,10 @@ Nutzliche Varianten:
 
 ```powershell
 python run_classical_pipeline.py TSLA --lags 20 --test-size 0.25
+python run_classical_pipeline.py DOU.DE --forecast-days 5 --show-plot
+python run_classical_pipeline.py AAPL --walk-forward-folds 6 --walk-forward-train-size 0.75
+python run_walk_forward_benchmark.py
+python run_walk_forward_benchmark.py AAPL TSLA DOU.DE
 python run_classical_pipeline.py --csv-path .\data\aapl.csv --date-column Date --close-column Close
 python main.py TSLA --retrain --forecast-days 10
 python main.py ENR.DE --no-plots
@@ -113,19 +121,19 @@ Diese Dateien sollten bei jeder groesseren fachlichen oder technischen Aenderung
 
 ## Aktuelle Grenzen
 
-- der klassische Pfad nutzt aktuell einen einfachen Holdout-Split, noch kein Walk-Forward-Backtesting
-- das erste klassische Modell nutzt nur Lag-Features der Rendite plus den aktuellen Schlusskurs
+- das Walk-Forward-Backtesting ist aktuell nur fuer den klassischen Pfad umgesetzt
+- der klassische Pfad nutzt bisher nur Kurs- und Technikfeatures, noch keine Nachrichten-, Sentiment- oder Fundamentaldaten
+- der Benchmark vergleicht aktuell nur einzelne Ticker nacheinander, noch keine gemeinsamen Mehrfachmodelle
 - v1 trainiert pro Ticker ein separates Modell
 - das Training nutzt aktuell nur den Schlusskurs als Modell-Input
 - RSI wird momentan fuer Interpretation genutzt, nicht als Eingangsfeature des Netzes
-- es gibt noch kein sauberes Walk-Forward-Backtesting
 - ein unternehmensuebergreifendes Ranking ist noch nicht umgesetzt
 - ETFs, Nachrichten, Sentiment und Intraday-Daten sind noch Zukunftsthemen
 
 ## Naechste sinnvolle Schritte
 
-- Walk-Forward-Evaluation fuer den klassischen Pfad
-- saubere Train/Validation/Test-Aufteilung nach Zeitachsen
-- Erweiterung des Feature-Sets um technische Indikatoren
-- Mehrfachvergleich mehrerer Ticker und Aufbau eines Rankings
+- Walk-Forward-Evaluation ueber mehrere Ticker systematisch vergleichen
+- saubere Train/Validation/Test-Aufteilung nach Zeitachsen weiter verfeinern
+- Feature-Sets und Hyperparameter kontrolliert vergleichen
+- Ranking- und Vergleichslogik auf groessere Ticker-Koerbe erweitern
 - Definition einer Schnittstelle zwischen `StockPredictor.ML/` und `StockPredictor.App/`

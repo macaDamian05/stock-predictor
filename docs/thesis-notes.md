@@ -20,8 +20,13 @@ Der aktuelle technische Stand umfasst:
 - Persistence-Baseline als einfacher Referenzwert
 - `RandomForestRegressor` auf Lag-Features historischer Tagesrenditen
 - fuer den klassischen Baumansatz wird die naechste Tagesrendite modelliert und anschliessend in einen naechsten Schlusskurs zurueckgerechnet
+- der klassische Feature-Satz umfasst inzwischen auch Momentum, gleitende Durchschnitte, Volatilitaet und RSI
 - CSV- oder `yfinance`-basierte Dateneingabe
 - chronologischen Train/Test-Split ohne Shuffling
+- Walk-Forward-Backtesting mit expandierendem Trainingsfenster
+- grafische Ausgaben fuer Historie, Testperiode und mehrtaegigen Forecast
+- zusaetzliche Artefakte fuer Walk-Forward-Vorhersagen und Fold-Metriken
+- tickeruebergreifender Benchmark-Lauf mit gemeinsamer Vergleichstabelle
 - Download historischer Kursdaten ueber `yfinance`
 - Training eines LSTM-Modells pro Ticker
 - persistente Speicherung von Modell, Scaler, Metadaten und Trainingslog
@@ -57,7 +62,8 @@ Wichtig ist ausserdem eine zeitlich saubere Datenaufteilung, zum Beispiel:
 - Validierungszeitraum
 - Testzeitraum
 
-Fuer spaetere Iterationen ist ein Walk-Forward-Backtesting sinnvoll, damit das System unter realistischeren Bedingungen bewertet werden kann.
+Ein Walk-Forward-Backtesting ist bereits fuer den klassischen Modellpfad umgesetzt und sollte in spaeteren Iterationen systematisch ueber mehrere Aktien hinweg ausgewertet werden.
+Ein erster Mehrfachvergleich ueber mehrere Ticker ist jetzt ebenfalls vorgesehen, damit Metriken nicht nur fuer Einzelbeispiele, sondern auch tickeruebergreifend betrachtet werden koennen.
 
 ## Forschungsfragen
 
@@ -77,7 +83,7 @@ Moegliche Leitfragen:
 
 ## Moegliche Ausbaupfade
 
-- Walk-Forward-Backtesting fuer den klassischen Modellpfad
+- Walk-Forward-Backtesting ueber mehrere Ticker und Marktphasen vergleichen
 - Vergleich mehrerer Modelltypen, z. B. LSTM vs. GRU vs. klassische Baselines
 - Erweiterung von Aktien auf ETFs
 - Ranking mehrerer Werte anhand kombinierter Kennzahlen
