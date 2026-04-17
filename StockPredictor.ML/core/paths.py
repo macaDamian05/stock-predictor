@@ -12,6 +12,7 @@ CLASSICAL_DATA_DIR = STORAGE_DIR / "classical"
 BENCHMARK_DATA_DIR = STORAGE_DIR / "benchmarks"
 EXPERIMENT_DATA_DIR = STORAGE_DIR / "experiments"
 THESIS_DATA_DIR = STORAGE_DIR / "thesis"
+DASHBOARD_DATA_DIR = STORAGE_DIR / "dashboard"
 
 
 @dataclass(frozen=True)
@@ -68,6 +69,19 @@ class ExperimentArtifactPaths:
 
 
 @dataclass(frozen=True)
+class ProfileComparisonArtifactPaths:
+    run_name: str
+    safe_name: str
+    base_dir: Path
+    summary_csv: Path
+    summary_json: Path
+    per_ticker_csv: Path
+    report: Path
+    mean_rmse_plot: Path
+    delta_plot: Path
+
+
+@dataclass(frozen=True)
 class ThesisArtifactPaths:
     run_name: str
     safe_name: str
@@ -82,6 +96,21 @@ class ThesisArtifactPaths:
     core_profile_plot: Path
     core_profile_delta_plot: Path
     model_wins_plot: Path
+    diversified_profile_summary_csv: Path
+    diversified_profile_per_ticker_csv: Path
+    diversified_profile_plot: Path
+    diversified_profile_delta_plot: Path
+    basket_comparison_plot: Path
+
+
+@dataclass(frozen=True)
+class DashboardArtifactPaths:
+    run_name: str
+    safe_name: str
+    base_dir: Path
+    payload_json: Path
+    featured_tickers_csv: Path
+    basket_summary_csv: Path
 
 
 def ensure_runtime_directories() -> None:
@@ -91,6 +120,7 @@ def ensure_runtime_directories() -> None:
     BENCHMARK_DATA_DIR.mkdir(parents=True, exist_ok=True)
     EXPERIMENT_DATA_DIR.mkdir(parents=True, exist_ok=True)
     THESIS_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    DASHBOARD_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def sanitize_name(value: str, uppercase: bool = False) -> str:
@@ -175,6 +205,24 @@ def get_experiment_artifact_paths(run_name: str) -> ExperimentArtifactPaths:
     )
 
 
+def get_profile_comparison_artifact_paths(run_name: str) -> ProfileComparisonArtifactPaths:
+    safe_name = sanitize_name(run_name, uppercase=True)
+    base_dir = EXPERIMENT_DATA_DIR / safe_name
+    base_dir.mkdir(parents=True, exist_ok=True)
+
+    return ProfileComparisonArtifactPaths(
+        run_name=run_name,
+        safe_name=safe_name,
+        base_dir=base_dir,
+        summary_csv=base_dir / "profile_comparison_summary.csv",
+        summary_json=base_dir / "profile_comparison_summary.json",
+        per_ticker_csv=base_dir / "profile_comparison_per_ticker.csv",
+        report=base_dir / "profile_comparison_report.md",
+        mean_rmse_plot=base_dir / "profile_comparison_mean_rmse.png",
+        delta_plot=base_dir / "profile_comparison_delta_per_ticker.png",
+    )
+
+
 def get_thesis_artifact_paths(run_name: str) -> ThesisArtifactPaths:
     safe_name = sanitize_name(run_name, uppercase=True)
     base_dir = THESIS_DATA_DIR / safe_name
@@ -194,4 +242,24 @@ def get_thesis_artifact_paths(run_name: str) -> ThesisArtifactPaths:
         core_profile_plot=base_dir / "core_profile_mean_rmse.png",
         core_profile_delta_plot=base_dir / "core_profile_delta_per_ticker.png",
         model_wins_plot=base_dir / "core_profile_model_wins.png",
+        diversified_profile_summary_csv=base_dir / "diversified_profile_summary.csv",
+        diversified_profile_per_ticker_csv=base_dir / "diversified_profile_per_ticker.csv",
+        diversified_profile_plot=base_dir / "diversified_profile_mean_rmse.png",
+        diversified_profile_delta_plot=base_dir / "diversified_profile_delta_per_ticker.png",
+        basket_comparison_plot=base_dir / "basket_profile_comparison.png",
+    )
+
+
+def get_dashboard_artifact_paths(run_name: str) -> DashboardArtifactPaths:
+    safe_name = sanitize_name(run_name, uppercase=True)
+    base_dir = DASHBOARD_DATA_DIR / safe_name
+    base_dir.mkdir(parents=True, exist_ok=True)
+
+    return DashboardArtifactPaths(
+        run_name=run_name,
+        safe_name=safe_name,
+        base_dir=base_dir,
+        payload_json=base_dir / "dashboard_payload.json",
+        featured_tickers_csv=base_dir / "featured_tickers.csv",
+        basket_summary_csv=base_dir / "basket_summary.csv",
     )

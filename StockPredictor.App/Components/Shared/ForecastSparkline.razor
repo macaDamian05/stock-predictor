@@ -1,0 +1,84 @@
+@if (CanRender)
+{
+    <svg class="forecast-sparkline @TrendTone" viewBox="0 0 100 44" preserveAspectRatio="none" role="img" aria-label="@AriaLabel">
+        <defs>
+            <linearGradient id="@_gradientId" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="currentColor" stop-opacity="0.35" />
+                <stop offset="100%" stop-color="currentColor" stop-opacity="0.02" />
+            </linearGradient>
+        </defs>
+        <polygon class="forecast-sparkline-area" points="@AreaPoints" fill="url(#@_gradientId)" />
+        <polyline class="forecast-sparkline-line" points="@LinePoints" />
+        <circle class="forecast-sparkline-dot" cx="@LastPoint.X" cy="@LastPoint.Y" r="2.2" />
+    </svg>
+}
+
+@code {
+    private readonly string _gradientId = $"spark-{Guid.NewGuid():N}";
+
+    [Parameter]
+    public IReadOnlyList<double>? Values { get; set; }
+
+    [Parameter]
+    public string TrendTone { get; set; } = "flat";
+
+    [Parameter]
+    public string AriaLabel { get; set; } = "Forecast sparkline";
+
+    private bool CanRender => Values is { Count: >= 2 };
+
+    private string LinePoints => BuildPoints(includeBaseline: false);
+
+    private string AreaPoints => BuildPoints(includeBaseline: true);
+
+    private (string X, string Y) LastPoint
+    {
+        get
+        {
+            var coordinates = GetCoordinates();
+            var last = coordinates[^1];
+            return (last.x, last.y);
+        }
+    }
+
+    private string BuildPoints(bool includeBaseline)
+    {
+        var coordinates = GetCoordinates();
+        var points = coordinates.Select(point => $"{point.x},{point.y}").ToList();
+
+        if (includeBaseline)
+        {
+            points.Insert(0, $"{coordinates[0].x},40");
+            points.Add($"{coordinates[^1].x},40");
+        }
+
+        return string.Join(" ", points);
+    }
+
+    private List<(string x, string y)> GetCoordinates()
+    {
+        var values = Values ?? [];
+        var min = values.Min();
+        var max = values.Max();
+
+        if (Math.Abs(max - min) < double.Epsilon)
+        {
+            min -= 1;
+            max += 1;
+        }
+
+        var step = values.Count == 1 ? 100d : 100d / (values.Count - 1);
+        var coordinates = new List<(string x, string y)>(values.Count);
+
+        for (var index = 0; index < values.Count; index++)
+        {
+            var value = values[index];
+            var x = step * index;
+            var normalized = (value - min) / (max - min);
+            var y = 40 - (normalized * 32);
+            coordinates.Add((x.ToString("0.###"), y.ToString("0.###")));
+        }
+
+        return coordinates;
+    }
+}

@@ -8,7 +8,9 @@ Erwartete Unterordner:
 - `classical/<source>/` fuer klassische Mehrmodell-Artefakte
 - `benchmarks/<run>/` fuer vergleichende Multi-Ticker-Auswertungen
 - `experiments/<run>/` fuer ganze Experiment-Suiten ueber mehrere Profile und Lag-Werte
+- `experiments/<run>/` auch fuer konsolidierte Profilvergleiche ueber mehrere Benchmark-Runs
 - `thesis/<run>/` fuer konsolidierte BA-taugliche Ergebnispakete
+- `dashboard/<run>/` fuer UI-freundliche JSON- und CSV-Exports
 - `plots/` falls spaeter gespeicherte Diagramme abgelegt werden sollen
 - `yfinance-cache/` fuer lokale Paket-Caches, damit Datenabrufe reproduzierbar im Projektordner bleiben
 
@@ -41,6 +43,15 @@ Typische Artefakte der Experimentsuite:
 - `experiment_comparison.png`
 - `ticker_best_configs.csv`
 
+Typische Artefakte eines Profilvergleichs:
+
+- `profile_comparison_summary.csv`
+- `profile_comparison_summary.json`
+- `profile_comparison_per_ticker.csv`
+- `profile_comparison_report.md`
+- `profile_comparison_mean_rmse.png`
+- `profile_comparison_delta_per_ticker.png`
+
 Typische Artefakte des Thesis-Exports:
 
 - `starter_model_results.csv`
@@ -50,5 +61,11 @@ Typische Artefakte des Thesis-Exports:
 - `thesis_results_report.md`
 - `thesis_results_summary.json`
 - mehrere zusammenfassende PNG-Grafiken
+
+Typische Artefakte des Dashboard-Exports:
+
+- `dashboard_payload.json`
+- `featured_tickers.csv`
+- `basket_summary.csv`
 
 Die eigentlichen Modellartefakte sind in Git ignoriert.

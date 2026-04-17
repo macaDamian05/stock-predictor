@@ -14,6 +14,7 @@ StockPredictor.ML/storage/classical/
 StockPredictor.ML/storage/benchmarks/
 StockPredictor.ML/storage/experiments/
 StockPredictor.ML/storage/thesis/
+StockPredictor.ML/storage/dashboard/
 StockPredictor.ML/storage/plots/
 StockPredictor.ML/storage/yfinance-cache/
 

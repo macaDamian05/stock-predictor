@@ -172,6 +172,38 @@ Methodischer Nutzen:
 - leichtere Uebernahme von Tabellen und Grafiken in die Bachelorarbeit
 - besser nachvollziehbare Verbindung zwischen Zwischenstand, Vergleichsergebnis und spaeterer Interpretation
 
+## Phase 10: Automatisierter Profilvergleich und `bachelor_diversified`
+
+Im naechsten Schritt wurde der Profilvergleich von einem einmaligen manuellen Zusammenfuehren auf ein eigenes Skript umgestellt.
+
+Ziel dieser Phase:
+
+- Benchmark-Runs ueber mehrere Teil-Laeufe sauber wieder zusammenfuehren
+- denselben Vergleichsprozess fuer weitere Koerbe wiederverwenden
+- groessere Koerbe wie `bachelor_diversified` ohne Ad-hoc-Auswertung auswerten
+
+Wichtige Beobachtung:
+
+- auch im `bachelor_diversified`-Korb blieb die Baseline bei der RMSE sehr stark
+- `technical_extended` war im Mittel erneut leicht besser als `lag_only`
+- dieser Vorteil war aber nicht ueber alle Einzelticker hinweg einheitlich verteilt
+
+Diese Phase ist fuer die Bachelorarbeit wichtig, weil sie zeigt, dass die Evaluation nicht nur groesser, sondern auch methodisch sauberer und reproduzierbarer geworden ist.
+
+## Phase 11: UI-Handover ohne direkte UI-Implementierung
+
+Bevor die eigentliche Blazor-Oberflaeche beginnt, wurde noch eine Zwischenphase eingefuehrt:
+
+- konsolidierte Thesis-Ergebnisse fuer mehrere Koerbe
+- kompakter Dashboard-Export fuer eine spaetere Anwendung
+- klares Handover-Dokument fuer die Oberflaeche
+
+Warum dieser Schritt wichtig ist:
+
+- die UI muss nicht mehr direkt mit vielen einzelnen ML-Artefakten umgehen
+- die Datenstruktur fuer Karten, Tickeruebersicht und Korbvergleiche ist bereits festgelegt
+- damit wird der naechste Entwicklungsschritt klar: jetzt kann die Oberflaeche gebaut werden, statt weiter an der Datenaufbereitung zu arbeiten
+
 ## Zwischenfazit fuer die Bachelorarbeit
 
 Der Entwicklungsverlauf zeigt bewusst keine lineare Bewegung zu einer sofort "perfekten" Loesung. Stattdessen ist sichtbar:

@@ -10,7 +10,9 @@ Dieses Modul ueberfuehrt den frueheren Colab-Prototyp in eine reproduzierbare Py
 - `run_classical_pipeline.py`: erster Bachelorarbeits-tauglicher Einstieg fuer den Vergleich mehrerer klassischer Modelle
 - `run_walk_forward_benchmark.py`: Vergleich mehrerer Ticker mit gemeinsamer Walk-Forward-Auswertung
 - `run_experiment_suite.py`: reproduzierbare Experimentsuite ueber Koerbe, Feature-Profile und Lag-Werte
+- `generate_profile_comparison.py`: konsolidiert mehrere Benchmark-Runs zu einem Profilvergleich
 - `generate_thesis_results.py`: konsolidiert vorhandene Experimente zu BA-tauglichen Tabellen, Grafiken und einem Kurzreport
+- `export_dashboard_payload.py`: erstellt einen UI-freundlichen JSON- und CSV-Handover fuer die spaetere App
 - `core/benchmark_presets.py`: feste Ticker-Koerbe fuer Starter- und Bachelor-Laeufe
 - `core/data_loader.py`: Download und Bereinigung der Marktdaten
 - `core/preprocessing.py`: Sequenzbildung und Skalierung
@@ -19,7 +21,7 @@ Dieses Modul ueberfuehrt den frueheren Colab-Prototyp in eine reproduzierbare Py
 - `core/predictor.py`: historische Vorhersagen, Zukunftsprognosen und Metriken
 - `core/indicators.py`: RSI-Berechnung
 - `core/tabular_features.py`: Lag-Feature-Erzeugung fuer klassische Modelle
-- `core/classical_models.py`: Persistence-Baseline und Random Forest
+- `core/classical_models.py`: Persistence-Baseline, Ridge Regression, Decision Tree und Random Forest
 
 ## Erster sinnvoller Startpfad
 
@@ -81,7 +83,9 @@ python run_walk_forward_benchmark.py --basket-preset starter
 python run_walk_forward_benchmark.py --basket-preset bachelor_core --feature-profile technical_extended
 python run_experiment_suite.py --basket-preset starter
 python run_experiment_suite.py --basket-preset bachelor_core --feature-profiles lag_only technical_basic technical_extended --lag-values 5 10
+python generate_profile_comparison.py BACHELOR_DIVERSIFIED_LAG_ONLY BACHELOR_DIVERSIFIED_TECHNICAL_EXTENDED_PART1 BACHELOR_DIVERSIFIED_TECHNICAL_EXTENDED_PART2 --run-name bachelor_diversified_profile_comparison --basket-name bachelor_diversified
 python generate_thesis_results.py
+python export_dashboard_payload.py
 python run_classical_pipeline.py --csv-path .\data\aapl.csv --date-column Date --close-column Close
 python main.py AAPL
 python main.py TSLA --retrain
@@ -117,10 +121,19 @@ Verfuegbare Parameter:
 - `--feature-profiles`: mehrere Profile in einem Lauf vergleichen
 - `--lag-values`: mehrere Lag-Zahlen in einem Lauf vergleichen
 - `--run-name`: eigener Name fuer den Suite-Ordner
+- `generate_profile_comparison.py`
+- `benchmark_runs`: eine oder mehrere Benchmark-Run-Ordner unter `storage/benchmarks/`
+- `--run-name`: Zielordner unter `storage/experiments/`
+- `--basket-name`: Anzeigename fuer den verglichenen Korb
 - `generate_thesis_results.py`
 - `--starter-suite-run`: Quellexperiment fuer die Starter-Zusammenfassung
 - `--core-profile-run`: Quelle fuer den `bachelor_core`-Profilvergleich
+- `--diversified-profile-run`: Quelle fuer den `bachelor_diversified`-Profilvergleich
 - `--run-name`: Zielordner unter `storage/thesis/`
+- `export_dashboard_payload.py`
+- `tickers`: Featured-Ticker fuer den spaeteren App-Einstieg
+- `--thesis-run`: Quelle fuer den konsolidierten Thesis-Stand
+- `--run-name`: Zielordner unter `storage/dashboard/`
 - `ticker`: Tickersymbol, optional auch interaktiv
 - `--retrain`: neues Volltraining statt Laden/Weitertrainieren
 - `--start-date` und `--end-date`: Datenbereich
@@ -149,7 +162,11 @@ Das Benchmark-Skript speichert unter `storage/benchmarks/<run>/` eine CSV-, JSON
 
 Die Experimentsuite speichert unter `storage/experiments/<run>/` aggregierte Ergebnis-CSV/JSON-Dateien, einen BA-tauglichen Markdown-Report, einen Vergleichsplot und eine Tabelle mit den besten Konfigurationen pro Ticker.
 
+Der Profilvergleich speichert ebenfalls unter `storage/experiments/<run>/` eine zusammengefuehrte CSV-/JSON-Zusammenfassung, eine tickerweise Differenztabelle, einen Kurzreport und passende Vergleichsplots.
+
 Der Thesis-Export speichert unter `storage/thesis/<run>/` eine kompakte Ergebnisbasis fuer die Arbeit: konsolidierte CSV-Dateien, einen Markdown-Report, eine JSON-Zusammenfassung und mehrere zusammenfassende Diagramme.
+
+Der Dashboard-Export speichert unter `storage/dashboard/<run>/` eine UI-freundliche JSON-Datei sowie ergaenzende CSVs. Diese Schicht dient als Handover fuer die spaetere Blazor-App.
 
 ## Derzeitiger Modellzuschnitt
 
@@ -171,4 +188,4 @@ Die Original-Notebooks aus dem frueheren lokalen Arbeitsstand liegen unter `note
 
 ## Letzte technische Beobachtung
 
-Der mehrfache Walk-Forward-Vergleich zeigt aktuell: Die naive Persistence-Baseline bleibt bei der RMSE sehr stark, aber die besten gelernten Modelle wechseln je nach Aktie. In der ersten Experimentsuite auf dem `starter`-Korb war `lag_only` mit `10` Lags im Mittel die beste Konfiguration. Im groesseren `bachelor_core`-Vergleich war `technical_extended` bei den besten gelernten Modellen im Mittel leicht besser als `lag_only`, der Vorsprung fiel aber klein aus. Der rekursive Forecast-Pfad wurde technisch bereinigt und baut Zukunftsfeatures jetzt konsistent aus der fortgeschriebenen Close-Historie neu auf. Diese Zwischenstaende lassen sich nun mit `generate_thesis_results.py` in eine BA-taugliche Ergebniszusammenfassung ueberfuehren.
+Der mehrfache Walk-Forward-Vergleich zeigt aktuell: Die naive Persistence-Baseline bleibt bei der RMSE sehr stark, aber die besten gelernten Modelle wechseln je nach Aktie. In der ersten Experimentsuite auf dem `starter`-Korb war `lag_only` mit `10` Lags im Mittel die beste Konfiguration. Im groesseren `bachelor_core`-Vergleich war `technical_extended` bei den besten gelernten Modellen im Mittel leicht besser als `lag_only`, der Vorsprung fiel aber klein aus. Dasselbe Muster zeigt sich inzwischen auch im `bachelor_diversified`-Korb. Der rekursive Forecast-Pfad wurde technisch bereinigt und baut Zukunftsfeatures jetzt konsistent aus der fortgeschriebenen Close-Historie neu auf. Diese Zwischenstaende lassen sich nun mit `generate_profile_comparison.py`, `generate_thesis_results.py` und `export_dashboard_payload.py` in eine BA- und UI-taugliche Ergebniszusammenfassung ueberfuehren.

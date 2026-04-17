@@ -31,8 +31,10 @@ Der aktuelle technische Stand umfasst:
 - zusaetzliche Artefakte fuer Walk-Forward-Vorhersagen und Fold-Metriken
 - tickeruebergreifender Benchmark-Lauf mit gemeinsamer Vergleichstabelle
 - Thesis-Export fuer konsolidierte Tabellen, Grafiken und Kurzberichte aus den bisherigen Experimenten
+- UI-Handover ueber eine kompakte Dashboard-JSON fuer die spaetere Oberflaeche
 - konsistente rekursive Forecast-Berechnung auf Basis fortgeschriebener Close-Historie
 - Experiment-Suite ueber mehrere Feature-Profile, Lag-Werte und feste Ticker-Koerbe
+- wiederverwendbarer Profilvergleich aus mehreren Benchmark-Runs
 - Download historischer Kursdaten ueber `yfinance`
 - Training eines LSTM-Modells pro Ticker
 - persistente Speicherung von Modell, Scaler, Metadaten und Trainingslog
@@ -78,7 +80,9 @@ Erste Ergebnisbeobachtung:
 - Diese Konstellation ist wissenschaftlich interessant, weil sie zeigt, dass Richtungsvorhersage, Punktprognose und Modellrang je nach Aktie unterschiedlich ausfallen koennen.
 - In der ersten Starter-Suite war `lag_only` mit `10` Lags im Mittel besser als die technisch erweiterten Profile. Das spricht dafuer, dass mehr Features nicht automatisch zu besserer Generalisierung fuehren.
 - Im groesseren `bachelor_core`-Vergleich zeigte `technical_extended` gegenueber `lag_only` zwar einen kleinen Vorteil bei den besten gelernten Modellen, dieser Vorteil blieb aber gering. Auch das spricht dafuer, dass Feature-Erweiterung nur kontrolliert und empirisch bewertet werden sollte.
+- Im zusaetzlichen `bachelor_diversified`-Vergleich bestaetigt sich dieses Muster. `technical_extended` ist zwar auch dort im Mittel leicht besser, liegt aber tickerweise nur bei einem Teil der Werte vorne. Das zeigt, dass Mittelwerte und Einzelticker-Auswertung gemeinsam betrachtet werden muessen.
 - Die Ergebnisse koennen jetzt als konsolidiertes BA-Ergebnispaket exportiert werden. Dadurch lassen sich Tabellen und Grafiken spaeter leichter in die schriftliche Auswertung uebernehmen.
+- Zusaetzlich koennen die Ergebnisse jetzt in eine kompakte Dashboard-Struktur exportiert werden. Das ist kein neuer Modellschritt, aber wichtig fuer die technische Uebergabe in die Anwendungsoberflaeche.
 
 ## Forschungsfragen
 
@@ -109,5 +113,5 @@ Moegliche Leitfragen:
 - Evaluationsdesign festziehen
 - Feature Engineering sauber dokumentieren
 - Anforderungen fuer Ranking und Mehrfachvergleich definieren
-- groesseren Bachelor-Korb `bachelor_diversified` vollstaendig durchrechnen
-- Uebergabestrategie zwischen Python-ML und Blazor-App festlegen
+- weitere Koerbe oder Zeitfenster fuer Robustheitspruefungen durchrechnen
+- Blazor-Oberflaeche auf Basis des vorhandenen Dashboard-Handover bauen

@@ -31,6 +31,7 @@ Der ML-Prototyp in `StockPredictor.ML/` kann derzeit:
 - mehrere Ticker in einem Benchmark-Lauf vergleichen und gemeinsame Ergebnisdateien erzeugen
 - feste Ticker-Koerbe wie `starter`, `bachelor_core` und `bachelor_diversified` verwenden
 - ganze Experiment-Suiten ueber mehrere Feature-Profile und Lag-Werte ausfuehren
+- vorhandene Benchmark-Runs zu Profilvergleichen zusammenfassen
 - aus vorhandenen Benchmark- und Experiment-Runs BA-taugliche Ergebnis-Pakete erzeugen
 - Modell, Metriken, Vorhersagen und Prognoseartefakte lokal speichern
 - Kursdaten per `yfinance` laden
@@ -51,6 +52,7 @@ Der Webteil in `StockPredictor.App/` ist aktuell noch Projektgeruest und dient a
 - `docs/project-context.md`: dauerhaftes Projektgedaechtnis fuer spaetere Sessions
 - `docs/thesis-notes.md`: BA-relevante Notizen, Forschungsfragen und methodische Hinweise
 - `docs/development-history.md`: dokumentierter Entwicklungsverlauf mit frueheren Zwischenstaenden
+- `docs/ui-handoff.md`: Uebergabedokument fuer die spaetere Blazor-Oberflaeche
 
 ## Lokales Setup
 
@@ -93,7 +95,9 @@ python run_walk_forward_benchmark.py --basket-preset starter
 python run_walk_forward_benchmark.py --basket-preset bachelor_core --feature-profile technical_extended
 python run_experiment_suite.py --basket-preset starter
 python run_experiment_suite.py --basket-preset bachelor_core --feature-profiles lag_only technical_basic technical_extended --lag-values 5 10
+python generate_profile_comparison.py BACHELOR_DIVERSIFIED_LAG_ONLY BACHELOR_DIVERSIFIED_TECHNICAL_EXTENDED_PART1 BACHELOR_DIVERSIFIED_TECHNICAL_EXTENDED_PART2 --run-name bachelor_diversified_profile_comparison --basket-name bachelor_diversified
 python generate_thesis_results.py
+python export_dashboard_payload.py
 python run_classical_pipeline.py --csv-path .\data\aapl.csv --date-column Date --close-column Close
 python main.py TSLA --retrain --forecast-days 10
 python main.py ENR.DE --no-plots
@@ -128,6 +132,7 @@ Die aktuell wichtigsten BA-Notizen liegen in:
 - `docs/development-history.md`
 - `StockPredictor.ML/README.md`
 - `StockPredictor.ML/storage/thesis/<run>/thesis_results_report.md`
+- `docs/ui-handoff.md`
 
 Diese Dateien sollten bei jeder groesseren fachlichen oder technischen Aenderung aktualisiert werden, damit die Projektgeschichte und die Begruendungen nachvollziehbar bleiben.
 
@@ -144,12 +149,11 @@ Diese Dateien sollten bei jeder groesseren fachlichen oder technischen Aenderung
 
 ## Aktuelle Beobachtung
 
-Im aktuellen Mehrfachvergleich ueber `AAPL`, `TSLA` und `DOU.DE` ist die naive Persistence-Baseline bei der RMSE weiterhin sehr stark. In der ersten Experimentsuite mit dem `starter`-Korb war `lag_only` mit `10` Lags die beste Konfiguration im Mittel. Im groesseren `bachelor_core`-Vergleich ist `technical_extended` bei den besten gelernten Modellen im Mittel leicht besser als `lag_only`, aber der Abstand ist klein und die Baseline bleibt weiterhin sehr konkurrenzfaehig. Diese Ergebnisse koennen jetzt ueber `generate_thesis_results.py` in ein kompaktes BA-Ergebnispaket ueberfuehrt werden.
+Im aktuellen Mehrfachvergleich ueber `AAPL`, `TSLA` und `DOU.DE` ist die naive Persistence-Baseline bei der RMSE weiterhin sehr stark. In der ersten Experimentsuite mit dem `starter`-Korb war `lag_only` mit `10` Lags die beste Konfiguration im Mittel. Im groesseren `bachelor_core`-Vergleich ist `technical_extended` bei den besten gelernten Modellen im Mittel leicht besser als `lag_only`, aber der Abstand ist klein und die Baseline bleibt weiterhin sehr konkurrenzfaehig. Dieses Muster bestaetigt sich auch im `bachelor_diversified`-Korb: `technical_extended` ist im Mittel leicht besser als `lag_only`, obwohl es tickerweise nur bei `4` von `10` Werten vorne liegt. Diese Ergebnisse koennen jetzt ueber `generate_thesis_results.py`, `generate_profile_comparison.py` und `export_dashboard_payload.py` sauber weiterverarbeitet werden. Fuer die spaetere App steht damit ein eigener Handover unter `StockPredictor.ML/storage/dashboard/LATEST/dashboard_payload.json` bereit.
 
 ## Naechste sinnvolle Schritte
 
-- Experimentsuite auf `bachelor_diversified` ausdehnen
+- UI in `StockPredictor.App/` auf Basis von `docs/ui-handoff.md` und `storage/dashboard/LATEST/dashboard_payload.json` umsetzen
 - saubere Train/Validation/Test-Aufteilung nach Zeitachsen weiter verfeinern
 - Feature-Sets und Hyperparameter kontrolliert vergleichen
-- BA-Ergebnispaket nach groesseren neuen Runs aktualisieren
-- Definition einer Schnittstelle zwischen `StockPredictor.ML/` und `StockPredictor.App/`
+- BA-Ergebnispaket und Dashboard-Export nach groesseren neuen Runs aktualisieren

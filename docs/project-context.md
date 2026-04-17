@@ -26,7 +26,9 @@ Stand: 2026-04-17
 - zusaetzliche gespeicherte Walk-Forward-Metriken, Fold-Ergebnisse und ein Walk-Forward-Plot
 - Mehrfachvergleich mehrerer Ticker mit gemeinsamer Benchmark-Zusammenfassung
 - reproduzierbare Experiment-Suite ueber mehrere Profile und Lag-Werte
+- wiederverwendbarer Profilvergleich ueber mehrere Benchmark-Runs
 - konsolidierter Thesis-Export fuer Tabellen, Grafiken und Ergebnisberichte aus vorhandenen Runs
+- Dashboard-Handover fuer die spaetere Blazor-App unter `storage/dashboard/LATEST/dashboard_payload.json`
 - rekursiver Forecast im klassischen Pfad baut Features nun konsistent aus der fortgeschriebenen Close-Historie neu auf
 - Single-Ticker-Training und -Prognose mit einem LSTM auf Basis historischer Schlusskurse
 - persistente Speicherung pro Ticker
@@ -47,6 +49,8 @@ Aktuelle empirische Beobachtung:
 - Unter den gelernten Modellen ist aktuell `Ridge Regression` fuer `DOU.DE` und `TSLA` am besten, waehrend bei `AAPL` der `Random Forest` fuehrt.
 - In der ersten Experimentsuite auf dem `starter`-Korb war `lag_only` mit `10` Lags die beste Konfiguration im Mittel.
 - Im groesseren `bachelor_core`-Vergleich war `technical_extended` bei den besten gelernten Modellen im Mittel leicht besser als `lag_only`, aber nur mit kleinem Abstand.
+- Im `bachelor_diversified`-Vergleich zeigt sich dasselbe Muster: `technical_extended` ist im Mittel leicht besser als `lag_only`, obwohl der Vorteil tickerweise nicht einheitlich ist.
+- Fuer die App steht jetzt eine kompakte JSON-Schicht bereit. Die UI muss daher nicht direkt mit rohen Benchmark- oder Experimentdateien arbeiten.
 
 ## Lokale Umgebungsannahmen
 
@@ -66,7 +70,7 @@ Aktuelle empirische Beobachtung:
 
 ## Naechste technische Schritte
 
-- Experimentsuite auf `bachelor_diversified` ausdehnen
+- Ergebnisbasis auf weitere Koerbe und eventuell Zeitabschnitte ausdehnen
 - Feature-Set weiter testen und dokumentieren
 - Thesis-Ergebnispaket nach groesseren neuen Runs aktualisieren
-- Datenaustausch zwischen Python und Blazor sauber definieren
+- Blazor-Oberflaeche auf Basis des vorhandenen Dashboard-Handover umsetzen
