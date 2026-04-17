@@ -16,9 +16,10 @@ Wichtige Leitlinien:
 
 Der ML-Prototyp in `StockPredictor.ML/` kann derzeit:
 
-- eine klassische Zeitreihen-Pipeline mit `Persistence-Baseline` und `RandomForestRegressor` ausfuehren
+- eine klassische Zeitreihen-Pipeline mit `Persistence-Baseline`, `Ridge Regression`, `Decision Tree` und `RandomForestRegressor` ausfuehren
 - historische Kursdaten per CSV oder `yfinance` laden
 - Lag-Features ohne Data Leakage erzeugen
+- zwischen mehreren Feature-Profilen wie `lag_only`, `technical_basic` und `technical_extended` wechseln
 - fuer den klassischen Pfad die naechste Tagesrendite modellieren und daraus den naechsten Schlusskurs ableiten
 - einen chronologischen Train/Test-Split fuer die Auswertung nutzen
 - technische Features wie Momentum, gleitende Durchschnitte, Volatilitaet und RSI als Eingaben verwenden
@@ -28,6 +29,9 @@ Der ML-Prototyp in `StockPredictor.ML/` kann derzeit:
 - mehrere gespeicherte Grafiken erzeugen: Kurshistorie, Testvorhersagen und Zukunftsforecast
 - zusaetzlich Walk-Forward-Vorhersagen, Fold-Metriken und einen eigenen Walk-Forward-Plot speichern
 - mehrere Ticker in einem Benchmark-Lauf vergleichen und gemeinsame Ergebnisdateien erzeugen
+- feste Ticker-Koerbe wie `starter`, `bachelor_core` und `bachelor_diversified` verwenden
+- ganze Experiment-Suiten ueber mehrere Feature-Profile und Lag-Werte ausfuehren
+- aus vorhandenen Benchmark- und Experiment-Runs BA-taugliche Ergebnis-Pakete erzeugen
 - Modell, Metriken, Vorhersagen und Prognoseartefakte lokal speichern
 - Kursdaten per `yfinance` laden
 - pro Ticker ein LSTM-Modell auf Basis von Schlusskursen trainieren
@@ -46,6 +50,7 @@ Der Webteil in `StockPredictor.App/` ist aktuell noch Projektgeruest und dient a
 - `StockPredictor.ML/storage/`: lokale Laufzeitdaten wie Modelle, Scaler und Logs
 - `docs/project-context.md`: dauerhaftes Projektgedaechtnis fuer spaetere Sessions
 - `docs/thesis-notes.md`: BA-relevante Notizen, Forschungsfragen und methodische Hinweise
+- `docs/development-history.md`: dokumentierter Entwicklungsverlauf mit frueheren Zwischenstaenden
 
 ## Lokales Setup
 
@@ -83,8 +88,12 @@ Nutzliche Varianten:
 python run_classical_pipeline.py TSLA --lags 20 --test-size 0.25
 python run_classical_pipeline.py DOU.DE --forecast-days 5 --show-plot
 python run_classical_pipeline.py AAPL --walk-forward-folds 6 --walk-forward-train-size 0.75
-python run_walk_forward_benchmark.py
-python run_walk_forward_benchmark.py AAPL TSLA DOU.DE
+python run_classical_pipeline.py AAPL --feature-profile technical_basic
+python run_walk_forward_benchmark.py --basket-preset starter
+python run_walk_forward_benchmark.py --basket-preset bachelor_core --feature-profile technical_extended
+python run_experiment_suite.py --basket-preset starter
+python run_experiment_suite.py --basket-preset bachelor_core --feature-profiles lag_only technical_basic technical_extended --lag-values 5 10
+python generate_thesis_results.py
 python run_classical_pipeline.py --csv-path .\data\aapl.csv --date-column Date --close-column Close
 python main.py TSLA --retrain --forecast-days 10
 python main.py ENR.DE --no-plots
@@ -116,7 +125,9 @@ Die aktuell wichtigsten BA-Notizen liegen in:
 
 - `docs/thesis-notes.md`
 - `docs/project-context.md`
+- `docs/development-history.md`
 - `StockPredictor.ML/README.md`
+- `StockPredictor.ML/storage/thesis/<run>/thesis_results_report.md`
 
 Diese Dateien sollten bei jeder groesseren fachlichen oder technischen Aenderung aktualisiert werden, damit die Projektgeschichte und die Begruendungen nachvollziehbar bleiben.
 
@@ -133,12 +144,12 @@ Diese Dateien sollten bei jeder groesseren fachlichen oder technischen Aenderung
 
 ## Aktuelle Beobachtung
 
-Im aktuellen Mehrfachvergleich ueber `AAPL`, `TSLA` und `DOU.DE` liefert der Random Forest bereits bessere Richtungssignale als die naive Persistence-Baseline, schlaegt sie aber bei der RMSE noch nicht robust. Das ist ein sinnvoller Zwischenstand fuer die Bachelorarbeit, weil damit eine ehrliche Baseline und ein nachvollziehbarer Verbesserungsbedarf dokumentiert sind.
+Im aktuellen Mehrfachvergleich ueber `AAPL`, `TSLA` und `DOU.DE` ist die naive Persistence-Baseline bei der RMSE weiterhin sehr stark. In der ersten Experimentsuite mit dem `starter`-Korb war `lag_only` mit `10` Lags die beste Konfiguration im Mittel. Im groesseren `bachelor_core`-Vergleich ist `technical_extended` bei den besten gelernten Modellen im Mittel leicht besser als `lag_only`, aber der Abstand ist klein und die Baseline bleibt weiterhin sehr konkurrenzfaehig. Diese Ergebnisse koennen jetzt ueber `generate_thesis_results.py` in ein kompaktes BA-Ergebnispaket ueberfuehrt werden.
 
 ## Naechste sinnvolle Schritte
 
-- Walk-Forward-Evaluation ueber mehrere Ticker systematisch vergleichen
+- Experimentsuite auf `bachelor_diversified` ausdehnen
 - saubere Train/Validation/Test-Aufteilung nach Zeitachsen weiter verfeinern
 - Feature-Sets und Hyperparameter kontrolliert vergleichen
-- Ranking- und Vergleichslogik auf groessere Ticker-Koerbe erweitern
+- BA-Ergebnispaket nach groesseren neuen Runs aktualisieren
 - Definition einer Schnittstelle zwischen `StockPredictor.ML/` und `StockPredictor.App/`

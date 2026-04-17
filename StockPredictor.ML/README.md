@@ -7,8 +7,11 @@ Dieses Modul ueberfuehrt den frueheren Colab-Prototyp in eine reproduzierbare Py
 ## Enthaltene Bausteine
 
 - `main.py`: CLI-Einstiegspunkt
-- `run_classical_pipeline.py`: erster Bachelorarbeits-tauglicher Einstieg fuer Baseline + Random Forest
+- `run_classical_pipeline.py`: erster Bachelorarbeits-tauglicher Einstieg fuer den Vergleich mehrerer klassischer Modelle
 - `run_walk_forward_benchmark.py`: Vergleich mehrerer Ticker mit gemeinsamer Walk-Forward-Auswertung
+- `run_experiment_suite.py`: reproduzierbare Experimentsuite ueber Koerbe, Feature-Profile und Lag-Werte
+- `generate_thesis_results.py`: konsolidiert vorhandene Experimente zu BA-tauglichen Tabellen, Grafiken und einem Kurzreport
+- `core/benchmark_presets.py`: feste Ticker-Koerbe fuer Starter- und Bachelor-Laeufe
 - `core/data_loader.py`: Download und Bereinigung der Marktdaten
 - `core/preprocessing.py`: Sequenzbildung und Skalierung
 - `core/model_factory.py`: Aufbau des LSTM-Modells
@@ -39,7 +42,7 @@ python run_classical_pipeline.py --csv-path .\data\aapl.csv --date-column Date -
 
 Der Lauf erzeugt:
 
-- `storage/classical/<source>/random_forest.joblib`
+- `storage/classical/<source>/classical_models.joblib`
 - `storage/classical/<source>/metrics.json`
 - `storage/classical/<source>/walk_forward_metrics.json`
 - `storage/classical/<source>/summary.json`
@@ -73,8 +76,12 @@ python run_classical_pipeline.py AAPL
 python run_classical_pipeline.py TSLA --lags 20 --test-size 0.25
 python run_classical_pipeline.py DOU.DE --forecast-days 5 --show-plot
 python run_classical_pipeline.py AAPL --walk-forward-folds 6 --walk-forward-train-size 0.75
-python run_walk_forward_benchmark.py
-python run_walk_forward_benchmark.py AAPL TSLA DOU.DE --walk-forward-folds 6
+python run_classical_pipeline.py AAPL --feature-profile technical_basic
+python run_walk_forward_benchmark.py --basket-preset starter
+python run_walk_forward_benchmark.py --basket-preset bachelor_core --feature-profile technical_extended
+python run_experiment_suite.py --basket-preset starter
+python run_experiment_suite.py --basket-preset bachelor_core --feature-profiles lag_only technical_basic technical_extended --lag-values 5 10
+python generate_thesis_results.py
 python run_classical_pipeline.py --csv-path .\data\aapl.csv --date-column Date --close-column Close
 python main.py AAPL
 python main.py TSLA --retrain
@@ -87,19 +94,33 @@ Verfuegbare Parameter:
 - `run_classical_pipeline.py`
 - `ticker` oder `--csv-path`: Datenquelle
 - `--lags`: Anzahl verwendeter Lag-Features
+- `--feature-profile`: `lag_only`, `technical_basic` oder `technical_extended`
 - `--forecast-days`: Anzahl der zusaetzlich berechneten Boersenwerktage
 - `--display-days`: wie viele reale Tage in den Diagrammen sichtbar sein sollen
 - `--rsi-window`: Fenster fuer den RSI im klassischen Pfad
 - `--test-size`: Groesse des chronologischen Testfensters
 - `--walk-forward-folds`: Anzahl der Walk-Forward-Testbloecke, `0` deaktiviert den Modus
 - `--walk-forward-train-size`: Groesse des ersten Trainingsfensters fuer Walk-Forward
+- `--ridge-alpha`: Regularisierung fuer Ridge Regression
+- `--tree-max-depth`, `--tree-min-samples-leaf`: Konfiguration des Decision Tree
 - `--n-estimators`, `--max-depth`, `--min-samples-leaf`: Random-Forest-Konfiguration
 - `--show-plot`: zeigt die gespeicherten Diagramme interaktiv an
 - `run_walk_forward_benchmark.py`
-- `tickers`: Tickerliste, Standardkorb ist `AAPL`, `TSLA`, `DOU.DE`
+- `tickers`: Tickerliste, alternativ ueber `--basket-preset`
+- `--basket-preset`: `starter`, `bachelor_core` oder `bachelor_diversified`
+- `--feature-profile`: Feature-Profil fuer den Benchmark
 - `--run-name`: eigener Name fuer den Benchmark-Ordner
 - `--walk-forward-folds`, `--walk-forward-train-size`: gleiche Bedeutung wie im Einzel-Lauf
 - `--n-estimators`, `--max-depth`, `--min-samples-leaf`: Random-Forest-Konfiguration
+- `run_experiment_suite.py`
+- `--basket-preset`: fester Ticker-Korb fuer die Suite
+- `--feature-profiles`: mehrere Profile in einem Lauf vergleichen
+- `--lag-values`: mehrere Lag-Zahlen in einem Lauf vergleichen
+- `--run-name`: eigener Name fuer den Suite-Ordner
+- `generate_thesis_results.py`
+- `--starter-suite-run`: Quellexperiment fuer die Starter-Zusammenfassung
+- `--core-profile-run`: Quelle fuer den `bachelor_core`-Profilvergleich
+- `--run-name`: Zielordner unter `storage/thesis/`
 - `ticker`: Tickersymbol, optional auch interaktiv
 - `--retrain`: neues Volltraining statt Laden/Weitertrainieren
 - `--start-date` und `--end-date`: Datenbereich
@@ -126,13 +147,18 @@ Zusatzlich speichert die klassische Pipeline unter `storage/classical/<source>/`
 
 Das Benchmark-Skript speichert unter `storage/benchmarks/<run>/` eine CSV-, JSON- und Markdown-Zusammenfassung sowie einen Vergleichsplot ueber mehrere Ticker.
 
+Die Experimentsuite speichert unter `storage/experiments/<run>/` aggregierte Ergebnis-CSV/JSON-Dateien, einen BA-tauglichen Markdown-Report, einen Vergleichsplot und eine Tabelle mit den besten Konfigurationen pro Ticker.
+
+Der Thesis-Export speichert unter `storage/thesis/<run>/` eine kompakte Ergebnisbasis fuer die Arbeit: konsolidierte CSV-Dateien, einen Markdown-Report, eine JSON-Zusammenfassung und mehrere zusammenfassende Diagramme.
+
 ## Derzeitiger Modellzuschnitt
 
-- Klassischer Pfad: Persistence-Baseline plus `RandomForestRegressor` auf Lag-Features
+- Klassischer Pfad: Persistence-Baseline, `Ridge Regression`, `DecisionTreeRegressor` und `RandomForestRegressor`
 - Klassischer Trainingszielwert: naechste Tagesrendite, danach Rueckrechnung in naechsten Schlusskurs
-- Klassische Eingabefeatures: Return-Lags, Momentum, gleitende Durchschnitte, EMA-Gaps, Volatilitaet, Breakout-/Drawdown-Abstaende, Preis-Z-Score und RSI
+- Klassische Eingabefeatures: je nach Profil nur Lags oder zusaetzlich Momentum, gleitende Durchschnitte, EMA-Gaps, Volatilitaet, Breakout-/Drawdown-Abstaende, Preis-Z-Score und RSI
 - Klassische Evaluation: Holdout-Test plus Walk-Forward-Backtesting mit expandierendem Trainingsfenster
 - Benchmark-Evaluation: mehrere Ticker mit gemeinsamer Ranking-Tabelle auf Basis der Walk-Forward-Metriken
+- Experimentsuite: Kombinationen aus Koerben, Feature-Profilen und Lag-Werten mit aggregiertem Vergleich
 - Klassische Zusatzwerte: RSI, durchschnittliche Forecast-Steigung und 5-Tage-Prognosepfad
 - Modelltyp: Single-Layer-LSTM
 - Trainingssignal: Schlusskurse
@@ -145,4 +171,4 @@ Die Original-Notebooks aus dem frueheren lokalen Arbeitsstand liegen unter `note
 
 ## Letzte technische Beobachtung
 
-Der mehrfache Walk-Forward-Vergleich zeigt aktuell: Der Random Forest verbessert die Directional Accuracy deutlich gegenueber der naiven Baseline, uebertrifft sie bei der RMSE aber noch nicht stabil. Der rekursive Forecast-Pfad wurde deshalb technisch bereinigt und baut Zukunftsfeatures jetzt konsistent aus der fortgeschriebenen Close-Historie neu auf, statt Featurewerte unpassend zu verschieben.
+Der mehrfache Walk-Forward-Vergleich zeigt aktuell: Die naive Persistence-Baseline bleibt bei der RMSE sehr stark, aber die besten gelernten Modelle wechseln je nach Aktie. In der ersten Experimentsuite auf dem `starter`-Korb war `lag_only` mit `10` Lags im Mittel die beste Konfiguration. Im groesseren `bachelor_core`-Vergleich war `technical_extended` bei den besten gelernten Modellen im Mittel leicht besser als `lag_only`, der Vorsprung fiel aber klein aus. Der rekursive Forecast-Pfad wurde technisch bereinigt und baut Zukunftsfeatures jetzt konsistent aus der fortgeschriebenen Close-Historie neu auf. Diese Zwischenstaende lassen sich nun mit `generate_thesis_results.py` in eine BA-taugliche Ergebniszusammenfassung ueberfuehren.

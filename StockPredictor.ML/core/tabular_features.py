@@ -12,6 +12,12 @@ TARGET_COLUMN = "target_close_next"
 RETURN_TARGET_COLUMN = "target_return_next"
 TARGET_DATE_COLUMN = "target_date"
 REFERENCE_COLUMN = "close_current"
+DEFAULT_FEATURE_PROFILE = "technical_extended"
+FEATURE_PROFILES = {
+    "lag_only": "Nur Rendite-Lags und aktueller Schlusskurs.",
+    "technical_basic": "Lags plus einfache Trend-, Volatilitaets- und RSI-Features.",
+    "technical_extended": "Erweiterter Technik-Satz mit EMA, Breakout, Drawdown und Z-Score.",
+}
 
 
 @dataclass(frozen=True)
@@ -19,6 +25,7 @@ class NextCloseDataset:
     supervised_frame: pd.DataFrame
     latest_features: pd.DataFrame
     feature_columns: list[str]
+    feature_profile: str = DEFAULT_FEATURE_PROFILE
     target_column: str = RETURN_TARGET_COLUMN
     close_target_column: str = TARGET_COLUMN
     target_date_column: str = TARGET_DATE_COLUMN
@@ -28,9 +35,15 @@ class NextCloseDataset:
 def build_feature_frame_from_close_series(
     close_series: pd.Series,
     lags: int,
+    feature_profile: str = DEFAULT_FEATURE_PROFILE,
 ) -> tuple[pd.DataFrame, list[str]]:
     if lags <= 0:
         raise ValueError(f"lags must be positive, got {lags}.")
+    if feature_profile not in FEATURE_PROFILES:
+        raise ValueError(
+            f"Unknown feature profile '{feature_profile}'. "
+            f"Expected one of: {', '.join(FEATURE_PROFILES)}."
+        )
 
     close_series = close_series.astype(float)
     return_series = close_series.pct_change()
@@ -60,27 +73,36 @@ def build_feature_frame_from_close_series(
     momentum_10 = close_series.pct_change(periods=10)
     momentum_20 = close_series.pct_change(periods=20)
 
-    engineered_features = {
-        "return_mean_5": return_series.rolling(window=5, min_periods=5).mean(),
-        "return_mean_10": return_series.rolling(window=10, min_periods=10).mean(),
-        "return_mean_20": return_series.rolling(window=20, min_periods=20).mean(),
-        "sma_5_gap": (close_series / sma_5) - 1.0,
-        "sma_10_gap": (close_series / sma_10) - 1.0,
-        "sma_20_gap": (close_series / sma_20) - 1.0,
-        "ema_5_gap": (close_series / ema_5) - 1.0,
-        "ema_10_gap": (close_series / ema_10) - 1.0,
-        "ema_20_gap": (close_series / ema_20) - 1.0,
-        "volatility_5": volatility_5,
-        "volatility_10": volatility_10,
-        "volatility_20": volatility_20,
-        "momentum_5": momentum_5,
-        "momentum_10": momentum_10,
-        "momentum_20": momentum_20,
-        "breakout_20_gap": (close_series / rolling_max_20) - 1.0,
-        "drawdown_20_gap": (close_series / rolling_min_20) - 1.0,
-        "price_zscore_20": (close_series - sma_20) / rolling_std_20,
-        "rsi_14": rsi_14 / 100.0,
-    }
+    engineered_features: dict[str, pd.Series] = {}
+    if feature_profile in {"technical_basic", "technical_extended"}:
+        engineered_features.update(
+            {
+                "return_mean_5": return_series.rolling(window=5, min_periods=5).mean(),
+                "return_mean_10": return_series.rolling(window=10, min_periods=10).mean(),
+                "return_mean_20": return_series.rolling(window=20, min_periods=20).mean(),
+                "sma_5_gap": (close_series / sma_5) - 1.0,
+                "sma_10_gap": (close_series / sma_10) - 1.0,
+                "sma_20_gap": (close_series / sma_20) - 1.0,
+                "volatility_5": volatility_5,
+                "volatility_10": volatility_10,
+                "volatility_20": volatility_20,
+                "momentum_5": momentum_5,
+                "momentum_10": momentum_10,
+                "momentum_20": momentum_20,
+                "rsi_14": rsi_14 / 100.0,
+            }
+        )
+    if feature_profile == "technical_extended":
+        engineered_features.update(
+            {
+                "ema_5_gap": (close_series / ema_5) - 1.0,
+                "ema_10_gap": (close_series / ema_10) - 1.0,
+                "ema_20_gap": (close_series / ema_20) - 1.0,
+                "breakout_20_gap": (close_series / rolling_max_20) - 1.0,
+                "drawdown_20_gap": (close_series / rolling_min_20) - 1.0,
+                "price_zscore_20": (close_series - sma_20) / rolling_std_20,
+            }
+        )
 
     for column_name, values in engineered_features.items():
         feature_frame[column_name] = values
@@ -92,10 +114,12 @@ def build_feature_frame_from_close_series(
 def build_latest_feature_frame_from_close_series(
     close_series: pd.Series,
     lags: int,
+    feature_profile: str = DEFAULT_FEATURE_PROFILE,
 ) -> tuple[pd.DataFrame, list[str]]:
     feature_frame, feature_columns = build_feature_frame_from_close_series(
         close_series=close_series,
         lags=lags,
+        feature_profile=feature_profile,
     )
     latest_features = feature_frame.dropna().tail(1).copy()
     if latest_features.empty:
@@ -107,16 +131,22 @@ def build_latest_feature_frame_from_close_series(
     return latest_features, feature_columns
 
 
-def build_next_close_dataset(data: pd.DataFrame, lags: int) -> NextCloseDataset:
+def build_next_close_dataset(
+    data: pd.DataFrame,
+    lags: int,
+    feature_profile: str = DEFAULT_FEATURE_PROFILE,
+) -> NextCloseDataset:
     close_series = data["Close"].astype(float)
     return_series = close_series.pct_change()
     feature_frame, feature_columns = build_feature_frame_from_close_series(
         close_series=close_series,
         lags=lags,
+        feature_profile=feature_profile,
     )
     latest_features, _ = build_latest_feature_frame_from_close_series(
         close_series=close_series,
         lags=lags,
+        feature_profile=feature_profile,
     )
 
     supervised_frame = feature_frame.copy()
@@ -135,6 +165,7 @@ def build_next_close_dataset(data: pd.DataFrame, lags: int) -> NextCloseDataset:
         supervised_frame=supervised_frame,
         latest_features=latest_features,
         feature_columns=feature_columns,
+        feature_profile=feature_profile,
     )
 
 

@@ -30,6 +30,18 @@ class RandomForestConfig:
     n_jobs: int = 1
 
 
+@dataclass(frozen=True)
+class DecisionTreeConfig:
+    max_depth: int | None = 8
+    min_samples_leaf: int = 5
+    random_state: int = 42
+
+
+@dataclass(frozen=True)
+class RidgeConfig:
+    alpha: float = 1.0
+
+
 def build_random_forest_regressor(config: RandomForestConfig):
     from sklearn.ensemble import RandomForestRegressor
 
@@ -39,4 +51,27 @@ def build_random_forest_regressor(config: RandomForestConfig):
         min_samples_leaf=config.min_samples_leaf,
         random_state=config.random_state,
         n_jobs=config.n_jobs,
+    )
+
+
+def build_decision_tree_regressor(config: DecisionTreeConfig):
+    from sklearn.tree import DecisionTreeRegressor
+
+    return DecisionTreeRegressor(
+        max_depth=config.max_depth,
+        min_samples_leaf=config.min_samples_leaf,
+        random_state=config.random_state,
+    )
+
+
+def build_ridge_regressor(config: RidgeConfig):
+    from sklearn.linear_model import Ridge
+    from sklearn.pipeline import Pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    return Pipeline(
+        steps=[
+            ("scaler", StandardScaler()),
+            ("model", Ridge(alpha=config.alpha)),
+        ]
     )

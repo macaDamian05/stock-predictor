@@ -10,12 +10,14 @@ Stand: 2026-04-17
 - Die aktive App-Logik lebt in `StockPredictor.App/`.
 - Modelle, Scaler und Logs werden lokal unter `StockPredictor.ML/storage/trainingsdaten/` abgelegt und nicht committed.
 - `credentials.json` aus dem alten lokalen Ordner wird nicht mehr benoetigt.
+- feste Ticker-Koerbe liegen in `StockPredictor.ML/core/benchmark_presets.py`
 
 ## Aktueller fachlicher Scope
 
 - klassische Zeitreihen-Pipeline fuer den ersten Modellvergleich
-- Persistence-Baseline und `RandomForestRegressor` mit Lag-Features
+- Persistence-Baseline, `Ridge Regression`, `Decision Tree` und `RandomForestRegressor` mit Lag-Features
 - Trainingsziel im klassischen Pfad: naechste Tagesrendite, Ausgabe weiterhin als naechster Schlusskurs
+- mehrere Feature-Profile: `lag_only`, `technical_basic`, `technical_extended`
 - zusaetzliche Features im klassischen Pfad: Momentum, gleitende Durchschnitte, EMA-Gaps, Volatilitaet, Breakout-/Drawdown-Abstaende, Preis-Z-Score und RSI
 - CSV- oder Ticker-basierter Datenimport fuer den klassischen Pfad
 - chronologischer Train/Test-Split ohne Shuffling
@@ -23,6 +25,8 @@ Stand: 2026-04-17
 - gespeicherte Diagramme fuer Kurshistorie, Testperiode und Zukunftsforecast
 - zusaetzliche gespeicherte Walk-Forward-Metriken, Fold-Ergebnisse und ein Walk-Forward-Plot
 - Mehrfachvergleich mehrerer Ticker mit gemeinsamer Benchmark-Zusammenfassung
+- reproduzierbare Experiment-Suite ueber mehrere Profile und Lag-Werte
+- konsolidierter Thesis-Export fuer Tabellen, Grafiken und Ergebnisberichte aus vorhandenen Runs
 - rekursiver Forecast im klassischen Pfad baut Features nun konsistent aus der fortgeschriebenen Close-Historie neu auf
 - Single-Ticker-Training und -Prognose mit einem LSTM auf Basis historischer Schlusskurse
 - persistente Speicherung pro Ticker
@@ -39,8 +43,10 @@ Noch nicht umgesetzt:
 
 Aktuelle empirische Beobachtung:
 
-- Im Benchmark-Korb `AAPL`, `TSLA`, `DOU.DE` ist die Directional Accuracy des Random Forest klar besser als bei der naiven Baseline.
-- Bei der RMSE liegt der Random Forest im aktuellen Stand jedoch noch knapp hinter der Baseline.
+- Im Benchmark-Korb `AAPL`, `TSLA`, `DOU.DE` bleibt die naive Baseline bei der RMSE insgesamt sehr stark.
+- Unter den gelernten Modellen ist aktuell `Ridge Regression` fuer `DOU.DE` und `TSLA` am besten, waehrend bei `AAPL` der `Random Forest` fuehrt.
+- In der ersten Experimentsuite auf dem `starter`-Korb war `lag_only` mit `10` Lags die beste Konfiguration im Mittel.
+- Im groesseren `bachelor_core`-Vergleich war `technical_extended` bei den besten gelernten Modellen im Mittel leicht besser als `lag_only`, aber nur mit kleinem Abstand.
 
 ## Lokale Umgebungsannahmen
 
@@ -53,13 +59,14 @@ Aktuelle empirische Beobachtung:
 ## Regeln fuer spaetere Aenderungen
 
 - neue fachliche Entscheidungen immer in `README.md` und bei Bedarf in `docs/thesis-notes.md` nachziehen
+- groessere Entwicklungsspruenge und verworfene Zwischenstaende auch in `docs/development-history.md` festhalten
 - keine Entwicklung mehr direkt im Archivordner `ki-projekt-legacy`
 - keine Modelle, Scaler, virtuellen Umgebungen oder Rohdaten in Git committen
 - neue Experimente zuerst in `StockPredictor.ML/notebooks/exploration.ipynb`, danach in Python-Module ueberfuehren
 
 ## Naechste technische Schritte
 
-- Walk-Forward-Ergebnisse ueber mehrere Ticker vergleichen
+- Experimentsuite auf `bachelor_diversified` ausdehnen
 - Feature-Set weiter testen und dokumentieren
-- Benchmark auf groessere Asset-Koerbe erweitern
+- Thesis-Ergebnispaket nach groesseren neuen Runs aktualisieren
 - Datenaustausch zwischen Python und Blazor sauber definieren

@@ -4,15 +4,17 @@ Dieses Verzeichnis ist fuer lokale Laufzeitdaten vorgesehen.
 
 Erwartete Unterordner:
 
-- `trainingsdaten/<ticker>/` fuer Modell, Scaler, Metadaten und Log
-- `classical/<source>/` fuer Baseline- und Random-Forest-Artefakte
+- `trainingsdaten/<ticker>/` fuer LSTM-Modell, Scaler, Metadaten und Log
+- `classical/<source>/` fuer klassische Mehrmodell-Artefakte
 - `benchmarks/<run>/` fuer vergleichende Multi-Ticker-Auswertungen
+- `experiments/<run>/` fuer ganze Experiment-Suiten ueber mehrere Profile und Lag-Werte
+- `thesis/<run>/` fuer konsolidierte BA-taugliche Ergebnispakete
 - `plots/` falls spaeter gespeicherte Diagramme abgelegt werden sollen
 - `yfinance-cache/` fuer lokale Paket-Caches, damit Datenabrufe reproduzierbar im Projektordner bleiben
 
 Typische Artefakte der klassischen Pipeline:
 
-- `random_forest.joblib`
+- `classical_models.joblib`
 - `metrics.json`
 - `walk_forward_metrics.json`
 - `summary.json`
@@ -30,5 +32,23 @@ Typische Artefakte des Benchmark-Skripts:
 - `benchmark_summary.json`
 - `benchmark_report.md`
 - `benchmark_comparison.png`
+
+Typische Artefakte der Experimentsuite:
+
+- `experiment_summary.csv`
+- `experiment_summary.json`
+- `experiment_report.md`
+- `experiment_comparison.png`
+- `ticker_best_configs.csv`
+
+Typische Artefakte des Thesis-Exports:
+
+- `starter_model_results.csv`
+- `starter_suite_results.csv`
+- `core_profile_summary.csv`
+- `core_profile_per_ticker.csv`
+- `thesis_results_report.md`
+- `thesis_results_summary.json`
+- mehrere zusammenfassende PNG-Grafiken
 
 Die eigentlichen Modellartefakte sind in Git ignoriert.

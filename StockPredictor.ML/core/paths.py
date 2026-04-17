@@ -10,6 +10,8 @@ STORAGE_DIR = PROJECT_ROOT / "storage"
 TRAINING_DATA_DIR = STORAGE_DIR / "trainingsdaten"
 CLASSICAL_DATA_DIR = STORAGE_DIR / "classical"
 BENCHMARK_DATA_DIR = STORAGE_DIR / "benchmarks"
+EXPERIMENT_DATA_DIR = STORAGE_DIR / "experiments"
+THESIS_DATA_DIR = STORAGE_DIR / "thesis"
 
 
 @dataclass(frozen=True)
@@ -53,11 +55,42 @@ class BenchmarkArtifactPaths:
     report: Path
 
 
+@dataclass(frozen=True)
+class ExperimentArtifactPaths:
+    run_name: str
+    safe_name: str
+    base_dir: Path
+    summary_csv: Path
+    summary_json: Path
+    comparison_plot: Path
+    report: Path
+    per_ticker_csv: Path
+
+
+@dataclass(frozen=True)
+class ThesisArtifactPaths:
+    run_name: str
+    safe_name: str
+    base_dir: Path
+    report: Path
+    starter_models_csv: Path
+    starter_suite_csv: Path
+    core_profile_summary_csv: Path
+    core_profile_per_ticker_csv: Path
+    summary_json: Path
+    starter_rmse_plot: Path
+    core_profile_plot: Path
+    core_profile_delta_plot: Path
+    model_wins_plot: Path
+
+
 def ensure_runtime_directories() -> None:
     STORAGE_DIR.mkdir(parents=True, exist_ok=True)
     TRAINING_DATA_DIR.mkdir(parents=True, exist_ok=True)
     CLASSICAL_DATA_DIR.mkdir(parents=True, exist_ok=True)
     BENCHMARK_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    EXPERIMENT_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    THESIS_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def sanitize_name(value: str, uppercase: bool = False) -> str:
@@ -94,7 +127,7 @@ def get_classical_artifact_paths(source_name: str) -> ClassicalArtifactPaths:
         source_name=source_name,
         safe_name=safe_name,
         base_dir=base_dir,
-        model=base_dir / "random_forest.joblib",
+        model=base_dir / "classical_models.joblib",
         metrics=base_dir / "metrics.json",
         predictions=base_dir / "predictions.csv",
         walk_forward_metrics=base_dir / "walk_forward_metrics.json",
@@ -122,4 +155,43 @@ def get_benchmark_artifact_paths(run_name: str) -> BenchmarkArtifactPaths:
         summary_json=base_dir / "benchmark_summary.json",
         comparison_plot=base_dir / "benchmark_comparison.png",
         report=base_dir / "benchmark_report.md",
+    )
+
+
+def get_experiment_artifact_paths(run_name: str) -> ExperimentArtifactPaths:
+    safe_name = sanitize_name(run_name, uppercase=True)
+    base_dir = EXPERIMENT_DATA_DIR / safe_name
+    base_dir.mkdir(parents=True, exist_ok=True)
+
+    return ExperimentArtifactPaths(
+        run_name=run_name,
+        safe_name=safe_name,
+        base_dir=base_dir,
+        summary_csv=base_dir / "experiment_summary.csv",
+        summary_json=base_dir / "experiment_summary.json",
+        comparison_plot=base_dir / "experiment_comparison.png",
+        report=base_dir / "experiment_report.md",
+        per_ticker_csv=base_dir / "ticker_best_configs.csv",
+    )
+
+
+def get_thesis_artifact_paths(run_name: str) -> ThesisArtifactPaths:
+    safe_name = sanitize_name(run_name, uppercase=True)
+    base_dir = THESIS_DATA_DIR / safe_name
+    base_dir.mkdir(parents=True, exist_ok=True)
+
+    return ThesisArtifactPaths(
+        run_name=run_name,
+        safe_name=safe_name,
+        base_dir=base_dir,
+        report=base_dir / "thesis_results_report.md",
+        starter_models_csv=base_dir / "starter_model_results.csv",
+        starter_suite_csv=base_dir / "starter_suite_results.csv",
+        core_profile_summary_csv=base_dir / "core_profile_summary.csv",
+        core_profile_per_ticker_csv=base_dir / "core_profile_per_ticker.csv",
+        summary_json=base_dir / "thesis_results_summary.json",
+        starter_rmse_plot=base_dir / "starter_best_vs_baseline_rmse.png",
+        core_profile_plot=base_dir / "core_profile_mean_rmse.png",
+        core_profile_delta_plot=base_dir / "core_profile_delta_per_ticker.png",
+        model_wins_plot=base_dir / "core_profile_model_wins.png",
     )

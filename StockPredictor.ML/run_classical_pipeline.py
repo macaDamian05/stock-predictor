@@ -7,12 +7,17 @@ from pathlib import Path
 
 import joblib
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 from core.classical_models import (
+    DecisionTreeConfig,
     PersistenceRegressor,
     RandomForestConfig,
+    RidgeConfig,
+    build_decision_tree_regressor,
     build_random_forest_regressor,
+    build_ridge_regressor,
 )
 from core.data_loader import download_price_data, load_price_data_from_csv
 from core.indicators import average_recent_rsi, calculate_rsi
@@ -24,15 +29,42 @@ from core.predictor import (
     regression_metrics,
 )
 from core.tabular_features import (
+    DEFAULT_FEATURE_PROFILE,
+    FEATURE_PROFILES,
     build_latest_feature_frame_from_close_series,
     build_next_close_dataset,
     chronological_train_test_split,
 )
 
 
+MODEL_ORDER = [
+    "baseline_persistence",
+    "ridge_regression",
+    "decision_tree",
+    "random_forest",
+]
+LEARNED_MODEL_ORDER = [
+    "ridge_regression",
+    "decision_tree",
+    "random_forest",
+]
+MODEL_DISPLAY_NAMES = {
+    "baseline_persistence": "Persistence Baseline",
+    "ridge_regression": "Ridge Regression",
+    "decision_tree": "Decision Tree",
+    "random_forest": "Random Forest",
+}
+MODEL_LINESTYLES = {
+    "baseline_persistence": "--",
+    "ridge_regression": ":",
+    "decision_tree": "-.",
+    "random_forest": "-",
+}
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run a baseline and Random Forest time-series pipeline for stock forecasting."
+        description="Run a multi-model time-series pipeline for stock forecasting."
     )
     parser.add_argument("ticker", nargs="?", help="Ticker symbol, for example AAPL or ENR.DE.")
     parser.add_argument("--csv-path", help="Optional CSV path instead of downloading market data.")
@@ -42,6 +74,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--start-date", default="1990-01-01", help="Historical download start date.")
     parser.add_argument("--end-date", default=None, help="Historical download end date.")
     parser.add_argument("--lags", type=int, default=10, help="Number of lagged close prices to use.")
+    parser.add_argument(
+        "--feature-profile",
+        default=DEFAULT_FEATURE_PROFILE,
+        choices=list(FEATURE_PROFILES),
+        help="Feature profile for the classical models.",
+    )
     parser.add_argument("--forecast-days", type=int, default=5, help="Number of future business days to forecast.")
     parser.add_argument(
         "--display-days",
@@ -68,12 +106,30 @@ def parse_args() -> argparse.Namespace:
         default=0.7,
         help="Initial training fraction for walk-forward evaluation.",
     )
+    parser.add_argument(
+        "--ridge-alpha",
+        type=float,
+        default=1.0,
+        help="Regularization strength for the Ridge Regression model.",
+    )
+    parser.add_argument(
+        "--tree-max-depth",
+        type=int,
+        default=8,
+        help="Maximum tree depth for the Decision Tree. Use 0 to disable the limit.",
+    )
+    parser.add_argument(
+        "--tree-min-samples-leaf",
+        type=int,
+        default=5,
+        help="Minimum number of samples per leaf for the Decision Tree.",
+    )
     parser.add_argument("--n-estimators", type=int, default=300, help="Random Forest tree count.")
     parser.add_argument(
         "--max-depth",
         type=int,
         default=12,
-        help="Maximum tree depth. Use 0 to disable the limit.",
+        help="Maximum tree depth for the Random Forest. Use 0 to disable the limit.",
     )
     parser.add_argument(
         "--min-samples-leaf",
@@ -85,7 +141,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--show-plot",
         action="store_true",
-        help="Open the saved test prediction plot after writing it to disk.",
+        help="Open the saved prediction plots after writing them to disk.",
     )
     return parser.parse_args()
 
@@ -119,19 +175,17 @@ def save_prediction_plot(artifact_path: Path, prediction_frame: pd.DataFrame, ti
         prediction_frame["actual_next_close"],
         label="Actual next close",
         linewidth=2,
+        color="black",
     )
-    plt.plot(
-        prediction_frame["target_date"],
-        prediction_frame["baseline_prediction"],
-        label="Persistence baseline",
-        linestyle="--",
-    )
-    plt.plot(
-        prediction_frame["target_date"],
-        prediction_frame["random_forest_prediction"],
-        label="Random Forest",
-        linestyle="-.",
-    )
+
+    for model_name in MODEL_ORDER:
+        plt.plot(
+            prediction_frame["target_date"],
+            prediction_frame[f"{model_name}_prediction"],
+            label=MODEL_DISPLAY_NAMES[model_name],
+            linestyle=MODEL_LINESTYLES[model_name],
+        )
+
     plt.title(title)
     plt.xlabel("Target date")
     plt.ylabel("Close price")
@@ -165,6 +219,7 @@ def save_forecast_plot(
     future_dates: pd.DatetimeIndex,
     future_prices: list[float],
     display_days: int,
+    forecast_model_name: str,
 ) -> None:
     history = close_series.tail(display_days)
 
@@ -173,7 +228,7 @@ def save_forecast_plot(
     plt.plot(
         future_dates,
         future_prices,
-        label="Random Forest forecast",
+        label=f"{MODEL_DISPLAY_NAMES[forecast_model_name]} forecast",
         marker="o",
         linestyle="--",
         color="red",
@@ -198,24 +253,69 @@ def build_random_forest_config(args: argparse.Namespace) -> RandomForestConfig:
     )
 
 
-def fit_models(train_frame: pd.DataFrame, dataset, random_forest_config: RandomForestConfig):
+def build_decision_tree_config(args: argparse.Namespace) -> DecisionTreeConfig:
+    return DecisionTreeConfig(
+        max_depth=None if args.tree_max_depth == 0 else args.tree_max_depth,
+        min_samples_leaf=args.tree_min_samples_leaf,
+        random_state=args.random_state,
+    )
+
+
+def build_ridge_config(args: argparse.Namespace) -> RidgeConfig:
+    return RidgeConfig(alpha=args.ridge_alpha)
+
+
+def fit_models(
+    train_frame: pd.DataFrame,
+    dataset,
+    ridge_config: RidgeConfig,
+    decision_tree_config: DecisionTreeConfig,
+    random_forest_config: RandomForestConfig,
+) -> dict[str, object]:
     X_train = train_frame[dataset.feature_columns]
     y_train = train_frame[dataset.target_column].to_numpy(dtype=float)
 
-    baseline_model = PersistenceRegressor(reference_column=dataset.reference_column)
-    baseline_model.fit(X_train, y_train)
+    models: dict[str, object] = {
+        "baseline_persistence": PersistenceRegressor(reference_column=dataset.reference_column),
+        "ridge_regression": build_ridge_regressor(ridge_config),
+        "decision_tree": build_decision_tree_regressor(decision_tree_config),
+        "random_forest": build_random_forest_regressor(random_forest_config),
+    }
 
-    random_forest_model = build_random_forest_regressor(random_forest_config)
-    random_forest_model.fit(X_train, y_train)
-    return baseline_model, random_forest_model
+    for model in models.values():
+        model.fit(X_train, y_train)
+
+    return models
+
+
+def generate_model_predictions(
+    models: dict[str, object],
+    X_eval: pd.DataFrame,
+    reference_column: str,
+) -> dict[str, dict[str, np.ndarray]]:
+    reference_values = X_eval[reference_column].to_numpy(dtype=float)
+    model_predictions: dict[str, dict[str, np.ndarray]] = {}
+
+    for model_name, model in models.items():
+        if model_name == "baseline_persistence":
+            predicted_close = np.asarray(model.predict(X_eval), dtype=float).reshape(-1)
+            predicted_return = np.zeros_like(predicted_close, dtype=float)
+        else:
+            predicted_return = np.asarray(model.predict(X_eval), dtype=float).reshape(-1)
+            predicted_close = reference_values * (1.0 + predicted_return)
+
+        model_predictions[model_name] = {
+            "predicted_return": predicted_return,
+            "predicted_close": predicted_close,
+        }
+
+    return model_predictions
 
 
 def build_predictions_frame(
     evaluation_frame: pd.DataFrame,
     dataset,
-    baseline_predictions,
-    random_forest_return_predictions,
-    random_forest_predictions,
+    model_predictions: dict[str, dict[str, np.ndarray]],
     evaluation_name: str,
     fold_index: int | None = None,
 ) -> pd.DataFrame:
@@ -228,11 +328,16 @@ def build_predictions_frame(
             "close_current": X_eval[dataset.reference_column].to_numpy(dtype=float),
             "actual_next_close": evaluation_frame[dataset.close_target_column].to_numpy(dtype=float),
             "actual_next_return": evaluation_frame[dataset.target_column].to_numpy(dtype=float),
-            "baseline_prediction": baseline_predictions,
-            "random_forest_predicted_return": random_forest_return_predictions,
-            "random_forest_prediction": random_forest_predictions,
         }
     )
+
+    for model_name in MODEL_ORDER:
+        predictions_frame[f"{model_name}_predicted_return"] = model_predictions[model_name][
+            "predicted_return"
+        ]
+        predictions_frame[f"{model_name}_prediction"] = model_predictions[model_name][
+            "predicted_close"
+        ]
 
     if fold_index is not None:
         predictions_frame.insert(1, "fold", fold_index)
@@ -243,61 +348,54 @@ def build_predictions_frame(
 def calculate_metrics_from_predictions(prediction_frame: pd.DataFrame) -> dict[str, dict[str, float]]:
     actual_values = prediction_frame["actual_next_close"].to_numpy(dtype=float)
     reference_values = prediction_frame["close_current"].to_numpy(dtype=float)
-    baseline_predictions = prediction_frame["baseline_prediction"].to_numpy(dtype=float)
-    random_forest_predictions = prediction_frame["random_forest_prediction"].to_numpy(dtype=float)
+    metrics: dict[str, dict[str, float]] = {}
 
-    baseline_metrics = regression_metrics(actual_values, baseline_predictions)
-    baseline_metrics["directional_accuracy"] = one_step_directional_accuracy(
-        reference_values=reference_values,
-        actual_values=actual_values,
-        predicted_values=baseline_predictions,
-    )
+    for model_name in MODEL_ORDER:
+        predicted_values = prediction_frame[f"{model_name}_prediction"].to_numpy(dtype=float)
+        model_metrics = regression_metrics(actual_values, predicted_values)
+        model_metrics["directional_accuracy"] = one_step_directional_accuracy(
+            reference_values=reference_values,
+            actual_values=actual_values,
+            predicted_values=predicted_values,
+        )
+        metrics[model_name] = model_metrics
 
-    random_forest_metrics = regression_metrics(actual_values, random_forest_predictions)
-    random_forest_metrics["directional_accuracy"] = one_step_directional_accuracy(
-        reference_values=reference_values,
-        actual_values=actual_values,
-        predicted_values=random_forest_predictions,
-    )
-
-    return {
-        "baseline_persistence": baseline_metrics,
-        "random_forest": random_forest_metrics,
-    }
+    return metrics
 
 
 def evaluate_models(
     train_frame: pd.DataFrame,
     evaluation_frame: pd.DataFrame,
     dataset,
+    ridge_config: RidgeConfig,
+    decision_tree_config: DecisionTreeConfig,
     random_forest_config: RandomForestConfig,
     evaluation_name: str,
     fold_index: int | None = None,
-):
-    baseline_model, random_forest_model = fit_models(
+) -> tuple[pd.DataFrame, dict[str, dict[str, float]], dict[str, object]]:
+    models = fit_models(
         train_frame=train_frame,
         dataset=dataset,
+        ridge_config=ridge_config,
+        decision_tree_config=decision_tree_config,
         random_forest_config=random_forest_config,
     )
 
     X_eval = evaluation_frame[dataset.feature_columns]
-    baseline_predictions = baseline_model.predict(X_eval)
-    random_forest_return_predictions = random_forest_model.predict(X_eval)
-    random_forest_predictions = X_eval[dataset.reference_column].to_numpy(dtype=float) * (
-        1.0 + random_forest_return_predictions
+    model_predictions = generate_model_predictions(
+        models=models,
+        X_eval=X_eval,
+        reference_column=dataset.reference_column,
     )
-
     predictions_frame = build_predictions_frame(
         evaluation_frame=evaluation_frame,
         dataset=dataset,
-        baseline_predictions=baseline_predictions,
-        random_forest_return_predictions=random_forest_return_predictions,
-        random_forest_predictions=random_forest_predictions,
+        model_predictions=model_predictions,
         evaluation_name=evaluation_name,
         fold_index=fold_index,
     )
     metrics = calculate_metrics_from_predictions(predictions_frame)
-    return predictions_frame, metrics, baseline_model, random_forest_model
+    return predictions_frame, metrics, models
 
 
 def build_walk_forward_splits(
@@ -353,9 +451,28 @@ def average_metric_sections(metric_sections: list[dict[str, float]]) -> dict[str
     }
 
 
+def average_metrics_by_model(
+    fold_summaries: list[dict[str, object]],
+) -> dict[str, dict[str, float]]:
+    return {
+        model_name: average_metric_sections([fold[model_name] for fold in fold_summaries])
+        for model_name in MODEL_ORDER
+    }
+
+
+def select_best_model_from_metric_source(
+    metric_source: dict[str, dict[str, float]],
+    candidate_models: list[str] | None = None,
+) -> str:
+    candidates = candidate_models or LEARNED_MODEL_ORDER
+    return min(candidates, key=lambda model_name: metric_source[model_name]["rmse"])
+
+
 def run_walk_forward_evaluation(
     supervised_frame: pd.DataFrame,
     dataset,
+    ridge_config: RidgeConfig,
+    decision_tree_config: DecisionTreeConfig,
     random_forest_config: RandomForestConfig,
     initial_train_size: float,
     folds: int,
@@ -372,32 +489,35 @@ def run_walk_forward_evaluation(
     fold_summaries: list[dict[str, object]] = []
 
     for fold_index, train_frame, test_frame in splits:
-        fold_predictions, fold_metrics, _, _ = evaluate_models(
+        fold_predictions, fold_metrics, _ = evaluate_models(
             train_frame=train_frame,
             evaluation_frame=test_frame,
             dataset=dataset,
+            ridge_config=ridge_config,
+            decision_tree_config=decision_tree_config,
             random_forest_config=random_forest_config,
             evaluation_name="walk_forward",
             fold_index=fold_index,
         )
         prediction_frames.append(fold_predictions)
-        fold_summaries.append(
-            {
-                "fold": fold_index,
-                "train_rows": len(train_frame),
-                "test_rows": len(test_frame),
-                "train_start": train_frame.index[0].date().isoformat(),
-                "train_end": train_frame.index[-1].date().isoformat(),
-                "test_start": pd.Timestamp(test_frame[dataset.target_date_column].iloc[0])
-                .date()
-                .isoformat(),
-                "test_end": pd.Timestamp(test_frame[dataset.target_date_column].iloc[-1])
-                .date()
-                .isoformat(),
-                "baseline_persistence": fold_metrics["baseline_persistence"],
-                "random_forest": fold_metrics["random_forest"],
-            }
-        )
+
+        fold_summary: dict[str, object] = {
+            "fold": fold_index,
+            "train_rows": len(train_frame),
+            "test_rows": len(test_frame),
+            "train_start": train_frame.index[0].date().isoformat(),
+            "train_end": train_frame.index[-1].date().isoformat(),
+            "test_start": pd.Timestamp(test_frame[dataset.target_date_column].iloc[0])
+            .date()
+            .isoformat(),
+            "test_end": pd.Timestamp(test_frame[dataset.target_date_column].iloc[-1])
+            .date()
+            .isoformat(),
+        }
+        for model_name in MODEL_ORDER:
+            fold_summary[model_name] = fold_metrics[model_name]
+        fold_summary["best_learned_model"] = select_best_model_from_metric_source(fold_metrics)
+        fold_summaries.append(fold_summary)
 
     walk_forward_predictions = (
         pd.concat(prediction_frames, ignore_index=True)
@@ -405,21 +525,14 @@ def run_walk_forward_evaluation(
         .reset_index(drop=True)
     )
     overall_metrics = calculate_metrics_from_predictions(walk_forward_predictions)
-    mean_across_folds = {
-        "baseline_persistence": average_metric_sections(
-            [fold["baseline_persistence"] for fold in fold_summaries]
-        ),
-        "random_forest": average_metric_sections(
-            [fold["random_forest"] for fold in fold_summaries]
-        ),
-    }
     walk_forward_summary = {
         "fold_count": len(fold_summaries),
         "initial_train_size": initial_train_size,
         "total_rows": len(supervised_frame),
         "total_predictions": len(walk_forward_predictions),
         "overall": overall_metrics,
-        "mean_across_folds": mean_across_folds,
+        "mean_across_folds": average_metrics_by_model(fold_summaries),
+        "best_learned_model": select_best_model_from_metric_source(overall_metrics),
         "folds": fold_summaries,
     }
     return walk_forward_predictions, walk_forward_summary
@@ -429,6 +542,7 @@ def recursive_forecast(
     model,
     close_history: pd.Series,
     lags: int,
+    feature_profile: str,
     forecast_dates: pd.DatetimeIndex,
     feature_columns: list[str],
 ) -> tuple[list[float], list[float]]:
@@ -440,6 +554,7 @@ def recursive_forecast(
         latest_features, rebuilt_feature_columns = build_latest_feature_frame_from_close_series(
             close_series=rolling_close_history,
             lags=lags,
+            feature_profile=feature_profile,
         )
         if rebuilt_feature_columns != feature_columns:
             raise ValueError("Forecast feature columns do not match the training feature columns.")
@@ -459,11 +574,10 @@ def recursive_forecast(
 def show_plots(
     close_series: pd.Series,
     display_days: int,
-    test_frame: pd.DataFrame,
-    baseline_predictions,
-    random_forest_predictions,
+    prediction_frame: pd.DataFrame,
     future_dates: pd.DatetimeIndex,
     future_prices: list[float],
+    forecast_model_name: str,
 ) -> None:
     history = close_series.tail(display_days)
 
@@ -479,24 +593,20 @@ def show_plots(
 
     plt.figure(figsize=(12, 6))
     plt.plot(
-        test_frame["target_date"],
-        test_frame["target_close_next"],
+        prediction_frame["target_date"],
+        prediction_frame["actual_next_close"],
         label="Actual next close",
         linewidth=2,
+        color="black",
     )
-    plt.plot(
-        test_frame["target_date"],
-        baseline_predictions,
-        label="Persistence baseline",
-        linestyle="--",
-    )
-    plt.plot(
-        test_frame["target_date"],
-        random_forest_predictions,
-        label="Random Forest",
-        linestyle="-.",
-    )
-    plt.title("Chronological test predictions")
+    for model_name in MODEL_ORDER:
+        plt.plot(
+            prediction_frame["target_date"],
+            prediction_frame[f"{model_name}_prediction"],
+            label=MODEL_DISPLAY_NAMES[model_name],
+            linestyle=MODEL_LINESTYLES[model_name],
+        )
+    plt.title("Chronological holdout predictions")
     plt.xlabel("Target date")
     plt.ylabel("Close price")
     plt.grid(True)
@@ -509,7 +619,7 @@ def show_plots(
     plt.plot(
         future_dates,
         future_prices,
-        label="Random Forest forecast",
+        label=f"{MODEL_DISPLAY_NAMES[forecast_model_name]} forecast",
         marker="o",
         linestyle="--",
         color="red",
@@ -524,22 +634,41 @@ def show_plots(
     plt.show()
 
 
+def format_metrics_line(model_name: str, metrics: dict[str, float]) -> str:
+    return (
+        f"  {MODEL_DISPLAY_NAMES[model_name]}: "
+        f"MSE={metrics['mse']:.4f} "
+        f"RMSE={metrics['rmse']:.4f} "
+        f"MAE={metrics['mae']:.4f} "
+        f"Direction={metrics['directional_accuracy']:.2%}"
+    )
+
+
 def main() -> None:
     args = parse_args()
     ensure_runtime_directories()
 
     price_data, source_name = resolve_data_source(args)
-    dataset = build_next_close_dataset(price_data, lags=args.lags)
+    dataset = build_next_close_dataset(
+        price_data,
+        lags=args.lags,
+        feature_profile=args.feature_profile,
+    )
     train_frame, test_frame = chronological_train_test_split(
         dataset.supervised_frame,
         test_size=args.test_size,
     )
 
+    ridge_config = build_ridge_config(args)
+    decision_tree_config = build_decision_tree_config(args)
     random_forest_config = build_random_forest_config(args)
-    predictions_frame, holdout_metrics, baseline_model, random_forest_model = evaluate_models(
+
+    predictions_frame, holdout_metrics, trained_models = evaluate_models(
         train_frame=train_frame,
         evaluation_frame=test_frame,
         dataset=dataset,
+        ridge_config=ridge_config,
+        decision_tree_config=decision_tree_config,
         random_forest_config=random_forest_config,
         evaluation_name="holdout",
     )
@@ -547,34 +676,60 @@ def main() -> None:
     walk_forward_predictions, walk_forward_summary = run_walk_forward_evaluation(
         supervised_frame=dataset.supervised_frame,
         dataset=dataset,
+        ridge_config=ridge_config,
+        decision_tree_config=decision_tree_config,
         random_forest_config=random_forest_config,
         initial_train_size=args.walk_forward_train_size,
         folds=args.walk_forward_folds,
     )
 
     latest_features = dataset.latest_features[dataset.feature_columns]
+    last_close = float(price_data["Close"].iloc[-1])
+    model_next_predictions: dict[str, dict[str, float]] = {}
+    for model_name, model in trained_models.items():
+        if model_name == "baseline_persistence":
+            predicted_close = float(model.predict(latest_features)[0])
+            predicted_return = 0.0
+        else:
+            predicted_return = float(model.predict(latest_features)[0])
+            predicted_close = last_close * (1.0 + predicted_return)
+
+        model_next_predictions[model_name] = {
+            "predicted_return": predicted_return,
+            "predicted_close": predicted_close,
+        }
+
+    forecast_metric_source = (
+        walk_forward_summary["overall"] if walk_forward_summary is not None else holdout_metrics
+    )
+    forecast_model_name = select_best_model_from_metric_source(forecast_metric_source)
     future_dates = build_forecast_index(price_data.index[-1], args.forecast_days)
     future_return_predictions, future_price_predictions = recursive_forecast(
-        model=random_forest_model,
+        model=trained_models[forecast_model_name],
         close_history=price_data["Close"].astype(float),
         lags=args.lags,
+        feature_profile=args.feature_profile,
         forecast_dates=future_dates,
         feature_columns=dataset.feature_columns,
     )
-    next_return_prediction = future_return_predictions[0]
-    next_business_day = future_dates[0]
 
     rsi_values = calculate_rsi(price_data["Close"].astype(float), args.rsi_window)
     average_rsi = average_recent_rsi(rsi_values, args.forecast_days)
     forecast_slope = average_daily_slope(pd.Series(future_price_predictions, dtype=float).to_numpy())
 
     next_forecast = {
-        "forecast_date": next_business_day.date().isoformat(),
+        "forecast_model": forecast_model_name,
+        "forecast_model_label": MODEL_DISPLAY_NAMES[forecast_model_name],
+        "forecast_date": future_dates[0].date().isoformat(),
         "last_close_date": price_data.index[-1].date().isoformat(),
-        "last_close": float(price_data["Close"].iloc[-1]),
-        "baseline_prediction": float(baseline_model.predict(latest_features)[0]),
-        "random_forest_predicted_return": next_return_prediction,
-        "random_forest_prediction": future_price_predictions[0],
+        "last_close": last_close,
+        "model_predictions": {
+            model_name: {
+                "predicted_return": values["predicted_return"],
+                "predicted_close": values["predicted_close"],
+            }
+            for model_name, values in model_next_predictions.items()
+        },
         "forecast_days": args.forecast_days,
         "forecast_path": [
             {
@@ -590,10 +745,32 @@ def main() -> None:
         ],
     }
 
+    summary_payload = {
+        "source_name": source_name,
+        "last_close": last_close,
+        "average_recent_rsi": average_rsi,
+        "average_forecast_slope": forecast_slope,
+        "forecast_days": args.forecast_days,
+        "feature_profile": args.feature_profile,
+        "forecast_model": forecast_model_name,
+        "holdout_best_model": select_best_model_from_metric_source(holdout_metrics),
+        "walk_forward_best_model": (
+            walk_forward_summary["best_learned_model"] if walk_forward_summary is not None else None
+        ),
+        "next_forecast": next_forecast,
+        "metrics": {
+            "holdout": holdout_metrics,
+            "walk_forward": walk_forward_summary,
+        },
+    }
+
     artifacts = get_classical_artifact_paths(source_name)
-    joblib.dump(random_forest_model, artifacts.model)
+    joblib.dump(trained_models, artifacts.model)
     predictions_frame.to_csv(artifacts.predictions, index=False)
-    artifacts.metrics.write_text(json.dumps(holdout_metrics, indent=2), encoding="utf-8")
+    artifacts.metrics.write_text(
+        json.dumps({"holdout": holdout_metrics}, indent=2),
+        encoding="utf-8",
+    )
 
     if walk_forward_predictions is not None and walk_forward_summary is not None:
         walk_forward_predictions.to_csv(artifacts.walk_forward_predictions, index=False)
@@ -603,25 +780,7 @@ def main() -> None:
         )
 
     artifacts.forecast.write_text(json.dumps(next_forecast, indent=2), encoding="utf-8")
-    artifacts.summary.write_text(
-        json.dumps(
-            {
-                "source_name": source_name,
-                "last_close": float(price_data["Close"].iloc[-1]),
-                "average_recent_rsi": average_rsi,
-                "average_forecast_slope": forecast_slope,
-                "forecast_days": args.forecast_days,
-                "next_forecast": next_forecast,
-                "metrics": {
-                    "baseline_persistence": holdout_metrics["baseline_persistence"],
-                    "random_forest": holdout_metrics["random_forest"],
-                    "walk_forward": walk_forward_summary,
-                },
-            },
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
+    artifacts.summary.write_text(json.dumps(summary_payload, indent=2), encoding="utf-8")
     artifacts.metadata.write_text(
         json.dumps(
             {
@@ -631,6 +790,7 @@ def main() -> None:
                 "date_column": args.date_column if args.csv_path else None,
                 "close_column": args.close_column if args.csv_path else None,
                 "lags": args.lags,
+                "feature_profile": args.feature_profile,
                 "training_target": "next_day_return",
                 "reported_forecast_value": "next_day_close",
                 "forecast_days": args.forecast_days,
@@ -643,17 +803,28 @@ def main() -> None:
                 "data_start": price_data.index[0].date().isoformat(),
                 "data_end": price_data.index[-1].date().isoformat(),
                 "feature_columns": dataset.feature_columns,
+                "models": {
+                    "ridge_regression": {
+                        "alpha": ridge_config.alpha,
+                    },
+                    "decision_tree": {
+                        "max_depth": decision_tree_config.max_depth,
+                        "min_samples_leaf": decision_tree_config.min_samples_leaf,
+                        "random_state": decision_tree_config.random_state,
+                    },
+                    "random_forest": {
+                        "n_estimators": random_forest_config.n_estimators,
+                        "max_depth": random_forest_config.max_depth,
+                        "min_samples_leaf": random_forest_config.min_samples_leaf,
+                        "random_state": random_forest_config.random_state,
+                    },
+                },
                 "walk_forward": {
                     "enabled": args.walk_forward_folds > 0,
                     "folds": args.walk_forward_folds,
                     "initial_train_size": args.walk_forward_train_size,
                 },
-                "random_forest": {
-                    "n_estimators": random_forest_config.n_estimators,
-                    "max_depth": random_forest_config.max_depth,
-                    "min_samples_leaf": random_forest_config.min_samples_leaf,
-                    "random_state": random_forest_config.random_state,
-                },
+                "forecast_model": forecast_model_name,
             },
             indent=2,
         ),
@@ -681,6 +852,7 @@ def main() -> None:
         future_dates=future_dates,
         future_prices=future_price_predictions,
         display_days=args.display_days,
+        forecast_model_name=forecast_model_name,
     )
 
     print(f"Source: {source_name}")
@@ -690,20 +862,10 @@ def main() -> None:
         f"({len(price_data)} rows)"
     )
     print(f"Train rows: {len(train_frame)} | Test rows: {len(test_frame)}")
-    print("Holdout baseline metrics:")
-    print(
-        f"  MSE={holdout_metrics['baseline_persistence']['mse']:.4f} "
-        f"RMSE={holdout_metrics['baseline_persistence']['rmse']:.4f} "
-        f"MAE={holdout_metrics['baseline_persistence']['mae']:.4f} "
-        f"Direction={holdout_metrics['baseline_persistence']['directional_accuracy']:.2%}"
-    )
-    print("Holdout Random Forest metrics:")
-    print(
-        f"  MSE={holdout_metrics['random_forest']['mse']:.4f} "
-        f"RMSE={holdout_metrics['random_forest']['rmse']:.4f} "
-        f"MAE={holdout_metrics['random_forest']['mae']:.4f} "
-        f"Direction={holdout_metrics['random_forest']['directional_accuracy']:.2%}"
-    )
+    print("Holdout metrics:")
+    for model_name in MODEL_ORDER:
+        print(format_metrics_line(model_name, holdout_metrics[model_name]))
+
     if walk_forward_summary is None:
         print("Walk-forward: disabled")
     else:
@@ -712,20 +874,20 @@ def main() -> None:
             f"{walk_forward_summary['fold_count']} folds | "
             f"{walk_forward_summary['total_predictions']} predictions"
         )
-        print(
-            f"  Baseline RMSE={walk_forward_summary['overall']['baseline_persistence']['rmse']:.4f} "
-            f"Direction={walk_forward_summary['overall']['baseline_persistence']['directional_accuracy']:.2%}"
-        )
-        print(
-            f"  Random Forest RMSE={walk_forward_summary['overall']['random_forest']['rmse']:.4f} "
-            f"Direction={walk_forward_summary['overall']['random_forest']['directional_accuracy']:.2%}"
-        )
+        for model_name in MODEL_ORDER:
+            print(format_metrics_line(model_name, walk_forward_summary["overall"][model_name]))
+
     print(
-        "Next forecast: "
-        f"{next_forecast['forecast_date']} | "
-        f"baseline={next_forecast['baseline_prediction']:.2f} | "
-        f"random_forest={next_forecast['random_forest_prediction']:.2f}"
+        f"Forecast model: {MODEL_DISPLAY_NAMES[forecast_model_name]} "
+        f"({forecast_model_name})"
     )
+    print("Next-day model predictions:")
+    for model_name in MODEL_ORDER:
+        print(
+            f"  {MODEL_DISPLAY_NAMES[model_name]}: "
+            f"{model_next_predictions[model_name]['predicted_close']:.2f}"
+        )
+
     if average_rsi is None:
         print(f"Average RSI ({args.forecast_days} days): not enough data available")
     else:
@@ -740,13 +902,10 @@ def main() -> None:
         show_plots(
             close_series=price_data["Close"].astype(float),
             display_days=args.display_days,
-            test_frame=test_frame,
-            baseline_predictions=predictions_frame["baseline_prediction"].to_numpy(dtype=float),
-            random_forest_predictions=predictions_frame["random_forest_prediction"].to_numpy(
-                dtype=float
-            ),
+            prediction_frame=predictions_frame,
             future_dates=future_dates,
             future_prices=future_price_predictions,
+            forecast_model_name=forecast_model_name,
         )
 
 
