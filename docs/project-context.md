@@ -16,13 +16,14 @@ Stand: 2026-04-17
 - klassische Zeitreihen-Pipeline fuer den ersten Modellvergleich
 - Persistence-Baseline und `RandomForestRegressor` mit Lag-Features
 - Trainingsziel im klassischen Pfad: naechste Tagesrendite, Ausgabe weiterhin als naechster Schlusskurs
-- zusaetzliche Features im klassischen Pfad: Momentum, gleitende Durchschnitte, Volatilitaet und RSI
+- zusaetzliche Features im klassischen Pfad: Momentum, gleitende Durchschnitte, EMA-Gaps, Volatilitaet, Breakout-/Drawdown-Abstaende, Preis-Z-Score und RSI
 - CSV- oder Ticker-basierter Datenimport fuer den klassischen Pfad
 - chronologischer Train/Test-Split ohne Shuffling
 - Walk-Forward-Backtesting mit expandierendem Trainingsfenster fuer den klassischen Pfad
 - gespeicherte Diagramme fuer Kurshistorie, Testperiode und Zukunftsforecast
 - zusaetzliche gespeicherte Walk-Forward-Metriken, Fold-Ergebnisse und ein Walk-Forward-Plot
 - Mehrfachvergleich mehrerer Ticker mit gemeinsamer Benchmark-Zusammenfassung
+- rekursiver Forecast im klassischen Pfad baut Features nun konsistent aus der fortgeschriebenen Close-Historie neu auf
 - Single-Ticker-Training und -Prognose mit einem LSTM auf Basis historischer Schlusskurse
 - persistente Speicherung pro Ticker
 - inkrementelles Weitertraining bei neuen Marktdaten
@@ -35,6 +36,11 @@ Noch nicht umgesetzt:
 - ETF-Unterstuetzung
 - News- oder Sentimentdaten
 - Backtesting ueber mehrere Assets und Marktphasen auf Forschungsniveau
+
+Aktuelle empirische Beobachtung:
+
+- Im Benchmark-Korb `AAPL`, `TSLA`, `DOU.DE` ist die Directional Accuracy des Random Forest klar besser als bei der naiven Baseline.
+- Bei der RMSE liegt der Random Forest im aktuellen Stand jedoch noch knapp hinter der Baseline.
 
 ## Lokale Umgebungsannahmen
 

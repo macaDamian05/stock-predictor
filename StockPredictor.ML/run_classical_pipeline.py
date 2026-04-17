@@ -23,7 +23,11 @@ from core.predictor import (
     one_step_directional_accuracy,
     regression_metrics,
 )
-from core.tabular_features import build_next_close_dataset, chronological_train_test_split
+from core.tabular_features import (
+    build_latest_feature_frame_from_close_series,
+    build_next_close_dataset,
+    chronological_train_test_split,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -423,33 +427,31 @@ def run_walk_forward_evaluation(
 
 def recursive_forecast(
     model,
-    latest_features: pd.DataFrame,
+    close_history: pd.Series,
+    lags: int,
+    forecast_dates: pd.DatetimeIndex,
     feature_columns: list[str],
-    reference_column: str,
-    forecast_days: int,
 ) -> tuple[list[float], list[float]]:
-    state = latest_features[feature_columns].iloc[0].to_dict()
+    rolling_close_history = close_history.astype(float).copy()
     predicted_returns: list[float] = []
     predicted_prices: list[float] = []
 
-    lag_columns = [column for column in feature_columns if column != reference_column]
-    current_close = float(state[reference_column])
+    for forecast_date in forecast_dates:
+        latest_features, rebuilt_feature_columns = build_latest_feature_frame_from_close_series(
+            close_series=rolling_close_history,
+            lags=lags,
+        )
+        if rebuilt_feature_columns != feature_columns:
+            raise ValueError("Forecast feature columns do not match the training feature columns.")
 
-    for _ in range(forecast_days):
-        feature_row = pd.DataFrame([{column: state[column] for column in feature_columns}])
+        feature_row = latest_features[feature_columns]
         next_return = float(model.predict(feature_row)[0])
+        current_close = float(rolling_close_history.iloc[-1])
         next_close = current_close * (1.0 + next_return)
 
         predicted_returns.append(next_return)
         predicted_prices.append(next_close)
-
-        previous_returns = [state[column] for column in lag_columns]
-        shifted_returns = [next_return, *previous_returns[:-1]] if previous_returns else []
-
-        current_close = next_close
-        state[reference_column] = current_close
-        for column, value in zip(lag_columns, shifted_returns):
-            state[column] = value
+        rolling_close_history.loc[forecast_date] = next_close
 
     return predicted_returns, predicted_prices
 
@@ -554,10 +556,10 @@ def main() -> None:
     future_dates = build_forecast_index(price_data.index[-1], args.forecast_days)
     future_return_predictions, future_price_predictions = recursive_forecast(
         model=random_forest_model,
-        latest_features=latest_features,
+        close_history=price_data["Close"].astype(float),
+        lags=args.lags,
+        forecast_dates=future_dates,
         feature_columns=dataset.feature_columns,
-        reference_column=dataset.reference_column,
-        forecast_days=args.forecast_days,
     )
     next_return_prediction = future_return_predictions[0]
     next_business_day = future_dates[0]

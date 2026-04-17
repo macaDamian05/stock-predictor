@@ -22,6 +22,7 @@ Der ML-Prototyp in `StockPredictor.ML/` kann derzeit:
 - fuer den klassischen Pfad die naechste Tagesrendite modellieren und daraus den naechsten Schlusskurs ableiten
 - einen chronologischen Train/Test-Split fuer die Auswertung nutzen
 - technische Features wie Momentum, gleitende Durchschnitte, Volatilitaet und RSI als Eingaben verwenden
+- zusaetzlich EMA-Gaps, Breakout-/Drawdown-Abstaende und Preis-Z-Score nutzen
 - MSE, RMSE, MAE und Directional Accuracy fuer die Testperiode berechnen
 - zusaetzlich ein Walk-Forward-Backtesting mit expandierendem Trainingsfenster durchfuehren
 - mehrere gespeicherte Grafiken erzeugen: Kurshistorie, Testvorhersagen und Zukunftsforecast
@@ -129,6 +130,10 @@ Diese Dateien sollten bei jeder groesseren fachlichen oder technischen Aenderung
 - RSI wird momentan fuer Interpretation genutzt, nicht als Eingangsfeature des Netzes
 - ein unternehmensuebergreifendes Ranking ist noch nicht umgesetzt
 - ETFs, Nachrichten, Sentiment und Intraday-Daten sind noch Zukunftsthemen
+
+## Aktuelle Beobachtung
+
+Im aktuellen Mehrfachvergleich ueber `AAPL`, `TSLA` und `DOU.DE` liefert der Random Forest bereits bessere Richtungssignale als die naive Persistence-Baseline, schlaegt sie aber bei der RMSE noch nicht robust. Das ist ein sinnvoller Zwischenstand fuer die Bachelorarbeit, weil damit eine ehrliche Baseline und ein nachvollziehbarer Verbesserungsbedarf dokumentiert sind.
 
 ## Naechste sinnvolle Schritte
 

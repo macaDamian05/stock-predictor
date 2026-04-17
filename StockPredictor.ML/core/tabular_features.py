@@ -25,13 +25,16 @@ class NextCloseDataset:
     reference_column: str = REFERENCE_COLUMN
 
 
-def build_next_close_dataset(data: pd.DataFrame, lags: int) -> NextCloseDataset:
+def build_feature_frame_from_close_series(
+    close_series: pd.Series,
+    lags: int,
+) -> tuple[pd.DataFrame, list[str]]:
     if lags <= 0:
         raise ValueError(f"lags must be positive, got {lags}.")
 
-    close_series = data["Close"].astype(float)
+    close_series = close_series.astype(float)
     return_series = close_series.pct_change()
-    feature_frame = pd.DataFrame(index=data.index)
+    feature_frame = pd.DataFrame(index=close_series.index)
     feature_frame[REFERENCE_COLUMN] = close_series
 
     feature_columns = [REFERENCE_COLUMN]
@@ -41,22 +44,41 @@ def build_next_close_dataset(data: pd.DataFrame, lags: int) -> NextCloseDataset:
         feature_columns.append(column_name)
 
     sma_5 = close_series.rolling(window=5, min_periods=5).mean()
+    sma_10 = close_series.rolling(window=10, min_periods=10).mean()
     sma_20 = close_series.rolling(window=20, min_periods=20).mean()
+    ema_5 = close_series.ewm(span=5, adjust=False, min_periods=5).mean()
+    ema_10 = close_series.ewm(span=10, adjust=False, min_periods=10).mean()
+    ema_20 = close_series.ewm(span=20, adjust=False, min_periods=20).mean()
+    rolling_std_20 = close_series.rolling(window=20, min_periods=20).std()
+    rolling_max_20 = close_series.rolling(window=20, min_periods=20).max()
+    rolling_min_20 = close_series.rolling(window=20, min_periods=20).min()
     volatility_5 = return_series.rolling(window=5, min_periods=5).std()
+    volatility_10 = return_series.rolling(window=10, min_periods=10).std()
     volatility_20 = return_series.rolling(window=20, min_periods=20).std()
     rsi_14 = calculate_rsi(close_series, window=14)
     momentum_5 = close_series.pct_change(periods=5)
+    momentum_10 = close_series.pct_change(periods=10)
     momentum_20 = close_series.pct_change(periods=20)
 
     engineered_features = {
         "return_mean_5": return_series.rolling(window=5, min_periods=5).mean(),
+        "return_mean_10": return_series.rolling(window=10, min_periods=10).mean(),
         "return_mean_20": return_series.rolling(window=20, min_periods=20).mean(),
         "sma_5_gap": (close_series / sma_5) - 1.0,
+        "sma_10_gap": (close_series / sma_10) - 1.0,
         "sma_20_gap": (close_series / sma_20) - 1.0,
+        "ema_5_gap": (close_series / ema_5) - 1.0,
+        "ema_10_gap": (close_series / ema_10) - 1.0,
+        "ema_20_gap": (close_series / ema_20) - 1.0,
         "volatility_5": volatility_5,
+        "volatility_10": volatility_10,
         "volatility_20": volatility_20,
         "momentum_5": momentum_5,
+        "momentum_10": momentum_10,
         "momentum_20": momentum_20,
+        "breakout_20_gap": (close_series / rolling_max_20) - 1.0,
+        "drawdown_20_gap": (close_series / rolling_min_20) - 1.0,
+        "price_zscore_20": (close_series - sma_20) / rolling_std_20,
         "rsi_14": rsi_14 / 100.0,
     }
 
@@ -64,12 +86,38 @@ def build_next_close_dataset(data: pd.DataFrame, lags: int) -> NextCloseDataset:
         feature_frame[column_name] = values
         feature_columns.append(column_name)
 
+    return feature_frame, feature_columns
+
+
+def build_latest_feature_frame_from_close_series(
+    close_series: pd.Series,
+    lags: int,
+) -> tuple[pd.DataFrame, list[str]]:
+    feature_frame, feature_columns = build_feature_frame_from_close_series(
+        close_series=close_series,
+        lags=lags,
+    )
     latest_features = feature_frame.dropna().tail(1).copy()
     if latest_features.empty:
         raise ValueError(
             f"Not enough rows to build features with {lags} lags. "
             f"At least {lags + 1} close values are required."
         )
+
+    return latest_features, feature_columns
+
+
+def build_next_close_dataset(data: pd.DataFrame, lags: int) -> NextCloseDataset:
+    close_series = data["Close"].astype(float)
+    return_series = close_series.pct_change()
+    feature_frame, feature_columns = build_feature_frame_from_close_series(
+        close_series=close_series,
+        lags=lags,
+    )
+    latest_features, _ = build_latest_feature_frame_from_close_series(
+        close_series=close_series,
+        lags=lags,
+    )
 
     supervised_frame = feature_frame.copy()
     supervised_frame[RETURN_TARGET_COLUMN] = return_series.shift(-1)

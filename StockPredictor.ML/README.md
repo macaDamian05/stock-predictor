@@ -130,7 +130,7 @@ Das Benchmark-Skript speichert unter `storage/benchmarks/<run>/` eine CSV-, JSON
 
 - Klassischer Pfad: Persistence-Baseline plus `RandomForestRegressor` auf Lag-Features
 - Klassischer Trainingszielwert: naechste Tagesrendite, danach Rueckrechnung in naechsten Schlusskurs
-- Klassische Eingabefeatures: Return-Lags, Momentum, gleitende Durchschnitte, Volatilitaet und RSI
+- Klassische Eingabefeatures: Return-Lags, Momentum, gleitende Durchschnitte, EMA-Gaps, Volatilitaet, Breakout-/Drawdown-Abstaende, Preis-Z-Score und RSI
 - Klassische Evaluation: Holdout-Test plus Walk-Forward-Backtesting mit expandierendem Trainingsfenster
 - Benchmark-Evaluation: mehrere Ticker mit gemeinsamer Ranking-Tabelle auf Basis der Walk-Forward-Metriken
 - Klassische Zusatzwerte: RSI, durchschnittliche Forecast-Steigung und 5-Tage-Prognosepfad
@@ -142,3 +142,7 @@ Das Benchmark-Skript speichert unter `storage/benchmarks/<run>/` eine CSV-, JSON
 ## Archivierte Notebook-Quellen
 
 Die Original-Notebooks aus dem frueheren lokalen Arbeitsstand liegen unter `notebooks/legacy/`. Neue Experimente sollten in `notebooks/exploration.ipynb` beginnen und danach in die Python-Module ueberfuehrt werden.
+
+## Letzte technische Beobachtung
+
+Der mehrfache Walk-Forward-Vergleich zeigt aktuell: Der Random Forest verbessert die Directional Accuracy deutlich gegenueber der naiven Baseline, uebertrifft sie bei der RMSE aber noch nicht stabil. Der rekursive Forecast-Pfad wurde deshalb technisch bereinigt und baut Zukunftsfeatures jetzt konsistent aus der fortgeschriebenen Close-Historie neu auf, statt Featurewerte unpassend zu verschieben.

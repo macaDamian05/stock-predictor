@@ -20,13 +20,14 @@ Der aktuelle technische Stand umfasst:
 - Persistence-Baseline als einfacher Referenzwert
 - `RandomForestRegressor` auf Lag-Features historischer Tagesrenditen
 - fuer den klassischen Baumansatz wird die naechste Tagesrendite modelliert und anschliessend in einen naechsten Schlusskurs zurueckgerechnet
-- der klassische Feature-Satz umfasst inzwischen auch Momentum, gleitende Durchschnitte, Volatilitaet und RSI
+- der klassische Feature-Satz umfasst inzwischen auch Momentum, gleitende Durchschnitte, EMA-Gaps, Volatilitaet, Breakout-/Drawdown-Abstaende, Preis-Z-Score und RSI
 - CSV- oder `yfinance`-basierte Dateneingabe
 - chronologischen Train/Test-Split ohne Shuffling
 - Walk-Forward-Backtesting mit expandierendem Trainingsfenster
 - grafische Ausgaben fuer Historie, Testperiode und mehrtaegigen Forecast
 - zusaetzliche Artefakte fuer Walk-Forward-Vorhersagen und Fold-Metriken
 - tickeruebergreifender Benchmark-Lauf mit gemeinsamer Vergleichstabelle
+- konsistente rekursive Forecast-Berechnung auf Basis fortgeschriebener Close-Historie
 - Download historischer Kursdaten ueber `yfinance`
 - Training eines LSTM-Modells pro Ticker
 - persistente Speicherung von Modell, Scaler, Metadaten und Trainingslog
@@ -64,6 +65,12 @@ Wichtig ist ausserdem eine zeitlich saubere Datenaufteilung, zum Beispiel:
 
 Ein Walk-Forward-Backtesting ist bereits fuer den klassischen Modellpfad umgesetzt und sollte in spaeteren Iterationen systematisch ueber mehrere Aktien hinweg ausgewertet werden.
 Ein erster Mehrfachvergleich ueber mehrere Ticker ist jetzt ebenfalls vorgesehen, damit Metriken nicht nur fuer Einzelbeispiele, sondern auch tickeruebergreifend betrachtet werden koennen.
+
+Erste Ergebnisbeobachtung:
+
+- Im bisherigen Benchmark-Korb ist die Directional Accuracy des Random Forest deutlich hoeher als bei der naiven Persistence-Baseline.
+- Bei der RMSE ist die Baseline aktuell jedoch noch leicht besser.
+- Diese Konstellation ist wissenschaftlich interessant, weil sie zeigt, dass Richtungsvorhersage und Punktprognose nicht automatisch gemeinsam besser werden.
 
 ## Forschungsfragen
 
