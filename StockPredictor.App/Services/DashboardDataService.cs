@@ -35,14 +35,14 @@ public sealed class DashboardDataService(IWebHostEnvironment environment, ILogge
                 return new DashboardDataSnapshot(
                     null,
                     candidatePath,
-                    "The dashboard export exists, but the JSON could not be parsed.");
+                    "Der Dashboard-Export ist vorhanden, aber das JSON konnte nicht gelesen werden.");
             }
         }
 
         return new DashboardDataSnapshot(
             null,
             GetCandidatePaths().First(),
-            "Dashboard payload not found. Run export_dashboard_payload.py to generate the UI data export.");
+            "Kein Dashboard-Payload gefunden. Fuehre export_dashboard_payload.py aus, um den UI-Export zu erzeugen.");
     }
 
     private IReadOnlyList<string> GetCandidatePaths()

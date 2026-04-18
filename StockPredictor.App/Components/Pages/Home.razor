@@ -3,28 +3,28 @@
 @using System.Globalization
 @inject DashboardDataService DashboardDataService
 
-<PageTitle>Stock Predictor Dashboard</PageTitle>
+<PageTitle>Stock-Predictor-Dashboard</PageTitle>
 
 @if (_isLoading)
 {
     <section class="dashboard-empty panel-shell">
-        <span class="section-kicker">Loading</span>
-        <h1>Building the research dashboard...</h1>
-        <p>The app is loading the latest dashboard payload from the ML export pipeline.</p>
+        <span class="section-kicker">Laden</span>
+        <h1>Dashboard wird aufgebaut...</h1>
+        <p>Die App laedt den neuesten Dashboard-Payload aus der ML-Pipeline.</p>
     </section>
 }
 else if (_snapshot?.Payload is null)
 {
     <section class="dashboard-empty panel-shell">
-        <span class="section-kicker">Payload missing</span>
-        <h1>No dashboard data found yet</h1>
-        <p>@(_snapshot?.ErrorMessage ?? "The dashboard payload could not be loaded.")</p>
+        <span class="section-kicker">Payload fehlt</span>
+        <h1>Noch keine Dashboard-Daten gefunden</h1>
+        <p>@(_snapshot?.ErrorMessage ?? "Der Dashboard-Payload konnte nicht geladen werden.")</p>
         <div class="empty-state-meta">
-            <span class="meta-pill">Expected file</span>
+            <span class="meta-pill">Erwartete Datei</span>
             <code>@_snapshot?.ResolvedPath</code>
         </div>
         <div class="empty-state-command">
-            <span class="meta-pill">Generate it with</span>
+            <span class="meta-pill">Erzeugen mit</span>
             <code>.\StockPredictor.ML\.venv\Scripts\python.exe StockPredictor.ML\export_dashboard_payload.py</code>
         </div>
     </section>
@@ -41,86 +41,86 @@ else
     <div class="dashboard-page">
         <section class="hero-shell panel-shell" id="overview">
             <div class="hero-copy">
-                <span class="section-kicker">Research Dashboard</span>
-                <h1>Stock forecasting results, benchmarks and 5-day outlooks in one dark workspace.</h1>
+                <span class="section-kicker">Forschungs-Dashboard</span>
+                <h1>Aktienprognosen, Benchmarks und 5-Tage-Ausblicke in einem dunklen Dashboard.</h1>
                 <p>
-                    This UI reads the latest thesis export and turns the ML pipeline into a dashboard you can actually inspect:
-                    benchmark baskets, featured tickers, forecast paths and the current gap against the baseline.
+                    Diese Oberflaeche liest den neuesten Thesis-Export und macht daraus ein Dashboard, das du direkt auswerten kannst:
+                    Benchmark-Koerbe, ausgewaehlte Ticker, Prognosepfade und der aktuelle Abstand zur Baseline.
                 </p>
             </div>
 
             <div class="hero-meta">
-                <div class="meta-pill">Generated @FormatDateTime(payload.GeneratedAt)</div>
-                <div class="meta-pill">Contract v@payload.UiContractVersion</div>
-                <div class="meta-pill">Source thesis run: @payload.SourceRuns.ThesisRun</div>
+                <div class="meta-pill">Erstellt @FormatDateTime(payload.GeneratedAt)</div>
+                <div class="meta-pill">Schema v@payload.UiContractVersion</div>
+                <div class="meta-pill">Quelle: Thesis-Run @payload.SourceRuns.ThesisRun</div>
             </div>
         </section>
 
         <section class="summary-grid">
             <article class="summary-card panel-shell accent-starter">
                 <div class="card-header-row">
-                    <span class="section-kicker">Starter Best</span>
+                    <span class="section-kicker">Bestes Starter-Setup</span>
                     <span class="tone-pill @(GetGapTone(starterSummary.MeanBestLearnedMinusBaselineRmse))">
-                        Gap @FormatSignedRmse(starterSummary.MeanBestLearnedMinusBaselineRmse)
+                        Abstand @FormatSignedRmse(starterSummary.MeanBestLearnedMinusBaselineRmse)
                     </span>
                 </div>
-                <strong class="card-value">@starterSummary.FeatureProfile.Replace("_", " ") / @starterSummary.Lags lags</strong>
+                <strong class="card-value">@FormatFeatureProfileLabel(starterSummary.FeatureProfile) / @starterSummary.Lags Lags</strong>
                 <p class="card-copy">
-                    Dominant model: @starterSummary.DominantBestModelLabel. Mean directional accuracy
+                    Dominantes Modell: @FormatModelLabel(starterSummary.DominantBestModel, starterSummary.DominantBestModelLabel). Mittlere Richtungstrefferquote
                     @FormatPercent(starterSummary.MeanBestLearnedDirectionalAccuracy * 100).
                 </p>
                 <div class="card-metrics">
-                    <span>Best learned RMSE <strong>@FormatRmse(starterSummary.MeanBestLearnedRmse)</strong></span>
-                    <span>Baseline RMSE <strong>@FormatRmse(starterSummary.MeanWalkForwardBaselineRmse)</strong></span>
+                    <span>Beste gelernte RMSE <strong>@FormatRmse(starterSummary.MeanBestLearnedRmse)</strong></span>
+                    <span>Baseline-RMSE <strong>@FormatRmse(starterSummary.MeanWalkForwardBaselineRmse)</strong></span>
                 </div>
             </article>
 
             <article class="summary-card panel-shell accent-core">
                 <div class="card-header-row">
-                    <span class="section-kicker">Bachelor Core</span>
-                    <span class="tone-pill @(GetGapTone(coreSummary.MeanBestLearnedMinusBaselineRmse))">@coreSummary.DominantBestModelLabel</span>
+                    <span class="section-kicker">Bachelor Kernkorb</span>
+                    <span class="tone-pill @(GetGapTone(coreSummary.MeanBestLearnedMinusBaselineRmse))">@FormatModelLabel(coreSummary.DominantBestModel, coreSummary.DominantBestModelLabel)</span>
                 </div>
-                <strong class="card-value">@coreSummary.FeatureProfileLabel</strong>
+                <strong class="card-value">@FormatFeatureProfileLabel(coreSummary.FeatureProfile)</strong>
                 <p class="card-copy">
-                    Best profile across @coreSummary.TickerCount tickers. Mean learned RMSE
+                    Bestes Profil ueber @coreSummary.TickerCount Ticker. Mittlere gelernte RMSE
                     @FormatRmse(coreSummary.MeanBestLearnedRmse).
                 </p>
                 <div class="card-metrics">
                     <span>Baseline @FormatRmse(coreSummary.MeanWalkForwardBaselineRmse)</span>
-                    <span>Direction @FormatPercent(coreSummary.MeanBestLearnedDirectionalAccuracy * 100)</span>
+                    <span>Richtung @FormatPercent(coreSummary.MeanBestLearnedDirectionalAccuracy * 100)</span>
                 </div>
             </article>
 
             <article class="summary-card panel-shell accent-diversified">
                 <div class="card-header-row">
-                    <span class="section-kicker">Diversified Basket</span>
-                    <span class="tone-pill @(GetGapTone(diversifiedSummary.MeanBestLearnedMinusBaselineRmse))">@diversifiedSummary.DominantBestModelLabel</span>
+                    <span class="section-kicker">Diversifizierter Korb</span>
+                    <span class="tone-pill @(GetGapTone(diversifiedSummary.MeanBestLearnedMinusBaselineRmse))">@FormatModelLabel(diversifiedSummary.DominantBestModel, diversifiedSummary.DominantBestModelLabel)</span>
                 </div>
-                <strong class="card-value">@diversifiedSummary.FeatureProfileLabel</strong>
+                <strong class="card-value">@FormatFeatureProfileLabel(diversifiedSummary.FeatureProfile)</strong>
                 <p class="card-copy">
-                    Broader basket with @diversifiedSummary.TickerCount tickers. Mean learned RMSE
+                    Breiterer Korb mit @diversifiedSummary.TickerCount Tickern. Mittlere gelernte RMSE
                     @FormatRmse(diversifiedSummary.MeanBestLearnedRmse).
                 </p>
                 <div class="card-metrics">
                     <span>Baseline @FormatRmse(diversifiedSummary.MeanWalkForwardBaselineRmse)</span>
-                    <span>Direction @FormatPercent(diversifiedSummary.MeanBestLearnedDirectionalAccuracy * 100)</span>
+                    <span>Richtung @FormatPercent(diversifiedSummary.MeanBestLearnedDirectionalAccuracy * 100)</span>
                 </div>
             </article>
 
             <article class="summary-card panel-shell accent-neutral">
                 <div class="card-header-row">
-                    <span class="section-kicker">Baseline Pressure</span>
+                    <span class="section-kicker">Baseline-Vergleich</span>
                     <span class="tone-pill @(starterBeaters.Count > 0 ? "tone-positive" : "tone-neutral")">
-                        @(starterBeaters.Count > 0 ? "Some wins" : "No wins")
+                        @(starterBeaters.Count > 0 ? "Teilweise besser" : "Noch nicht besser")
                     </span>
                 </div>
                 <strong class="card-value">@starterBeaters.Count / @starterSummary.TickerCount</strong>
                 <p class="card-copy">
-                    Starter tickers that beat the naive persistence baseline on walk-forward RMSE.
+                    Starter-Ticker, die die naive Persistence-Baseline bei der Walk-Forward-RMSE schlagen.
                 </p>
                 <div class="card-metrics">
-                    <span>Winning tickers</span>
-                    <strong>@(starterBeaters.Count > 0 ? string.Join(", ", starterBeaters) : "None yet")</strong>
+                    <span>Bessere Ticker</span>
+                    <strong>@(starterBeaters.Count > 0 ? string.Join(", ", starterBeaters) : "Noch keine")</strong>
                 </div>
             </article>
         </section>
@@ -129,10 +129,10 @@ else
             <article class="ticker-lab panel-shell">
                 <div class="panel-header">
                     <div>
-                        <span class="section-kicker">Featured Tickers</span>
-                        <h2>Inspect the current forecast candidates</h2>
+                        <span class="section-kicker">Ausgewaehlte Ticker</span>
+                        <h2>Aktuelle Prognosekandidaten im Vergleich</h2>
                     </div>
-                    <div class="meta-pill">Payload source: @Path.GetFileName(_snapshot.ResolvedPath)</div>
+                    <div class="meta-pill">Payload-Quelle: @Path.GetFileName(_snapshot.ResolvedPath)</div>
                 </div>
 
                 <div class="ticker-lab-grid">
@@ -148,10 +148,10 @@ else
                                         @FormatPercent(ticker.ForecastHorizonChangePct)
                                     </span>
                                 </div>
-                                <span class="ticker-card-model">@ticker.ForecastModelLabel / @ticker.FeatureProfileLabel</span>
+                                <span class="ticker-card-model">@FormatModelLabel(ticker.ForecastModel, ticker.ForecastModelLabel) / @FormatFeatureProfileLabel(ticker.FeatureProfile)</span>
                                 <div class="ticker-card-row muted">
                                     <span>RMSE @FormatRmse(ticker.WalkForwardBestRmse)</span>
-                                    <span>RSI @ticker.AverageRecentRsi.ToString("0.0", CultureInfo.InvariantCulture)</span>
+                                    <span>RSI @ticker.AverageRecentRsi.ToString("0.0", UiCulture)</span>
                                 </div>
                             </button>
                         }
@@ -163,54 +163,54 @@ else
                                 <div class="detail-title-row">
                                     <h2>@activeTicker.Ticker</h2>
                                     <span class="tone-pill @(GetTrendTone(activeTicker.ForecastHorizonChangePct))">
-                                        5D @FormatPercent(activeTicker.ForecastHorizonChangePct)
+                                        5T @FormatPercent(activeTicker.ForecastHorizonChangePct)
                                     </span>
                                 </div>
                                 <p>
-                                    Forecasted with @activeTicker.ForecastModelLabel on @activeTicker.FeatureProfileLabel.
-                                    Data window: @FormatDate(activeTicker.DataStart) to @FormatDate(activeTicker.DataEnd).
+                                    Prognose mit @FormatModelLabel(activeTicker.ForecastModel, activeTicker.ForecastModelLabel) auf Basis von @FormatFeatureProfileLabel(activeTicker.FeatureProfile).
+                                    Datenfenster: @FormatDate(activeTicker.DataStart) bis @FormatDate(activeTicker.DataEnd).
                                 </p>
                             </div>
                             <div class="detail-badges">
-                                <span class="meta-pill">Holdout winner: @FormatModelLabel(activeTicker.HoldoutBestModel, activeTicker.ForecastModelLabel)</span>
-                                <span class="meta-pill">Walk-forward winner: @FormatModelLabel(activeTicker.WalkForwardBestModel, activeTicker.ForecastModelLabel)</span>
+                                <span class="meta-pill">Holdout-Sieger: @FormatModelLabel(activeTicker.HoldoutBestModel, activeTicker.ForecastModelLabel)</span>
+                                <span class="meta-pill">Walk-Forward-Sieger: @FormatModelLabel(activeTicker.WalkForwardBestModel, activeTicker.ForecastModelLabel)</span>
                             </div>
                         </div>
 
                         <div class="detail-stats-grid">
                             <article class="mini-stat">
-                                <span>Last close</span>
+                                <span>Letzter Schlusskurs</span>
                                 <strong>@FormatPrice(activeTicker.LastClose)</strong>
                                 <small>@FormatDate(activeTicker.LastCloseDate)</small>
                             </article>
                             <article class="mini-stat">
-                                <span>Next forecast</span>
+                                <span>Naechste Prognose</span>
                                 <strong>@FormatPrice(activeTicker.NextPredictedClose)</strong>
                                 <small>@FormatPercent(activeTicker.NextPredictedChangePct)</small>
                             </article>
                             <article class="mini-stat">
-                                <span>Directional accuracy</span>
+                                <span>Richtungstreffer</span>
                                 <strong>@FormatPercent(activeTicker.WalkForwardBestDirectionalAccuracy * 100)</strong>
-                                <small>Walk-forward</small>
+                                <small>Walk-Forward</small>
                             </article>
                             <article class="mini-stat">
-                                <span>Baseline gap</span>
+                                <span>Abstand zur Baseline</span>
                                 <strong class="@GetGapTone(activeTicker.WalkForwardBestRmse - activeTicker.WalkForwardBaselineRmse)">
                                     @FormatSignedRmse(activeTicker.WalkForwardBestRmse - activeTicker.WalkForwardBaselineRmse)
                                 </strong>
-                                <small>@(activeTicker.BeatsBaselineRmse ? "Beats baseline" : "Baseline still stronger")</small>
+                                <small>@(activeTicker.BeatsBaselineRmse ? "Besser als Baseline" : "Baseline weiter staerker")</small>
                             </article>
                         </div>
 
                         <div class="forecast-panel">
                             <div class="forecast-panel-header">
                                 <div>
-                                    <span class="section-kicker">5-Day Path</span>
-                                    <h3>Projected close trajectory</h3>
+                                    <span class="section-kicker">5-Tage-Pfad</span>
+                                    <h3>Prognostizierter Schlusskursverlauf</h3>
                                 </div>
                                 <div class="forecast-legend">
                                     <span class="legend-dot"></span>
-                                    <span>Last close + forecast closes</span>
+                                    <span>Letzter Schlusskurs + Prognosepfad</span>
                                 </div>
                             </div>
                             <ForecastSparkline Values="@GetSparklineValues(activeTicker)"
@@ -234,31 +234,31 @@ else
 
             <aside class="insight-rail">
                 <article class="panel-shell rail-card">
-                    <span class="section-kicker">Pipeline Context</span>
-                    <h3>What feeds this dashboard</h3>
+                    <span class="section-kicker">Pipeline-Kontext</span>
+                    <h3>Diese Laeufe speisen das Dashboard</h3>
                     <div class="run-list">
                         <div>
-                            <span>Thesis export</span>
+                            <span>Thesis-Export</span>
                             <strong>@payload.SourceRuns.ThesisRun</strong>
                         </div>
                         <div>
-                            <span>Starter suite</span>
+                            <span>Starter-Suite</span>
                             <strong>@payload.SourceRuns.StarterSuite</strong>
                         </div>
                         <div>
-                            <span>Core comparison</span>
+                            <span>Core-Vergleich</span>
                             <strong>@payload.SourceRuns.CoreProfileComparison</strong>
                         </div>
                         <div>
-                            <span>Diversified comparison</span>
+                            <span>Diversified-Vergleich</span>
                             <strong>@payload.SourceRuns.DiversifiedProfileComparison</strong>
                         </div>
                     </div>
                 </article>
 
                 <article class="panel-shell rail-card" id="notes">
-                    <span class="section-kicker">Research Notes</span>
-                    <h3>Current takeaways</h3>
+                    <span class="section-kicker">Forschungsnotizen</span>
+                    <h3>Aktuelle Erkenntnisse</h3>
                     <ul class="note-list">
                         @foreach (var note in payload.Notes)
                         {
@@ -275,46 +275,46 @@ else
                 <article class="panel-shell benchmark-card">
                     <div class="panel-header">
                         <div>
-                            <span class="section-kicker">@basket.BasketLabel</span>
-                            <h2>@basket.BestProfileLabel leads this basket</h2>
+                            <span class="section-kicker">@FormatBasketLabel(basket.BasketKey, basket.BasketLabel)</span>
+                            <h2>@FormatFeatureProfileLabel(basket.BestProfile) ist in diesem Korb vorne</h2>
                         </div>
                         <span class="tone-pill @(GetGapTone(basket.MeanGapVsBaseline))">
-                            Gap @FormatSignedRmse(basket.MeanGapVsBaseline)
+                            Abstand @FormatSignedRmse(basket.MeanGapVsBaseline)
                         </span>
                     </div>
 
                     <div class="benchmark-metrics">
                         <div>
-                            <span>Best learned RMSE</span>
+                            <span>Beste gelernte RMSE</span>
                             <strong>@FormatRmse(basket.MeanBestLearnedRmse)</strong>
                         </div>
                         <div>
-                            <span>Baseline RMSE</span>
+                            <span>Baseline-RMSE</span>
                             <strong>@FormatRmse(basket.MeanWalkForwardBaselineRmse)</strong>
                         </div>
                         <div>
-                            <span>Dominant model</span>
-                            <strong>@basket.DominantBestModelLabel</strong>
+                            <span>Dominantes Modell</span>
+                            <strong>@FormatModelLabel(basket.DominantBestModel, basket.DominantBestModelLabel)</strong>
                         </div>
                     </div>
 
                     <div class="profile-balance">
                         <div class="balance-header">
-                            <span>Technical Extended wins</span>
+                            <span>Technisch erweitert vorne</span>
                             <strong>@basket.TechnicalExtendedBetterCount</strong>
                         </div>
                         <div class="balance-track">
                             <div class="balance-fill positive" style="width:@GetShare(basket.TechnicalExtendedBetterCount, basket.TechnicalExtendedBetterCount + basket.LagOnlyBetterCount)%;"></div>
                         </div>
                         <div class="balance-header alternate">
-                            <span>Lag Only wins</span>
+                            <span>Nur Lags vorne</span>
                             <strong>@basket.LagOnlyBetterCount</strong>
                         </div>
                     </div>
 
                     <div class="benchmark-lists">
                         <div>
-                            <span class="tag-label">Technical Extended better</span>
+                            <span class="tag-label">Technisch erweitert besser</span>
                             <div class="tag-list">
                                 @foreach (var ticker in basket.TechnicalExtendedBetterTickers)
                                 {
@@ -323,7 +323,7 @@ else
                             </div>
                         </div>
                         <div>
-                            <span class="tag-label">Lag Only better</span>
+                            <span class="tag-label">Nur Lags besser</span>
                             <div class="tag-list">
                                 @foreach (var ticker in basket.LagOnlyBetterTickers)
                                 {
@@ -339,7 +339,7 @@ else
 }
 
 @code {
-    private static readonly CultureInfo UiCulture = CultureInfo.InvariantCulture;
+    private static readonly CultureInfo UiCulture = CultureInfo.GetCultureInfo("de-DE");
 
     private DashboardDataSnapshot? _snapshot;
     private string? _selectedTickerSymbol;
@@ -363,9 +363,9 @@ else
             ?? payload.FeaturedTickers.First();
     }
 
-    private static string FormatDate(DateOnly date) => date.ToString("dd MMM yyyy", UiCulture);
+    private static string FormatDate(DateOnly date) => date.ToString("dd. MMM yyyy", UiCulture);
 
-    private static string FormatDateTime(DateTime dateTime) => dateTime.ToString("dd MMM yyyy | HH:mm", UiCulture);
+    private static string FormatDateTime(DateTime dateTime) => dateTime.ToString("dd. MMM yyyy | HH:mm", UiCulture);
 
     private static string FormatPrice(double value) => value.ToString("N2", UiCulture);
 
@@ -380,9 +380,30 @@ else
         return rawValue switch
         {
             "random_forest" => "Random Forest",
-            "ridge_regression" => "Ridge Regression",
-            "decision_tree" => "Decision Tree",
+            "ridge_regression" => "Ridge-Regression",
+            "decision_tree" => "Entscheidungsbaum",
             _ when !string.IsNullOrWhiteSpace(rawValue) => rawValue.Replace("_", " "),
+            _ => fallback,
+        };
+    }
+
+    private static string FormatFeatureProfileLabel(string rawValue)
+    {
+        return rawValue switch
+        {
+            "technical_extended" => "Technisch erweitert",
+            "technical_basic" => "Technisch grundlegend",
+            "lag_only" => "Nur Lags",
+            _ => rawValue.Replace("_", " "),
+        };
+    }
+
+    private static string FormatBasketLabel(string basketKey, string fallback)
+    {
+        return basketKey switch
+        {
+            "core" => "Bachelor Kernkorb",
+            "diversified" => "Bachelor diversifiziert",
             _ => fallback,
         };
     }

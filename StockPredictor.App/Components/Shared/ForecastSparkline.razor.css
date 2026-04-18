@@ -1,8 +1,9 @@
 .forecast-sparkline {
     width: 100%;
     height: 14rem;
+    display: block;
     color: var(--accent);
-    overflow: visible;
+    overflow: hidden;
 }
 
 .forecast-sparkline.up {
@@ -23,10 +24,16 @@
     stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
 }
 
 .forecast-sparkline-dot {
     fill: currentColor;
     stroke: rgba(7, 12, 18, 0.95);
     stroke-width: 1.4;
+    vector-effect: non-scaling-stroke;
+}
+
+.forecast-sparkline-area {
+    opacity: 0.95;
 }
