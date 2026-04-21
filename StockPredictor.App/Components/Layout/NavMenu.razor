@@ -4,32 +4,22 @@
         <div class="brand-copy">
             <span class="brand-eyebrow">Bachelorarbeit</span>
             <a class="brand-link" href="">Stock Predictor</a>
-            <p class="brand-caption">Dashboard für Benchmarks, ausgewählte Ticker und Thesis-Auswertungen.</p>
+            <p class="brand-caption">ML-Dashboard für Benchmarks, Prognosen und Thesis-Auswertungen.</p>
         </div>
     </div>
 
-    <div class="menu-section">
+    <div class="menu-block">
         <span class="menu-label">Navigation</span>
-        <a class="menu-link" href="/#overview">Überblick</a>
-        <a class="menu-link" href="/#ticker-lab">Ticker-Bereich</a>
-        <a class="menu-link" href="/#benchmarks">Benchmarks</a>
-        <NavLink class="menu-link" href="hinweise">Hinweise & Erklärungen</NavLink>
+        <div class="menu-links">
+            <a class="menu-link" href="/#overview">Überblick</a>
+            <a class="menu-link" href="/#ticker-lab">Ticker</a>
+            <a class="menu-link" href="/#benchmarks">Benchmarks</a>
+            <NavLink class="menu-link" href="hinweise">Hinweise</NavLink>
+        </div>
     </div>
 
-    <div class="menu-section">
-        <span class="menu-label">Kontext</span>
-        <div class="status-card">
-            <span class="status-dot"></span>
-            <div>
-                <strong>Payload-basiert</strong>
-                <span>Die UI liest den neuesten ML-Export statt roher Notebook-Dateien.</span>
-            </div>
-        </div>
-        <div class="status-card muted">
-            <div>
-                <strong>Dark-Mode-Oberfläche</strong>
-                <span>Fokussiert auf Auswertung, Vergleich und Prognoseansicht.</span>
-            </div>
-        </div>
+    <div class="context-strip">
+        <span class="context-pill">Payload-basiert</span>
+        <span class="context-pill context-pill-muted">Dark Mode</span>
     </div>
 </nav>

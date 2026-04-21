@@ -1,14 +1,14 @@
 .dashboard-nav {
     display: grid;
-    grid-template-columns: minmax(14rem, 1.1fr) minmax(0, 1fr);
-    gap: 1rem 1.25rem;
+    grid-template-columns: minmax(15rem, 1.1fr) minmax(0, 1.3fr) auto;
+    gap: 0.9rem 1rem;
     align-items: center;
-    padding: 1.1rem 1.25rem;
+    padding: 0.8rem 1rem;
     border: 1px solid var(--border-subtle);
-    border-radius: 1.6rem;
+    border-radius: 1.25rem;
     background:
         linear-gradient(180deg, rgba(13, 22, 33, 0.95), rgba(9, 15, 24, 0.92)),
-        radial-gradient(circle at top right, rgba(90, 215, 255, 0.16), transparent 42%);
+        radial-gradient(circle at top right, rgba(90, 215, 255, 0.14), transparent 40%);
     box-shadow: var(--shadow-panel);
     backdrop-filter: blur(14px);
 }
@@ -16,35 +16,37 @@
 .brand-block {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 1rem;
+    gap: 0.8rem;
     align-items: center;
+    min-width: 0;
 }
 
 .brand-mark {
     display: grid;
     place-items: center;
-    width: 3.25rem;
+    width: 2.7rem;
     aspect-ratio: 1;
-    border-radius: 1rem;
+    border-radius: 0.9rem;
     background: linear-gradient(145deg, rgba(90, 215, 255, 0.92), rgba(35, 142, 214, 0.82));
     color: #06111a;
     font-family: var(--font-display);
-    font-size: 1rem;
+    font-size: 0.92rem;
     font-weight: 800;
     letter-spacing: 0.08em;
-    box-shadow: 0 12px 30px rgba(35, 142, 214, 0.22);
+    box-shadow: 0 10px 24px rgba(35, 142, 214, 0.2);
 }
 
 .brand-copy {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.18rem;
+    min-width: 0;
 }
 
 .brand-eyebrow,
 .menu-label {
     color: var(--text-subtle);
-    font-size: 0.72rem;
+    font-size: 0.67rem;
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -53,50 +55,45 @@
 .brand-link {
     color: var(--text-primary);
     font-family: var(--font-display);
-    font-size: 1.35rem;
+    font-size: 1.12rem;
     font-weight: 700;
-    line-height: 1.1;
+    line-height: 1.05;
     text-decoration: none;
 }
 
 .brand-caption {
     margin: 0;
     color: var(--text-muted);
-    font-size: 0.93rem;
-    line-height: 1.5;
-    max-width: 32rem;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.menu-section {
+.menu-block {
     display: grid;
-    gap: 0.7rem;
+    gap: 0.35rem;
 }
 
-.menu-section:first-of-type {
-    grid-column: 2;
-    justify-items: end;
-}
-
-.menu-section:last-of-type {
-    grid-column: 1 / -1;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.8rem;
-}
-
-.menu-section:last-of-type > .menu-label {
-    grid-column: 1 / -1;
+.menu-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    align-items: center;
 }
 
 .menu-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 3rem;
-    padding: 0.8rem 1rem;
+    min-height: 2.4rem;
+    padding: 0.45rem 0.85rem;
     border: 1px solid transparent;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.03);
     color: var(--text-secondary);
+    font-size: 0.92rem;
     font-weight: 600;
     text-decoration: none;
     transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease, color 180ms ease;
@@ -110,76 +107,62 @@
     transform: translateY(-1px);
 }
 
-.status-card {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.8rem;
-    padding: 0.95rem 1rem;
-    border: 1px solid rgba(90, 215, 255, 0.12);
-    border-radius: 1rem;
-    background: rgba(255, 255, 255, 0.035);
+.context-strip {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.45rem;
 }
 
-.status-card strong,
-.status-card span {
-    display: block;
+.context-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2rem;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid rgba(90, 215, 255, 0.16);
+    border-radius: 999px;
+    background: rgba(90, 215, 255, 0.08);
+    color: #d5f3ff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
-.status-card strong {
-    color: var(--text-primary);
-    font-size: 0.95rem;
+.context-pill-muted {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-secondary);
 }
 
-.status-card span {
-    color: var(--text-muted);
-    font-size: 0.88rem;
-    line-height: 1.45;
-}
-
-.status-card.muted {
-    grid-template-columns: 1fr;
-    border-color: var(--border-subtle);
-}
-
-.status-dot {
-    display: block;
-    width: 0.85rem;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    margin-top: 0.2rem;
-    background: var(--success);
-    box-shadow: 0 0 0 0.45rem rgba(66, 211, 146, 0.14);
-}
-
-@media (max-width: 980px) {
+@media (max-width: 1080px) {
     .dashboard-nav {
         grid-template-columns: 1fr;
+        gap: 0.8rem;
     }
 
-    .menu-section:first-of-type,
-    .menu-section:last-of-type {
-        grid-column: auto;
-    }
-
-    .menu-section:first-of-type {
-        justify-items: stretch;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .menu-section:first-of-type > .menu-label {
-        grid-column: 1 / -1;
+    .context-strip {
+        justify-content: flex-start;
     }
 }
 
 @media (max-width: 720px) {
     .dashboard-nav {
-        gap: 0.9rem;
-        padding: 1rem;
-        border-radius: 1.25rem;
+        padding: 0.85rem;
+        border-radius: 1.1rem;
     }
 
-    .menu-section:first-of-type,
-    .menu-section:last-of-type {
-        grid-template-columns: 1fr;
+    .brand-caption {
+        white-space: normal;
+    }
+
+    .menu-links,
+    .context-strip {
+        gap: 0.5rem;
+    }
+
+    .menu-link {
+        min-height: 2.25rem;
+        padding: 0.42rem 0.75rem;
     }
 }
