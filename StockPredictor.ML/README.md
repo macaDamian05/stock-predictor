@@ -179,11 +179,11 @@ Dazu gehoert jetzt auch ein Unternehmensranking ueber die exportierten Ticker in
 - Benchmark-Evaluation: mehrere Ticker mit gemeinsamer Ranking-Tabelle auf Basis der Walk-Forward-Metriken
 - Dashboard-Export: Unternehmensranking ueber mehrere Ticker auf Basis von 5-Tage-Ausblick und relativer Modellguete
 - Experimentsuite: Kombinationen aus Koerben, Feature-Profilen und Lag-Werten mit aggregiertem Vergleich
-- Klassische Zusatzwerte: RSI, durchschnittliche Forecast-Steigung und 5-Tage-Prognosepfad
+- Klassische Zusatzwerte: RSI, durchschnittliche Forecast-Steigung, durchschnittlicher Forecast-Abstand zum letzten Schlusskurs und 5-Tage-Prognosepfad
 - Modelltyp: Single-Layer-LSTM
 - Trainingssignal: Schlusskurse
 - Prognosehorizont: standardmaessig 5 Boersenwerktage
-- Zusatzwerte: RSI, durchschnittliche Prognose-Steigung, MAE, RMSE, Directional Accuracy
+- Zusatzwerte: RSI, durchschnittliche Prognose-Steigung, durchschnittlicher Forecast-Abstand zum letzten Schlusskurs, MAE, RMSE, Directional Accuracy
 
 ## Archivierte Notebook-Quellen
 

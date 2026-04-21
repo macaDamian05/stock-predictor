@@ -34,7 +34,7 @@ Stand: 2026-04-21
 - Single-Ticker-Training und -Prognose mit einem LSTM auf Basis historischer Schlusskurse
 - persistente Speicherung pro Ticker
 - inkrementelles Weitertraining bei neuen Marktdaten
-- zusaetzliche Bewertung ueber RSI, durchschnittliche Prognose-Steigung, MAE, RMSE und Directional Accuracy
+- zusaetzliche Bewertung ueber RSI, durchschnittliche Prognose-Steigung, durchschnittlichen Forecast-Abstand zum letzten Schlusskurs, MAE, RMSE und Directional Accuracy
 
 Noch nicht umgesetzt:
 

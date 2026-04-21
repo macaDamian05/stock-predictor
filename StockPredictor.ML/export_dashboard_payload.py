@@ -13,6 +13,7 @@ from core.paths import (
     get_dashboard_artifact_paths,
     get_thesis_artifact_paths,
 )
+from core.predictor import average_distance_pct_to_reference, average_distance_to_reference
 
 
 DEFAULT_DASHBOARD_RUN = "latest"
@@ -95,11 +96,28 @@ def build_featured_ticker_record(ticker: str) -> dict[str, object]:
     last_close = float(summary_payload["last_close"])
     next_close = float(next_step["predicted_close"])
     final_close = float(final_step["predicted_close"])
+    forecast_prices = [float(point["predicted_close"]) for point in forecast_path]
     walk_forward_overall = summary_payload["metrics"]["walk_forward"]["overall"]
     walk_forward_best_model = summary_payload["walk_forward_best_model"]
     feature_profile = summary_payload.get("feature_profile") or metadata_payload.get("feature_profile")
     if not feature_profile:
         feature_profile = infer_feature_profile(metadata_payload)
+    average_forecast_distance_to_last_close = summary_payload.get(
+        "average_forecast_distance_to_last_close"
+    )
+    if average_forecast_distance_to_last_close is None:
+        average_forecast_distance_to_last_close = average_distance_to_reference(
+            forecast_prices,
+            reference_value=last_close,
+        )
+    average_forecast_distance_pct_to_last_close = summary_payload.get(
+        "average_forecast_distance_pct_to_last_close"
+    )
+    if average_forecast_distance_pct_to_last_close is None:
+        average_forecast_distance_pct_to_last_close = average_distance_pct_to_reference(
+            forecast_prices,
+            reference_value=last_close,
+        )
 
     return {
         "ticker": ticker,
@@ -116,6 +134,8 @@ def build_featured_ticker_record(ticker: str) -> dict[str, object]:
         "forecast_days": int(summary_payload["forecast_days"]),
         "average_recent_rsi": summary_payload["average_recent_rsi"],
         "average_forecast_slope": summary_payload["average_forecast_slope"],
+        "average_forecast_distance_to_last_close": average_forecast_distance_to_last_close,
+        "average_forecast_distance_pct_to_last_close": average_forecast_distance_pct_to_last_close,
         "feature_profile": feature_profile,
         "feature_profile_label": PROFILE_DISPLAY_NAMES[feature_profile],
         "holdout_best_model": summary_payload["holdout_best_model"],
@@ -205,6 +225,8 @@ def build_company_ranking_records(featured_records: list[dict[str, object]]) -> 
         "last_close",
         "next_predicted_change_pct",
         "forecast_horizon_change_pct",
+        "average_forecast_distance_to_last_close",
+        "average_forecast_distance_pct_to_last_close",
         "walk_forward_best_directional_accuracy",
         "walk_forward_best_rmse",
         "walk_forward_baseline_rmse",

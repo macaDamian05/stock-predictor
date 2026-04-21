@@ -159,6 +159,8 @@ else
                                     Score @FormatScore(rankingEntry.RankingScore),
                                     Richtung @FormatPlainPercent(rankingEntry.WalkForwardBestDirectionalAccuracy * 100),
                                     relative RMSE @FormatPlainPercent(rankingEntry.RelativeRmsePct),
+                                    Ø Abstand @FormatPrice(rankingEntry.AverageForecastDistanceToLastClose)
+                                    (@FormatPlainPercent(rankingEntry.AverageForecastDistancePctToLastClose)),
                                     RSI @rankingEntry.AverageRecentRsi.ToString("0.0", UiCulture).
                                 </p>
                             </div>
@@ -260,6 +262,11 @@ else
                                 <span>Richtungstreffer</span>
                                 <strong>@FormatPercent(activeTicker.WalkForwardBestDirectionalAccuracy * 100)</strong>
                                 <small>Walk-Forward</small>
+                            </article>
+                            <article class="mini-stat">
+                                <span>Ø Abstand zum letzten Schlusskurs</span>
+                                <strong>@FormatPrice(activeTicker.AverageForecastDistanceToLastClose)</strong>
+                                <small>@FormatPlainPercent(activeTicker.AverageForecastDistancePctToLastClose)</small>
                             </article>
                             <article class="mini-stat">
                                 <span>Abstand zur Baseline</span>

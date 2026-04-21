@@ -34,6 +34,7 @@ Die JSON-Datei ist bewusst in wenige Bereiche gegliedert:
     - letzter Schlusskurs
     - naechster prognostizierter Schlusskurs
     - 5-Tage-Horizont
+    - durchschnittlicher Forecast-Abstand zum letzten Schlusskurs
     - Forecast-Modell
     - Walk-Forward-RMSE
     - Baseline-RMSE

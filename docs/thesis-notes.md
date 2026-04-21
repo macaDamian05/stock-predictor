@@ -1,6 +1,6 @@
 # Thesis Notes
 
-Stand: 2026-04-17
+Stand: 2026-04-21
 
 ## Arbeitstitel
 
@@ -40,7 +40,7 @@ Der aktuelle technische Stand umfasst:
 - persistente Speicherung von Modell, Scaler, Metadaten und Trainingslog
 - inkrementelles Weitertraining bei neueren Kursdaten
 - Visualisierung historischer Anpassung und kurzfristiger Prognosen
-- Zusatzwerte wie RSI, durchschnittliche Prognose-Steigung, MAE, RMSE und Directional Accuracy
+- Zusatzwerte wie RSI, durchschnittliche Prognose-Steigung, durchschnittlicher Forecast-Abstand zum letzten Schlusskurs, MAE, RMSE und Directional Accuracy
 
 ## Datengrundlage und Features
 

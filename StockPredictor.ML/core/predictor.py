@@ -47,6 +47,38 @@ def average_daily_slope(values: np.ndarray) -> float:
     return float(np.diff(values).mean())
 
 
+def average_distance_to_reference(
+    values: np.ndarray,
+    reference_value: float,
+    absolute: bool = True,
+) -> float:
+    numeric_values = np.asarray(values, dtype=float).reshape(-1)
+    if len(numeric_values) == 0:
+        return 0.0
+
+    distances = numeric_values - float(reference_value)
+    if absolute:
+        distances = np.abs(distances)
+
+    return float(distances.mean())
+
+
+def average_distance_pct_to_reference(
+    values: np.ndarray,
+    reference_value: float,
+    absolute: bool = True,
+) -> float:
+    numeric_reference = float(reference_value)
+    if abs(numeric_reference) < 1e-12:
+        return 0.0
+
+    return (
+        average_distance_to_reference(values, reference_value=numeric_reference, absolute=absolute)
+        / abs(numeric_reference)
+        * 100.0
+    )
+
+
 def regression_metrics(actual_values: np.ndarray, predicted_values: np.ndarray) -> dict[str, float]:
     actual = np.asarray(actual_values, dtype=float).reshape(-1)
     predicted = np.asarray(predicted_values, dtype=float).reshape(-1)

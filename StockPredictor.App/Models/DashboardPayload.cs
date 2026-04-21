@@ -181,6 +181,12 @@ public sealed class FeaturedTicker
     [JsonPropertyName("average_forecast_slope")]
     public double AverageForecastSlope { get; init; }
 
+    [JsonPropertyName("average_forecast_distance_to_last_close")]
+    public double AverageForecastDistanceToLastClose { get; init; }
+
+    [JsonPropertyName("average_forecast_distance_pct_to_last_close")]
+    public double AverageForecastDistancePctToLastClose { get; init; }
+
     [JsonPropertyName("feature_profile")]
     public string FeatureProfile { get; init; } = string.Empty;
 
@@ -258,6 +264,12 @@ public sealed class CompanyRankingEntry
 
     [JsonPropertyName("forecast_horizon_change_pct")]
     public double ForecastHorizonChangePct { get; init; }
+
+    [JsonPropertyName("average_forecast_distance_to_last_close")]
+    public double AverageForecastDistanceToLastClose { get; init; }
+
+    [JsonPropertyName("average_forecast_distance_pct_to_last_close")]
+    public double AverageForecastDistancePctToLastClose { get; init; }
 
     [JsonPropertyName("walk_forward_best_directional_accuracy")]
     public double WalkForwardBestDirectionalAccuracy { get; init; }

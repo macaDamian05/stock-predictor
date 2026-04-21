@@ -12,6 +12,8 @@ from core.model_factory import build_lstm_model
 from core.paths import ensure_runtime_directories, get_artifact_paths
 from core.predictor import (
     average_daily_slope,
+    average_distance_pct_to_reference,
+    average_distance_to_reference,
     build_forecast_index,
     forecast_future_prices,
     predict_historical,
@@ -261,6 +263,14 @@ def run_pipeline(ticker: str, config: TrainingConfig, force_retrain: bool = Fals
     actual_prices = close_series.iloc[config.lookback_days:].to_numpy(dtype=float)
     metrics = regression_metrics(actual_prices, historical_predictions)
     average_slope = average_daily_slope(future_predictions)
+    average_distance_to_last_close = average_distance_to_reference(
+        future_predictions,
+        reference_value=float(close_series.iloc[-1]),
+    )
+    average_distance_pct_to_last_close = average_distance_pct_to_reference(
+        future_predictions,
+        reference_value=float(close_series.iloc[-1]),
+    )
 
     rsi_values = calculate_rsi(close_series, config.rsi_window)
     average_rsi = average_recent_rsi(rsi_values, config.forecast_days)
@@ -277,6 +287,11 @@ def run_pipeline(ticker: str, config: TrainingConfig, force_retrain: bool = Fals
     print(f"RMSE: {metrics['rmse']:.4f}")
     print(f"Directional accuracy: {metrics['directional_accuracy']:.2%}")
     print(f"Average forecast slope: {average_slope:.4f} per business day")
+    print(
+        "Average forecast distance to last close: "
+        f"{average_distance_to_last_close:.4f} "
+        f"({average_distance_pct_to_last_close:.2f}%)"
+    )
 
     if average_rsi is None:
         print(f"Average RSI ({config.forecast_days} days): not enough data available")

@@ -40,6 +40,7 @@ Der ML-Prototyp in `StockPredictor.ML/` kann derzeit:
 - Modell, Scaler, Metadaten und Trainingslog persistent speichern
 - bei neueren Marktdaten ein inkrementelles Weitertraining ausfuehren
 - historische Vorhersagen, Zukunftsprognosen, RSI, durchschnittliche Prognose-Steigung sowie einfache Guetemasse ausgeben
+- zusaetzlich den durchschnittlichen Preisabstand des Forecast-Pfads zum letzten realen Schlusskurs ausgeben
 
 Der Webteil in `StockPredictor.App/` liest jetzt den kompakt exportierten Dashboard-Payload und zeigt die wichtigsten ML-Ergebnisse in einer dunklen Dashboard-Oberflaeche.
 

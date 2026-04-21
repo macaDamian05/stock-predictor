@@ -24,6 +24,8 @@ from core.indicators import average_recent_rsi, calculate_rsi
 from core.paths import ensure_runtime_directories, get_classical_artifact_paths
 from core.predictor import (
     average_daily_slope,
+    average_distance_pct_to_reference,
+    average_distance_to_reference,
     build_forecast_index,
     one_step_directional_accuracy,
     regression_metrics,
@@ -716,6 +718,14 @@ def main() -> None:
     rsi_values = calculate_rsi(price_data["Close"].astype(float), args.rsi_window)
     average_rsi = average_recent_rsi(rsi_values, args.forecast_days)
     forecast_slope = average_daily_slope(pd.Series(future_price_predictions, dtype=float).to_numpy())
+    average_forecast_distance_to_last_close = average_distance_to_reference(
+        future_price_predictions,
+        reference_value=last_close,
+    )
+    average_forecast_distance_pct_to_last_close = average_distance_pct_to_reference(
+        future_price_predictions,
+        reference_value=last_close,
+    )
 
     next_forecast = {
         "forecast_model": forecast_model_name,
@@ -723,6 +733,8 @@ def main() -> None:
         "forecast_date": future_dates[0].date().isoformat(),
         "last_close_date": price_data.index[-1].date().isoformat(),
         "last_close": last_close,
+        "average_distance_to_last_close": average_forecast_distance_to_last_close,
+        "average_distance_pct_to_last_close": average_forecast_distance_pct_to_last_close,
         "model_predictions": {
             model_name: {
                 "predicted_return": values["predicted_return"],
@@ -750,6 +762,8 @@ def main() -> None:
         "last_close": last_close,
         "average_recent_rsi": average_rsi,
         "average_forecast_slope": forecast_slope,
+        "average_forecast_distance_to_last_close": average_forecast_distance_to_last_close,
+        "average_forecast_distance_pct_to_last_close": average_forecast_distance_pct_to_last_close,
         "forecast_days": args.forecast_days,
         "feature_profile": args.feature_profile,
         "forecast_model": forecast_model_name,
@@ -893,6 +907,11 @@ def main() -> None:
     else:
         print(f"Average RSI ({args.forecast_days} days): {average_rsi:.2f}")
     print(f"Average forecast slope: {forecast_slope:.4f} per business day")
+    print(
+        "Average forecast distance to last close: "
+        f"{average_forecast_distance_to_last_close:.4f} "
+        f"({average_forecast_distance_pct_to_last_close:.2f}%)"
+    )
     print("Forecast path:")
     for forecast_date, forecast_price in zip(future_dates, future_price_predictions):
         print(f"  {forecast_date.date().isoformat()}: {forecast_price:.2f}")
