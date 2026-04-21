@@ -1,6 +1,6 @@
 # Project Context
 
-Stand: 2026-04-17
+Stand: 2026-04-21
 
 ## Kanonische Entscheidungen
 
@@ -29,6 +29,7 @@ Stand: 2026-04-17
 - wiederverwendbarer Profilvergleich ueber mehrere Benchmark-Runs
 - konsolidierter Thesis-Export fuer Tabellen, Grafiken und Ergebnisberichte aus vorhandenen Runs
 - Dashboard-Handover und erste umgesetzte Blazor-UI unter `storage/dashboard/LATEST/dashboard_payload.json`
+- Unternehmensranking fuer die im Dashboard exportierten Ticker auf Basis von Forecast und Modellguete
 - rekursiver Forecast im klassischen Pfad baut Features nun konsistent aus der fortgeschriebenen Close-Historie neu auf
 - Single-Ticker-Training und -Prognose mit einem LSTM auf Basis historischer Schlusskurse
 - persistente Speicherung pro Ticker
@@ -38,7 +39,6 @@ Stand: 2026-04-17
 Noch nicht umgesetzt:
 
 - gemeinsames Training ueber mehrere Aktien
-- Unternehmensranking
 - ETF-Unterstuetzung
 - News- oder Sentimentdaten
 - Backtesting ueber mehrere Assets und Marktphasen auf Forschungsniveau

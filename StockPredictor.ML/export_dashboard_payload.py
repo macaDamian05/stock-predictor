@@ -23,6 +23,12 @@ PROFILE_DISPLAY_NAMES = {
     "technical_basic": "Technical Basic",
     "technical_extended": "Technical Extended",
 }
+COMPANY_RANKING_WEIGHTS = {
+    "forecast_horizon_change_pct": 0.45,
+    "walk_forward_best_directional_accuracy": 0.25,
+    "relative_rmse_pct": 0.20,
+    "relative_gap_vs_baseline_pct": 0.10,
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -127,6 +133,89 @@ def build_featured_ticker_record(ticker: str) -> dict[str, object]:
     }
 
 
+def normalize_metric(series: pd.Series, higher_is_better: bool = True) -> pd.Series:
+    numeric = pd.to_numeric(series, errors="coerce").fillna(0.0)
+    minimum = float(numeric.min())
+    maximum = float(numeric.max())
+
+    if abs(maximum - minimum) < 1e-12:
+        normalized = pd.Series(1.0, index=numeric.index, dtype=float)
+    else:
+        normalized = (numeric - minimum) / (maximum - minimum)
+
+    return normalized if higher_is_better else 1.0 - normalized
+
+
+def build_company_ranking_records(featured_records: list[dict[str, object]]) -> list[dict[str, object]]:
+    ranking_frame = pd.DataFrame(featured_records).copy()
+    if ranking_frame.empty:
+        return []
+
+    ranking_frame["relative_rmse_pct"] = (
+        ranking_frame["walk_forward_best_rmse"] / ranking_frame["last_close"]
+    ) * 100.0
+    ranking_frame["relative_gap_vs_baseline_pct"] = (
+        (ranking_frame["walk_forward_best_rmse"] - ranking_frame["walk_forward_baseline_rmse"])
+        / ranking_frame["last_close"]
+    ) * 100.0
+
+    ranking_frame["forecast_component"] = normalize_metric(
+        ranking_frame["forecast_horizon_change_pct"],
+        higher_is_better=True,
+    )
+    ranking_frame["direction_component"] = normalize_metric(
+        ranking_frame["walk_forward_best_directional_accuracy"],
+        higher_is_better=True,
+    )
+    ranking_frame["rmse_component"] = normalize_metric(
+        ranking_frame["relative_rmse_pct"],
+        higher_is_better=False,
+    )
+    ranking_frame["baseline_component"] = normalize_metric(
+        ranking_frame["relative_gap_vs_baseline_pct"],
+        higher_is_better=False,
+    )
+
+    ranking_frame["ranking_score"] = (
+        ranking_frame["forecast_component"] * COMPANY_RANKING_WEIGHTS["forecast_horizon_change_pct"]
+        + ranking_frame["direction_component"]
+        * COMPANY_RANKING_WEIGHTS["walk_forward_best_directional_accuracy"]
+        + ranking_frame["rmse_component"] * COMPANY_RANKING_WEIGHTS["relative_rmse_pct"]
+        + ranking_frame["baseline_component"] * COMPANY_RANKING_WEIGHTS["relative_gap_vs_baseline_pct"]
+    ) * 100.0
+
+    ranking_frame = ranking_frame.sort_values(
+        by=[
+            "ranking_score",
+            "forecast_horizon_change_pct",
+            "walk_forward_best_directional_accuracy",
+        ],
+        ascending=[False, False, False],
+    ).reset_index(drop=True)
+    ranking_frame["rank"] = ranking_frame.index + 1
+
+    columns = [
+        "rank",
+        "ticker",
+        "ranking_score",
+        "forecast_model",
+        "forecast_model_label",
+        "feature_profile",
+        "feature_profile_label",
+        "last_close",
+        "next_predicted_change_pct",
+        "forecast_horizon_change_pct",
+        "walk_forward_best_directional_accuracy",
+        "walk_forward_best_rmse",
+        "walk_forward_baseline_rmse",
+        "relative_rmse_pct",
+        "relative_gap_vs_baseline_pct",
+        "average_recent_rsi",
+        "beats_baseline_rmse",
+    ]
+    return ranking_frame[columns].to_dict(orient="records")
+
+
 def build_basket_summary_records(thesis_payload: dict[str, object]) -> list[dict[str, object]]:
     records: list[dict[str, object]] = []
 
@@ -173,9 +262,10 @@ def build_payload(
     thesis_payload: dict[str, object],
     featured_records: list[dict[str, object]],
     basket_summary_records: list[dict[str, object]],
+    company_ranking_records: list[dict[str, object]],
 ) -> dict[str, object]:
     return {
-        "ui_contract_version": "1.0",
+        "ui_contract_version": "1.1",
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "source_runs": {
             "thesis_run": thesis_payload["run_name"],
@@ -190,11 +280,13 @@ def build_payload(
             "best_diversified_profile": thesis_payload["headline_findings"]["diversified_best_profile"],
         },
         "featured_tickers": featured_records,
+        "company_ranking": company_ranking_records,
         "basket_summaries": basket_summary_records,
         "notes": [
             "Die naive Persistence-Baseline bleibt ein wichtiger Referenzwert.",
             "technical_extended liegt im Mittel leicht vor lag_only, aber der Vorteil ist klein.",
             "Die besten Modelltypen wechseln je nach Ticker.",
+            "Das Unternehmensranking kombiniert 5-Tage-Ausblick, relative Walk-Forward-Guete, Richtungstreffer und Abstand zur Baseline.",
         ],
     }
 
@@ -207,26 +299,38 @@ def main() -> None:
     thesis_artifacts = get_thesis_artifact_paths(args.thesis_run)
     thesis_payload = load_json(thesis_artifacts.summary_json)
     featured_records = [build_featured_ticker_record(ticker) for ticker in tickers]
+    company_ranking_records = build_company_ranking_records(featured_records)
     basket_summary_records = build_basket_summary_records(thesis_payload)
 
     artifacts = get_dashboard_artifact_paths(args.run_name)
     featured_frame = pd.DataFrame(featured_records).drop(columns=["forecast_path"])
+    company_ranking_frame = pd.DataFrame(company_ranking_records)
     basket_summary_frame = pd.DataFrame(basket_summary_records).drop(
         columns=["technical_extended_better_tickers", "lag_only_better_tickers"]
     )
 
     featured_frame.to_csv(artifacts.featured_tickers_csv, index=False)
+    company_ranking_frame.to_csv(artifacts.company_ranking_csv, index=False)
     basket_summary_frame.to_csv(artifacts.basket_summary_csv, index=False)
 
     payload = build_payload(
         thesis_payload=thesis_payload,
         featured_records=featured_records,
         basket_summary_records=basket_summary_records,
+        company_ranking_records=company_ranking_records,
     )
     artifacts.payload_json.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     print(f"Dashboard payload run: {args.run_name}")
     print(f"Featured tickers: {', '.join(tickers)}")
+    print("Company ranking:")
+    for ranking_entry in company_ranking_records:
+        print(
+            f"  #{ranking_entry['rank']} {ranking_entry['ticker']}: "
+            f"score={ranking_entry['ranking_score']:.1f} | "
+            f"5T={ranking_entry['forecast_horizon_change_pct']:+.2f}% | "
+            f"rel.RMSE={ranking_entry['relative_rmse_pct']:.2f}%"
+        )
     print(f"Artifacts written to: {artifacts.base_dir}")
 
 

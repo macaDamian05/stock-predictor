@@ -111,6 +111,7 @@ class DashboardArtifactPaths:
     payload_json: Path
     featured_tickers_csv: Path
     basket_summary_csv: Path
+    company_ranking_csv: Path
 
 
 def ensure_runtime_directories() -> None:
@@ -262,4 +263,5 @@ def get_dashboard_artifact_paths(run_name: str) -> DashboardArtifactPaths:
         payload_json=base_dir / "dashboard_payload.json",
         featured_tickers_csv=base_dir / "featured_tickers.csv",
         basket_summary_csv=base_dir / "basket_summary.csv",
+        company_ranking_csv=base_dir / "company_ranking.csv",
     )

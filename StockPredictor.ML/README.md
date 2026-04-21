@@ -86,6 +86,7 @@ python run_experiment_suite.py --basket-preset bachelor_core --feature-profiles 
 python generate_profile_comparison.py BACHELOR_DIVERSIFIED_LAG_ONLY BACHELOR_DIVERSIFIED_TECHNICAL_EXTENDED_PART1 BACHELOR_DIVERSIFIED_TECHNICAL_EXTENDED_PART2 --run-name bachelor_diversified_profile_comparison --basket-name bachelor_diversified
 python generate_thesis_results.py
 python export_dashboard_payload.py
+python export_dashboard_payload.py AAPL TSLA DOU.DE NVDA SAP.DE
 python run_classical_pipeline.py --csv-path .\data\aapl.csv --date-column Date --close-column Close
 python main.py AAPL
 python main.py TSLA --retrain
@@ -167,6 +168,7 @@ Der Profilvergleich speichert ebenfalls unter `storage/experiments/<run>/` eine 
 Der Thesis-Export speichert unter `storage/thesis/<run>/` eine kompakte Ergebnisbasis fuer die Arbeit: konsolidierte CSV-Dateien, einen Markdown-Report, eine JSON-Zusammenfassung und mehrere zusammenfassende Diagramme.
 
 Der Dashboard-Export speichert unter `storage/dashboard/<run>/` eine UI-freundliche JSON-Datei sowie ergaenzende CSVs. Diese Schicht dient als Handover fuer die spaetere Blazor-App.
+Dazu gehoert jetzt auch ein Unternehmensranking ueber die exportierten Ticker in `company_ranking.csv` und im JSON-Payload.
 
 ## Derzeitiger Modellzuschnitt
 
@@ -175,6 +177,7 @@ Der Dashboard-Export speichert unter `storage/dashboard/<run>/` eine UI-freundli
 - Klassische Eingabefeatures: je nach Profil nur Lags oder zusaetzlich Momentum, gleitende Durchschnitte, EMA-Gaps, Volatilitaet, Breakout-/Drawdown-Abstaende, Preis-Z-Score und RSI
 - Klassische Evaluation: Holdout-Test plus Walk-Forward-Backtesting mit expandierendem Trainingsfenster
 - Benchmark-Evaluation: mehrere Ticker mit gemeinsamer Ranking-Tabelle auf Basis der Walk-Forward-Metriken
+- Dashboard-Export: Unternehmensranking ueber mehrere Ticker auf Basis von 5-Tage-Ausblick und relativer Modellguete
 - Experimentsuite: Kombinationen aus Koerben, Feature-Profilen und Lag-Werten mit aggregiertem Vergleich
 - Klassische Zusatzwerte: RSI, durchschnittliche Forecast-Steigung und 5-Tage-Prognosepfad
 - Modelltyp: Single-Layer-LSTM

@@ -1,6 +1,6 @@
 # Development History
 
-Stand: 2026-04-17
+Stand: 2026-04-21
 
 ## Zweck dieses Dokuments
 
@@ -226,6 +226,22 @@ Wichtige Abgrenzung:
 - die App trainiert die Modelle noch nicht selbst live
 - sie zeigt den aktuellen exportierten Forschungsstand an
 - damit bleibt die Architektur sauber: ML erzeugt Ergebnisse, die UI praesentiert sie
+
+## Phase 13: Unternehmensranking aus vorhandenen Multi-Ticker-Ergebnissen
+
+Im naechsten Schritt wurde die bestehende Mehrticker-Auswertung um ein eigenes Unternehmensranking erweitert.
+
+Wichtige Merkmale dieser Phase:
+
+- kein neuer Modellpfad, sondern Wiederverwendung der vorhandenen Forecast- und Walk-Forward-Artefakte
+- Ranking im Dashboard-Export auf Basis von 5-Tage-Ausblick, relativer Walk-Forward-Guete, Richtungstrefferquote und Abstand zur Baseline
+- zusaetzlicher UI-Baustein in der Blazor-Startseite fuer die direkte Gegenueberstellung mehrerer Aktien
+
+Warum diese Phase wichtig ist:
+
+- ein Mehrticker-Vergleich endet damit nicht mehr nur bei Benchmark-CSV und RMSE-Berichten
+- die App kann mehrere Unternehmen gleichzeitig sichtbar machen und priorisieren
+- der Schritt bleibt methodisch anschlussfaehig, weil kein gemeinsames Mehrfachmodell behauptet wird, sondern ein Ranking aus vorhandenen Einzelprognosen entsteht
 
 ## Zwischenfazit fuer die Bachelorarbeit
 

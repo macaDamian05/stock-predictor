@@ -56,6 +56,12 @@
     gap: 1rem;
 }
 
+.company-ranking {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
 .summary-card {
     display: flex;
     flex-direction: column;
@@ -131,6 +137,83 @@
 .ticker-lab-grid {
     display: grid;
     gap: 1rem;
+}
+
+.ranking-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.ranking-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1.35fr) minmax(14rem, 0.9fr);
+    gap: 1rem;
+    align-items: center;
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 1.15rem;
+    background: rgba(255, 255, 255, 0.03);
+    color: inherit;
+    text-align: left;
+    transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.ranking-row:hover {
+    transform: translateY(-2px);
+    border-color: rgba(90, 215, 255, 0.18);
+    background: rgba(90, 215, 255, 0.06);
+}
+
+.ranking-row.is-active {
+    border-color: rgba(90, 215, 255, 0.32);
+    background: linear-gradient(180deg, rgba(90, 215, 255, 0.12), rgba(255, 255, 255, 0.04));
+    box-shadow: inset 0 0 0 1px rgba(90, 215, 255, 0.1);
+}
+
+.ranking-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.5rem;
+    min-height: 3.5rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-secondary);
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+}
+
+.ranking-main {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.ranking-main strong {
+    font-size: 1.15rem;
+}
+
+.ranking-copy {
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.ranking-metrics {
+    display: grid;
+    gap: 0.45rem;
+    justify-items: end;
+}
+
+.ranking-metrics span {
+    display: grid;
+    gap: 0.12rem;
+    color: var(--text-muted);
+    text-align: right;
+}
+
+.ranking-value {
+    color: var(--text-secondary);
 }
 
 .ticker-selector {
@@ -426,6 +509,20 @@
         grid-template-columns: 1fr;
     }
 
+    .ranking-row {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .ranking-metrics {
+        grid-column: 1 / -1;
+        justify-items: start;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .ranking-metrics span {
+        text-align: left;
+    }
+
     .ticker-selector {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -440,6 +537,11 @@
     .detail-stats-grid,
     .benchmark-metrics,
     .benchmark-lists {
+        grid-template-columns: 1fr;
+    }
+
+    .ranking-row,
+    .ranking-metrics {
         grid-template-columns: 1fr;
     }
 

@@ -36,6 +36,7 @@ else
     var coreSummary = payload.SummaryCards.BestCoreProfile;
     var diversifiedSummary = payload.SummaryCards.BestDiversifiedProfile;
     var starterBeaters = payload.SummaryCards.StarterTickersBeatingBaseline;
+    var activeRanking = GetActiveRankingEntry(payload, activeTicker.Ticker);
 
     <div class="dashboard-page">
         <section class="hero-shell panel-shell" id="overview">
@@ -128,6 +129,62 @@ else
             </article>
         </section>
 
+        @if (payload.CompanyRanking.Count > 0)
+        {
+            <section class="company-ranking panel-shell" id="company-ranking">
+                <div class="panel-header">
+                    <div>
+                        <span class="section-kicker">Unternehmensranking</span>
+                        <h2>Mehrere Aktien gleichzeitig vergleichen und nach Prognosequalitaet ordnen</h2>
+                    </div>
+                    <div class="meta-pill">5 Tage Ausblick + relative Walk-Forward-Guete</div>
+                </div>
+
+                <div class="ranking-list">
+                    @foreach (var rankingEntry in payload.CompanyRanking)
+                    {
+                        <button class="ranking-row @(rankingEntry.Ticker == activeTicker.Ticker ? "is-active" : string.Empty)"
+                                type="button"
+                                @onclick="() => SelectTicker(rankingEntry.Ticker)">
+                            <div class="ranking-rank">#@rankingEntry.Rank</div>
+
+                            <div class="ranking-main">
+                                <div class="ticker-card-row">
+                                    <strong>@rankingEntry.Ticker</strong>
+                                    <span class="tone-pill @(GetTrendTone(rankingEntry.ForecastHorizonChangePct))">
+                                        5T @FormatPercent(rankingEntry.ForecastHorizonChangePct)
+                                    </span>
+                                </div>
+                                <p class="ranking-copy">
+                                    Score @FormatScore(rankingEntry.RankingScore),
+                                    Richtung @FormatPlainPercent(rankingEntry.WalkForwardBestDirectionalAccuracy * 100),
+                                    relative RMSE @FormatPlainPercent(rankingEntry.RelativeRmsePct),
+                                    RSI @rankingEntry.AverageRecentRsi.ToString("0.0", UiCulture).
+                                </p>
+                            </div>
+
+                            <div class="ranking-metrics">
+                                <span>
+                                    Modell
+                                    <strong class="ranking-value">@FormatModelLabel(rankingEntry.ForecastModel, rankingEntry.ForecastModelLabel)</strong>
+                                </span>
+                                <span>
+                                    Profil
+                                    <strong class="ranking-value">@FormatFeatureProfileLabel(rankingEntry.FeatureProfile)</strong>
+                                </span>
+                                <span>
+                                    Baseline
+                                    <strong class="@GetGapTone(rankingEntry.RelativeGapVsBaselinePct)">
+                                        @FormatPercent(rankingEntry.RelativeGapVsBaselinePct)
+                                    </strong>
+                                </span>
+                            </div>
+                        </button>
+                    }
+                </div>
+            </section>
+        }
+
         <section class="workspace-grid" id="ticker-lab">
             <article class="ticker-lab panel-shell">
                 <div class="panel-header">
@@ -179,6 +236,10 @@ else
                                 </p>
                             </div>
                             <div class="detail-badges">
+                                @if (activeRanking is not null)
+                                {
+                                    <span class="meta-pill">Ranking: Platz @activeRanking.Rank / Score @FormatScore(activeRanking.RankingScore)</span>
+                                }
                                 <span class="meta-pill">Holdout-Sieger: @FormatModelLabel(activeTicker.HoldoutBestModel, activeTicker.ForecastModelLabel)</span>
                                 <span class="meta-pill">Walk-Forward-Sieger: @FormatModelLabel(activeTicker.WalkForwardBestModel, activeTicker.ForecastModelLabel)</span>
                             </div>
@@ -370,6 +431,11 @@ else
             ?? payload.FeaturedTickers.First();
     }
 
+    private static CompanyRankingEntry? GetActiveRankingEntry(DashboardPayload payload, string tickerSymbol)
+    {
+        return payload.CompanyRanking.FirstOrDefault(entry => entry.Ticker == tickerSymbol);
+    }
+
     private static string FormatDate(DateOnly date) => date.ToString("dd. MMM yyyy", UiCulture);
 
     private static string FormatDateTime(DateTime dateTime) => dateTime.ToString("dd. MMM yyyy | HH:mm", UiCulture);
@@ -381,6 +447,10 @@ else
     private static string FormatSignedRmse(double value) => $"{(value >= 0 ? "+" : string.Empty)}{value.ToString("0.000", UiCulture)}";
 
     private static string FormatPercent(double value) => $"{(value >= 0 ? "+" : string.Empty)}{value.ToString("0.00", UiCulture)}%";
+
+    private static string FormatPlainPercent(double value) => $"{value.ToString("0.00", UiCulture)}%";
+
+    private static string FormatScore(double value) => value.ToString("0.0", UiCulture);
 
     private static string FormatModelLabel(string rawValue, string fallback)
     {

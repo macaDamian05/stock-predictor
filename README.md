@@ -1,6 +1,6 @@
 # Stock Predictor
 
-Stand: 2026-04-17
+Stand: 2026-04-21
 
 ## Projektziel
 
@@ -29,6 +29,7 @@ Der ML-Prototyp in `StockPredictor.ML/` kann derzeit:
 - mehrere gespeicherte Grafiken erzeugen: Kurshistorie, Testvorhersagen und Zukunftsforecast
 - zusaetzlich Walk-Forward-Vorhersagen, Fold-Metriken und einen eigenen Walk-Forward-Plot speichern
 - mehrere Ticker in einem Benchmark-Lauf vergleichen und gemeinsame Ergebnisdateien erzeugen
+- mehrere Ticker im Dashboard-Export gleichzeitig betrachten und daraus ein Unternehmensranking ableiten
 - feste Ticker-Koerbe wie `starter`, `bachelor_core` und `bachelor_diversified` verwenden
 - ganze Experiment-Suiten ueber mehrere Feature-Profile und Lag-Werte ausfuehren
 - vorhandene Benchmark-Runs zu Profilvergleichen zusammenfassen
@@ -155,7 +156,6 @@ Diese Dateien sollten bei jeder groesseren fachlichen oder technischen Aenderung
 - v1 trainiert pro Ticker ein separates Modell
 - das Training nutzt aktuell nur den Schlusskurs als Modell-Input
 - RSI wird momentan fuer Interpretation genutzt, nicht als Eingangsfeature des Netzes
-- ein unternehmensuebergreifendes Ranking ist noch nicht umgesetzt
 - ETFs, Nachrichten, Sentiment und Intraday-Daten sind noch Zukunftsthemen
 
 ## Aktuelle Beobachtung

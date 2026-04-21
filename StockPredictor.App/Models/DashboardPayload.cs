@@ -19,6 +19,9 @@ public sealed class DashboardPayload
     [JsonPropertyName("featured_tickers")]
     public List<FeaturedTicker> FeaturedTickers { get; init; } = [];
 
+    [JsonPropertyName("company_ranking")]
+    public List<CompanyRankingEntry> CompanyRanking { get; init; } = [];
+
     [JsonPropertyName("basket_summaries")]
     public List<BasketSummary> BasketSummaries { get; init; } = [];
 
@@ -222,6 +225,60 @@ public sealed class ForecastPoint
 
     [JsonPropertyName("predicted_close")]
     public double PredictedClose { get; init; }
+}
+
+public sealed class CompanyRankingEntry
+{
+    [JsonPropertyName("rank")]
+    public int Rank { get; init; }
+
+    [JsonPropertyName("ticker")]
+    public string Ticker { get; init; } = string.Empty;
+
+    [JsonPropertyName("ranking_score")]
+    public double RankingScore { get; init; }
+
+    [JsonPropertyName("forecast_model")]
+    public string ForecastModel { get; init; } = string.Empty;
+
+    [JsonPropertyName("forecast_model_label")]
+    public string ForecastModelLabel { get; init; } = string.Empty;
+
+    [JsonPropertyName("feature_profile")]
+    public string FeatureProfile { get; init; } = string.Empty;
+
+    [JsonPropertyName("feature_profile_label")]
+    public string FeatureProfileLabel { get; init; } = string.Empty;
+
+    [JsonPropertyName("last_close")]
+    public double LastClose { get; init; }
+
+    [JsonPropertyName("next_predicted_change_pct")]
+    public double NextPredictedChangePct { get; init; }
+
+    [JsonPropertyName("forecast_horizon_change_pct")]
+    public double ForecastHorizonChangePct { get; init; }
+
+    [JsonPropertyName("walk_forward_best_directional_accuracy")]
+    public double WalkForwardBestDirectionalAccuracy { get; init; }
+
+    [JsonPropertyName("walk_forward_best_rmse")]
+    public double WalkForwardBestRmse { get; init; }
+
+    [JsonPropertyName("walk_forward_baseline_rmse")]
+    public double WalkForwardBaselineRmse { get; init; }
+
+    [JsonPropertyName("relative_rmse_pct")]
+    public double RelativeRmsePct { get; init; }
+
+    [JsonPropertyName("relative_gap_vs_baseline_pct")]
+    public double RelativeGapVsBaselinePct { get; init; }
+
+    [JsonPropertyName("average_recent_rsi")]
+    public double AverageRecentRsi { get; init; }
+
+    [JsonPropertyName("beats_baseline_rmse")]
+    public bool BeatsBaselineRmse { get; init; }
 }
 
 public sealed class BasketSummary
