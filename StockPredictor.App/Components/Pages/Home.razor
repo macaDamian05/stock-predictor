@@ -1,5 +1,4 @@
 @page "/"
-@rendermode InteractiveServer
 @using System.Globalization
 @inject DashboardDataService DashboardDataService
 
@@ -9,8 +8,8 @@
 {
     <section class="dashboard-empty panel-shell">
         <span class="section-kicker">Laden</span>
-        <h1>Dashboard wird aufgebaut...</h1>
-        <p>Die App laedt den neuesten Dashboard-Payload aus der ML-Pipeline.</p>
+        <h1>Dashboard wird aufgebaut…</h1>
+        <p>Die App lädt den neuesten Dashboard-Payload aus der ML-Pipeline.</p>
     </section>
 }
 else if (_snapshot?.Payload is null)
@@ -44,8 +43,8 @@ else
                 <span class="section-kicker">Forschungs-Dashboard</span>
                 <h1>Aktienprognosen, Benchmarks und 5-Tage-Ausblicke in einem dunklen Dashboard.</h1>
                 <p>
-                    Diese Oberflaeche liest den neuesten Thesis-Export und macht daraus ein Dashboard, das du direkt auswerten kannst:
-                    Benchmark-Koerbe, ausgewaehlte Ticker, Prognosepfade und der aktuelle Abstand zur Baseline.
+                    Diese Oberfläche liest den neuesten Thesis-Export und macht daraus ein Dashboard, das du direkt auswerten kannst:
+                    Benchmark-Körbe, ausgewählte Ticker, Prognosepfade und der aktuelle Abstand zur Baseline.
                 </p>
             </div>
 
@@ -66,8 +65,8 @@ else
                 </div>
                 <strong class="card-value">@FormatFeatureProfileLabel(starterSummary.FeatureProfile) / @starterSummary.Lags Lags</strong>
                 <p class="card-copy">
-                    Dominantes Modell: @FormatModelLabel(starterSummary.DominantBestModel, starterSummary.DominantBestModelLabel). Mittlere Richtungstrefferquote
-                    @FormatPercent(starterSummary.MeanBestLearnedDirectionalAccuracy * 100).
+                    Dominantes Modell: @FormatModelLabel(starterSummary.DominantBestModel, starterSummary.DominantBestModelLabel).
+                    Mittlere Richtungstrefferquote @FormatPercent(starterSummary.MeanBestLearnedDirectionalAccuracy * 100).
                 </p>
                 <div class="card-metrics">
                     <span>Beste gelernte RMSE <strong>@FormatRmse(starterSummary.MeanBestLearnedRmse)</strong></span>
@@ -78,11 +77,13 @@ else
             <article class="summary-card panel-shell accent-core">
                 <div class="card-header-row">
                     <span class="section-kicker">Bachelor Kernkorb</span>
-                    <span class="tone-pill @(GetGapTone(coreSummary.MeanBestLearnedMinusBaselineRmse))">@FormatModelLabel(coreSummary.DominantBestModel, coreSummary.DominantBestModelLabel)</span>
+                    <span class="tone-pill @(GetGapTone(coreSummary.MeanBestLearnedMinusBaselineRmse))">
+                        @FormatModelLabel(coreSummary.DominantBestModel, coreSummary.DominantBestModelLabel)
+                    </span>
                 </div>
                 <strong class="card-value">@FormatFeatureProfileLabel(coreSummary.FeatureProfile)</strong>
                 <p class="card-copy">
-                    Bestes Profil ueber @coreSummary.TickerCount Ticker. Mittlere gelernte RMSE
+                    Bestes Profil über @coreSummary.TickerCount Ticker. Mittlere gelernte RMSE
                     @FormatRmse(coreSummary.MeanBestLearnedRmse).
                 </p>
                 <div class="card-metrics">
@@ -94,7 +95,9 @@ else
             <article class="summary-card panel-shell accent-diversified">
                 <div class="card-header-row">
                     <span class="section-kicker">Diversifizierter Korb</span>
-                    <span class="tone-pill @(GetGapTone(diversifiedSummary.MeanBestLearnedMinusBaselineRmse))">@FormatModelLabel(diversifiedSummary.DominantBestModel, diversifiedSummary.DominantBestModelLabel)</span>
+                    <span class="tone-pill @(GetGapTone(diversifiedSummary.MeanBestLearnedMinusBaselineRmse))">
+                        @FormatModelLabel(diversifiedSummary.DominantBestModel, diversifiedSummary.DominantBestModelLabel)
+                    </span>
                 </div>
                 <strong class="card-value">@FormatFeatureProfileLabel(diversifiedSummary.FeatureProfile)</strong>
                 <p class="card-copy">
@@ -129,7 +132,7 @@ else
             <article class="ticker-lab panel-shell">
                 <div class="panel-header">
                     <div>
-                        <span class="section-kicker">Ausgewaehlte Ticker</span>
+                        <span class="section-kicker">Ausgewählte Ticker</span>
                         <h2>Aktuelle Prognosekandidaten im Vergleich</h2>
                     </div>
                     <div class="meta-pill">Payload-Quelle: @Path.GetFileName(_snapshot.ResolvedPath)</div>
@@ -148,7 +151,10 @@ else
                                         @FormatPercent(ticker.ForecastHorizonChangePct)
                                     </span>
                                 </div>
-                                <span class="ticker-card-model">@FormatModelLabel(ticker.ForecastModel, ticker.ForecastModelLabel) / @FormatFeatureProfileLabel(ticker.FeatureProfile)</span>
+                                <span class="ticker-card-model">
+                                    @FormatModelLabel(ticker.ForecastModel, ticker.ForecastModelLabel) /
+                                    @FormatFeatureProfileLabel(ticker.FeatureProfile)
+                                </span>
                                 <div class="ticker-card-row muted">
                                     <span>RMSE @FormatRmse(ticker.WalkForwardBestRmse)</span>
                                     <span>RSI @ticker.AverageRecentRsi.ToString("0.0", UiCulture)</span>
@@ -167,7 +173,8 @@ else
                                     </span>
                                 </div>
                                 <p>
-                                    Prognose mit @FormatModelLabel(activeTicker.ForecastModel, activeTicker.ForecastModelLabel) auf Basis von @FormatFeatureProfileLabel(activeTicker.FeatureProfile).
+                                    Prognose mit @FormatModelLabel(activeTicker.ForecastModel, activeTicker.ForecastModelLabel)
+                                    auf Basis von @FormatFeatureProfileLabel(activeTicker.FeatureProfile).
                                     Datenfenster: @FormatDate(activeTicker.DataStart) bis @FormatDate(activeTicker.DataEnd).
                                 </p>
                             </div>
@@ -184,7 +191,7 @@ else
                                 <small>@FormatDate(activeTicker.LastCloseDate)</small>
                             </article>
                             <article class="mini-stat">
-                                <span>Naechste Prognose</span>
+                                <span>Nächste Prognose</span>
                                 <strong>@FormatPrice(activeTicker.NextPredictedClose)</strong>
                                 <small>@FormatPercent(activeTicker.NextPredictedChangePct)</small>
                             </article>
@@ -198,7 +205,7 @@ else
                                 <strong class="@GetGapTone(activeTicker.WalkForwardBestRmse - activeTicker.WalkForwardBaselineRmse)">
                                     @FormatSignedRmse(activeTicker.WalkForwardBestRmse - activeTicker.WalkForwardBaselineRmse)
                                 </strong>
-                                <small>@(activeTicker.BeatsBaselineRmse ? "Besser als Baseline" : "Baseline weiter staerker")</small>
+                                <small>@(activeTicker.BeatsBaselineRmse ? "Besser als Baseline" : "Baseline weiter stärker")</small>
                             </article>
                         </div>
 
@@ -215,7 +222,7 @@ else
                             </div>
                             <ForecastSparkline Values="@GetSparklineValues(activeTicker)"
                                                TrendTone="@MapToneToSparkline(activeTicker.ForecastHorizonChangePct)"
-                                               AriaLabel="@($"{activeTicker.Ticker} forecast path")" />
+                                               AriaLabel="@($"{activeTicker.Ticker} Prognosepfad")" />
                         </div>
 
                         <div class="forecast-strip">
@@ -235,7 +242,7 @@ else
             <aside class="insight-rail">
                 <article class="panel-shell rail-card">
                     <span class="section-kicker">Pipeline-Kontext</span>
-                    <h3>Diese Laeufe speisen das Dashboard</h3>
+                    <h3>Diese Läufe speisen das Dashboard</h3>
                     <div class="run-list">
                         <div>
                             <span>Thesis-Export</span>

@@ -42,7 +42,7 @@ public sealed class DashboardDataService(IWebHostEnvironment environment, ILogge
         return new DashboardDataSnapshot(
             null,
             GetCandidatePaths().First(),
-            "Kein Dashboard-Payload gefunden. Fuehre export_dashboard_payload.py aus, um den UI-Export zu erzeugen.");
+            "Kein Dashboard-Payload gefunden. Führe export_dashboard_payload.py aus, um den UI-Export zu erzeugen.");
     }
 
     private IReadOnlyList<string> GetCandidatePaths()

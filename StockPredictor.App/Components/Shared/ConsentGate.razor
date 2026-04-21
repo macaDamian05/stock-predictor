@@ -1,0 +1,102 @@
+@inject IJSRuntime JSRuntime
+
+@if (!_isReady)
+{
+    <div class="consent-shell">
+        <div class="consent-card">
+            <span class="consent-kicker">Hinweis wird geladen</span>
+            <h1>Zugriff wird vorbereitet…</h1>
+            <p>Bevor das Dashboard angezeigt wird, wird geprüft, ob der Risikohinweis bereits bestätigt wurde.</p>
+        </div>
+    </div>
+}
+else if (_isAccepted)
+{
+    @ChildContent
+}
+else
+{
+    <div class="consent-shell">
+        <div class="consent-card">
+            <span class="consent-kicker">Wichtiger Risikohinweis</span>
+            <h1>Nur mit Zustimmung fortfahren</h1>
+            <p>
+                Keine Anlageberatung. Die Inhalte dieser Website dienen ausschließlich Studien-, Demonstrations- und
+                Forschungszwecken im Rahmen der Bachelorarbeit.
+            </p>
+
+            <ul class="consent-list">
+                <li>Kapitalanlagen bergen Risiken und können zum vollständigen Verlust des eingesetzten Kapitals führen.</li>
+                <li>Vergangene Wertentwicklungen sind kein verlässlicher Indikator für zukünftige Ergebnisse.</li>
+                <li>Prognosen, Modelle und Visualisierungen können fehlerhaft oder unvollständig sein.</li>
+                <li>Es erfolgt keine individuelle Anlage-, Rechts- oder Steuerberatung.</li>
+            </ul>
+
+            @if (_isDeclined)
+            {
+                <div class="consent-warning">
+                    Ohne Zustimmung bleibt der Zugriff auf die Website gesperrt.
+                </div>
+            }
+
+            <div class="consent-actions">
+                <button class="consent-button consent-button-secondary" type="button" @onclick="Decline">
+                    Nicht einverstanden
+                </button>
+                <button class="consent-button consent-button-primary" type="button" @onclick="AcceptAsync">
+                    Ich habe verstanden und bin einverstanden
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private bool _isReady;
+    private bool _isAccepted;
+    private bool _isDeclined;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        try
+        {
+            _isAccepted = await JSRuntime.InvokeAsync<bool>("stockPredictorConsent.getAccepted");
+        }
+        catch
+        {
+            _isAccepted = false;
+        }
+
+        _isReady = true;
+        StateHasChanged();
+    }
+
+    private async Task AcceptAsync()
+    {
+        _isAccepted = true;
+        _isDeclined = false;
+
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("stockPredictorConsent.accept");
+        }
+        catch
+        {
+            // If browser storage fails, the in-memory accepted state still unlocks the current session.
+        }
+    }
+
+    private void Decline()
+    {
+        _isAccepted = false;
+        _isDeclined = true;
+    }
+}
