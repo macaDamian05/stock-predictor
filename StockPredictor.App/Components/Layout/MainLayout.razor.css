@@ -1,15 +1,17 @@
 .shell {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.1rem;
+    width: min(94rem, calc(100% - 2rem));
     min-height: 100vh;
-    padding: 1.25rem;
+    margin: 0 auto;
+    padding: 1.25rem 0 1.6rem;
 }
 
 .sidebar-shell {
-    position: relative;
-    top: 0;
-    min-height: auto;
+    position: sticky;
+    top: 1rem;
+    z-index: 10;
 }
 
 .main-shell {
@@ -22,8 +24,14 @@
 
 @media (max-width: 900px) {
     .shell {
+        width: min(100%, calc(100% - 1rem));
         gap: 1rem;
-        padding: 1rem;
+        padding: 0.8rem 0 1.2rem;
+    }
+
+    .sidebar-shell {
+        position: relative;
+        top: 0;
     }
 }
 
