@@ -25,6 +25,7 @@ Stand: 2026-04-21
 - gespeicherte Diagramme fuer Kurshistorie, Testperiode und Zukunftsforecast
 - zusaetzliche gespeicherte Walk-Forward-Metriken, Fold-Ergebnisse und ein Walk-Forward-Plot
 - Mehrfachvergleich mehrerer Ticker mit gemeinsamer Benchmark-Zusammenfassung
+- gemeinsames klassisches Training ueber mehrere Aktien oder ETFs mit tickerkodierten Identitaetsmerkmalen
 - reproduzierbare Experiment-Suite ueber mehrere Profile und Lag-Werte
 - wiederverwendbarer Profilvergleich ueber mehrere Benchmark-Runs
 - konsolidierter Thesis-Export fuer Tabellen, Grafiken und Ergebnisberichte aus vorhandenen Runs
@@ -35,11 +36,12 @@ Stand: 2026-04-21
 - persistente Speicherung pro Ticker
 - inkrementelles Weitertraining bei neuen Marktdaten
 - zusaetzliche Bewertung ueber RSI, durchschnittliche Prognose-Steigung, durchschnittlichen Forecast-Abstand zum letzten Schlusskurs, MAE, RMSE und Directional Accuracy
+- ETF-Koerbe wie `etf_core` und `etf_sectors` sowie ein gemischter Korb `mixed_assets`
 
 Noch nicht umgesetzt:
 
-- gemeinsames Training ueber mehrere Aktien
-- ETF-Unterstuetzung
+- gemeinsames Training im LSTM-Pfad
+- spezielle ETF-Darstellung im Dashboard
 - News- oder Sentimentdaten
 - Backtesting ueber mehrere Assets und Marktphasen auf Forschungsniveau
 

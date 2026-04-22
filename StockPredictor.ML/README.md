@@ -8,6 +8,7 @@ Dieses Modul ueberfuehrt den frueheren Colab-Prototyp in eine reproduzierbare Py
 
 - `main.py`: CLI-Einstiegspunkt
 - `run_classical_pipeline.py`: erster Bachelorarbeits-tauglicher Einstieg fuer den Vergleich mehrerer klassischer Modelle
+- `run_multi_asset_pipeline.py`: gemeinsames klassisches Training ueber mehrere Ticker oder ETFs mit einem geteilten Modell
 - `run_walk_forward_benchmark.py`: Vergleich mehrerer Ticker mit gemeinsamer Walk-Forward-Auswertung
 - `run_experiment_suite.py`: reproduzierbare Experimentsuite ueber Koerbe, Feature-Profile und Lag-Werte
 - `generate_profile_comparison.py`: konsolidiert mehrere Benchmark-Runs zu einem Profilvergleich
@@ -79,6 +80,8 @@ python run_classical_pipeline.py TSLA --lags 20 --test-size 0.25
 python run_classical_pipeline.py DOU.DE --forecast-days 5 --show-plot
 python run_classical_pipeline.py AAPL --walk-forward-folds 6 --walk-forward-train-size 0.75
 python run_classical_pipeline.py AAPL --feature-profile technical_basic
+python run_multi_asset_pipeline.py --basket-preset mixed_assets
+python run_multi_asset_pipeline.py --basket-preset etf_core --feature-profile technical_basic
 python run_walk_forward_benchmark.py --basket-preset starter
 python run_walk_forward_benchmark.py --basket-preset bachelor_core --feature-profile technical_extended
 python run_experiment_suite.py --basket-preset starter
@@ -112,11 +115,19 @@ Verfuegbare Parameter:
 - `--show-plot`: zeigt die gespeicherten Diagramme interaktiv an
 - `run_walk_forward_benchmark.py`
 - `tickers`: Tickerliste, alternativ ueber `--basket-preset`
-- `--basket-preset`: `starter`, `bachelor_core` oder `bachelor_diversified`
+- `--basket-preset`: `starter`, `bachelor_core`, `bachelor_diversified`, `etf_core`, `etf_sectors` oder `mixed_assets`
 - `--feature-profile`: Feature-Profil fuer den Benchmark
 - `--run-name`: eigener Name fuer den Benchmark-Ordner
 - `--walk-forward-folds`, `--walk-forward-train-size`: gleiche Bedeutung wie im Einzel-Lauf
 - `--n-estimators`, `--max-depth`, `--min-samples-leaf`: Random-Forest-Konfiguration
+- `run_multi_asset_pipeline.py`
+- `tickers`: Tickerliste, alternativ ueber `--basket-preset`
+- `--basket-preset`: `starter`, `bachelor_core`, `bachelor_diversified`, `etf_core`, `etf_sectors` oder `mixed_assets`
+- `--feature-profile`: gemeinsames Feature-Profil fuer alle Assets
+- `--lags`: gemeinsame Lag-Zahl fuer alle Assets
+- `--forecast-days`: gemeinsamer Forecast-Horizont pro Asset
+- `--walk-forward-folds`, `--walk-forward-train-size`: zeitblockbasierte Walk-Forward-Auswertung ueber gemeinsame Zieldaten
+- `--run-name`: Zielordner unter `storage/multi_asset/`
 - `run_experiment_suite.py`
 - `--basket-preset`: fester Ticker-Korb fuer die Suite
 - `--feature-profiles`: mehrere Profile in einem Lauf vergleichen
@@ -169,6 +180,7 @@ Der Thesis-Export speichert unter `storage/thesis/<run>/` eine kompakte Ergebnis
 
 Der Dashboard-Export speichert unter `storage/dashboard/<run>/` eine UI-freundliche JSON-Datei sowie ergaenzende CSVs. Diese Schicht dient als Handover fuer die spaetere Blazor-App.
 Dazu gehoert jetzt auch ein Unternehmensranking ueber die exportierten Ticker in `company_ranking.csv` und im JSON-Payload.
+Der neue Multi-Asset-Pfad speichert unter `storage/multi_asset/<run>/` sein gemeinsames Modell, gepoolte Vorhersagen, Per-Ticker-Metriken, Forecast-Zusammenfassungen und einen Report.
 
 ## Derzeitiger Modellzuschnitt
 
@@ -177,10 +189,11 @@ Dazu gehoert jetzt auch ein Unternehmensranking ueber die exportierten Ticker in
 - Klassische Eingabefeatures: je nach Profil nur Lags oder zusaetzlich Momentum, gleitende Durchschnitte, EMA-Gaps, Volatilitaet, Breakout-/Drawdown-Abstaende, Preis-Z-Score und RSI
 - Klassische Evaluation: Holdout-Test plus Walk-Forward-Backtesting mit expandierendem Trainingsfenster
 - Benchmark-Evaluation: mehrere Ticker mit gemeinsamer Ranking-Tabelle auf Basis der Walk-Forward-Metriken
+- Multi-Asset-Evaluation: ein gemeinsames klassisches Modell ueber mehrere Assets mit tickerkodierten Identitaetsmerkmalen und datumsgesteuertem Holdout/Walk-Forward
 - Dashboard-Export: Unternehmensranking ueber mehrere Ticker auf Basis von 5-Tage-Ausblick und relativer Modellguete
 - Experimentsuite: Kombinationen aus Koerben, Feature-Profilen und Lag-Werten mit aggregiertem Vergleich
 - Klassische Zusatzwerte: RSI, durchschnittliche Forecast-Steigung, durchschnittlicher Forecast-Abstand zum letzten Schlusskurs und 5-Tage-Prognosepfad
-- Modelltyp: Single-Layer-LSTM
+- Modelltyp: Single-Layer-LSTM fuer den neuralen Einzelwertpfad
 - Trainingssignal: Schlusskurse
 - Prognosehorizont: standardmaessig 5 Boersenwerktage
 - Zusatzwerte: RSI, durchschnittliche Prognose-Steigung, durchschnittlicher Forecast-Abstand zum letzten Schlusskurs, MAE, RMSE, Directional Accuracy

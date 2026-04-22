@@ -11,6 +11,7 @@ TRAINING_DATA_DIR = STORAGE_DIR / "trainingsdaten"
 CLASSICAL_DATA_DIR = STORAGE_DIR / "classical"
 BENCHMARK_DATA_DIR = STORAGE_DIR / "benchmarks"
 EXPERIMENT_DATA_DIR = STORAGE_DIR / "experiments"
+MULTI_ASSET_DATA_DIR = STORAGE_DIR / "multi_asset"
 THESIS_DATA_DIR = STORAGE_DIR / "thesis"
 DASHBOARD_DATA_DIR = STORAGE_DIR / "dashboard"
 
@@ -69,6 +70,22 @@ class ExperimentArtifactPaths:
 
 
 @dataclass(frozen=True)
+class MultiAssetArtifactPaths:
+    run_name: str
+    safe_name: str
+    base_dir: Path
+    model: Path
+    summary_csv: Path
+    summary_json: Path
+    per_ticker_metrics_csv: Path
+    forecast_csv: Path
+    holdout_predictions_csv: Path
+    walk_forward_predictions_csv: Path
+    report: Path
+    comparison_plot: Path
+
+
+@dataclass(frozen=True)
 class ProfileComparisonArtifactPaths:
     run_name: str
     safe_name: str
@@ -120,6 +137,7 @@ def ensure_runtime_directories() -> None:
     CLASSICAL_DATA_DIR.mkdir(parents=True, exist_ok=True)
     BENCHMARK_DATA_DIR.mkdir(parents=True, exist_ok=True)
     EXPERIMENT_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    MULTI_ASSET_DATA_DIR.mkdir(parents=True, exist_ok=True)
     THESIS_DATA_DIR.mkdir(parents=True, exist_ok=True)
     DASHBOARD_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -203,6 +221,27 @@ def get_experiment_artifact_paths(run_name: str) -> ExperimentArtifactPaths:
         comparison_plot=base_dir / "experiment_comparison.png",
         report=base_dir / "experiment_report.md",
         per_ticker_csv=base_dir / "ticker_best_configs.csv",
+    )
+
+
+def get_multi_asset_artifact_paths(run_name: str) -> MultiAssetArtifactPaths:
+    safe_name = sanitize_name(run_name, uppercase=True)
+    base_dir = MULTI_ASSET_DATA_DIR / safe_name
+    base_dir.mkdir(parents=True, exist_ok=True)
+
+    return MultiAssetArtifactPaths(
+        run_name=run_name,
+        safe_name=safe_name,
+        base_dir=base_dir,
+        model=base_dir / "multi_asset_models.joblib",
+        summary_csv=base_dir / "multi_asset_summary.csv",
+        summary_json=base_dir / "multi_asset_summary.json",
+        per_ticker_metrics_csv=base_dir / "per_ticker_metrics.csv",
+        forecast_csv=base_dir / "forecast_summary.csv",
+        holdout_predictions_csv=base_dir / "holdout_predictions.csv",
+        walk_forward_predictions_csv=base_dir / "walk_forward_predictions.csv",
+        report=base_dir / "multi_asset_report.md",
+        comparison_plot=base_dir / "per_ticker_comparison.png",
     )
 
 

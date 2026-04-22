@@ -29,8 +29,10 @@ Der ML-Prototyp in `StockPredictor.ML/` kann derzeit:
 - mehrere gespeicherte Grafiken erzeugen: Kurshistorie, Testvorhersagen und Zukunftsforecast
 - zusaetzlich Walk-Forward-Vorhersagen, Fold-Metriken und einen eigenen Walk-Forward-Plot speichern
 - mehrere Ticker in einem Benchmark-Lauf vergleichen und gemeinsame Ergebnisdateien erzeugen
+- im klassischen Pfad ein gemeinsames Multi-Asset-Training ueber mehrere Ticker mit einem geteilten Modell ausfuehren
+- Multi-Asset-Forecasts und Per-Ticker-Auswertungen aus einem gemeinsamen Modell erzeugen
 - mehrere Ticker im Dashboard-Export gleichzeitig betrachten und daraus ein Unternehmensranking ableiten
-- feste Ticker-Koerbe wie `starter`, `bachelor_core` und `bachelor_diversified` verwenden
+- feste Ticker-Koerbe wie `starter`, `bachelor_core`, `bachelor_diversified`, `etf_core`, `etf_sectors` und `mixed_assets` verwenden
 - ganze Experiment-Suiten ueber mehrere Feature-Profile und Lag-Werte ausfuehren
 - vorhandene Benchmark-Runs zu Profilvergleichen zusammenfassen
 - aus vorhandenen Benchmark- und Experiment-Runs BA-taugliche Ergebnis-Pakete erzeugen
@@ -95,6 +97,8 @@ python run_classical_pipeline.py AAPL --walk-forward-folds 6 --walk-forward-trai
 python run_classical_pipeline.py AAPL --feature-profile technical_basic
 python run_walk_forward_benchmark.py --basket-preset starter
 python run_walk_forward_benchmark.py --basket-preset bachelor_core --feature-profile technical_extended
+python run_multi_asset_pipeline.py --basket-preset mixed_assets
+python run_multi_asset_pipeline.py --basket-preset etf_core --feature-profile technical_basic
 python run_experiment_suite.py --basket-preset starter
 python run_experiment_suite.py --basket-preset bachelor_core --feature-profiles lag_only technical_basic technical_extended --lag-values 5 10
 python generate_profile_comparison.py BACHELOR_DIVERSIFIED_LAG_ONLY BACHELOR_DIVERSIFIED_TECHNICAL_EXTENDED_PART1 BACHELOR_DIVERSIFIED_TECHNICAL_EXTENDED_PART2 --run-name bachelor_diversified_profile_comparison --basket-name bachelor_diversified
@@ -153,11 +157,10 @@ Diese Dateien sollten bei jeder groesseren fachlichen oder technischen Aenderung
 
 - das Walk-Forward-Backtesting ist aktuell nur fuer den klassischen Pfad umgesetzt
 - der klassische Pfad nutzt bisher nur Kurs- und Technikfeatures, noch keine Nachrichten-, Sentiment- oder Fundamentaldaten
-- der Benchmark vergleicht aktuell nur einzelne Ticker nacheinander, noch keine gemeinsamen Mehrfachmodelle
-- v1 trainiert pro Ticker ein separates Modell
+- der LSTM-Pfad trainiert weiterhin pro Ticker separat
 - das Training nutzt aktuell nur den Schlusskurs als Modell-Input
 - RSI wird momentan fuer Interpretation genutzt, nicht als Eingangsfeature des Netzes
-- ETFs, Nachrichten, Sentiment und Intraday-Daten sind noch Zukunftsthemen
+- spezielle ETF-Auswertung im Dashboard sowie Nachrichten, Sentiment und Intraday-Daten sind noch Zukunftsthemen
 
 ## Aktuelle Beobachtung
 

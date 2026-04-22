@@ -16,6 +16,9 @@ TICKER_BASKETS = {
         "SAP.DE",
         "DTE.DE",
     ],
+    "etf_core": ["SPY", "QQQ", "VTI", "IWM", "DIA"],
+    "etf_sectors": ["XLK", "XLF", "XLE", "XLP", "XLV"],
+    "mixed_assets": ["AAPL", "MSFT", "NVDA", "SPY", "QQQ", "VTI"],
 }
 
 

@@ -35,6 +35,7 @@ Der aktuelle technische Stand umfasst:
 - konsistente rekursive Forecast-Berechnung auf Basis fortgeschriebener Close-Historie
 - Experiment-Suite ueber mehrere Feature-Profile, Lag-Werte und feste Ticker-Koerbe
 - wiederverwendbarer Profilvergleich aus mehreren Benchmark-Runs
+- gemeinsames klassisches Training ueber mehrere Assets mit einem geteilten Modell und tickerkodierten Identitaetsmerkmalen
 - Download historischer Kursdaten ueber `yfinance`
 - Training eines LSTM-Modells pro Ticker
 - persistente Speicherung von Modell, Scaler, Metadaten und Trainingslog
@@ -94,9 +95,8 @@ Moegliche Leitfragen:
 
 ## Bekannte Grenzen
 
-- Einzelmodell pro Ticker statt gemeinsames Mehrfachmodell
+- der LSTM-Pfad bleibt vorerst ein Einzelmodell pro Ticker
 - noch keine Nachrichten-, Sentiment- oder Fundamentaldaten
-- noch keine unternehmensuebergreifende Ranking-Logik
 - derzeit nur Tagesdaten, keine Intraday-Daten
 - Abhaengigkeit von Datenqualitaet und Verfuegbarkeit in `yfinance`
 
@@ -104,7 +104,7 @@ Moegliche Leitfragen:
 
 - Walk-Forward-Backtesting ueber mehrere Ticker und Marktphasen vergleichen
 - Vergleich mehrerer Modelltypen, z. B. LSTM vs. GRU vs. klassische Baselines
-- Erweiterung von Aktien auf ETFs
+- Erweiterung des gemeinsamen Modellpfads auf groessere ETF- und Mischkoerbe
 - Ranking mehrerer Werte anhand kombinierter Kennzahlen
 - Einbindung in eine Weboberflaeche fuer Bedienung und Ergebnisdarstellung
 

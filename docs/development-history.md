@@ -243,6 +243,23 @@ Warum diese Phase wichtig ist:
 - die App kann mehrere Unternehmen gleichzeitig sichtbar machen und priorisieren
 - der Schritt bleibt methodisch anschlussfaehig, weil kein gemeinsames Mehrfachmodell behauptet wird, sondern ein Ranking aus vorhandenen Einzelprognosen entsteht
 
+## Phase 14: Gemeinsamer Multi-Asset-Klassikpfad und erste ETF-Koerbe
+
+Im naechsten Schritt wurde zusaetzlich zum bisherigen Einzel-Ticker-Training ein gemeinsamer klassischer Mehrfachpfad eingefuehrt.
+
+Wichtige Merkmale dieser Phase:
+
+- ein gemeinsamer Trainingslauf ueber mehrere Aktien oder ETFs statt nur nacheinander getrennte Einzelmodelle
+- tickerkodierte Identitaetsmerkmale, damit das gemeinsame Modell die einzelnen Assets unterscheiden kann
+- Holdout- und Walk-Forward-Auswertung ueber gemeinsame Datumsbloecke statt ueber isolierte Einzelticker-Reihen
+- erste ETF- und Mischkoerbe wie `etf_core`, `etf_sectors` und `mixed_assets`
+
+Warum diese Phase wichtig ist:
+
+- damit wird ein zentraler Wunsch aus dem Notebook-Stand erstmals direkt im aktiven Projekt umgesetzt
+- der Mehrfachvergleich ist nicht mehr nur ein Reporting ueber viele Einzelmodelle, sondern ein echtes gemeinsames Training
+- ETFs werden damit technisch in denselben klassischen Evaluationspfad eingebunden, auch wenn sie in der Dashboard-UI noch nicht gesondert dargestellt werden
+
 ## Zwischenfazit fuer die Bachelorarbeit
 
 Der Entwicklungsverlauf zeigt bewusst keine lineare Bewegung zu einer sofort "perfekten" Loesung. Stattdessen ist sichtbar:
