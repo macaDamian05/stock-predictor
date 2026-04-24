@@ -187,6 +187,79 @@ else
             </section>
         }
 
+        @if (payload.MultiAssetSummaries.Count > 0)
+        {
+            <section class="benchmark-grid" id="multi-asset">
+                @foreach (var summary in payload.MultiAssetSummaries)
+                {
+                    <article class="panel-shell benchmark-card">
+                        <div class="panel-header">
+                            <div>
+                                <span class="section-kicker">Gemeinsames Multi-Asset-Training</span>
+                                <h2>@FormatMultiAssetBasketLabel(summary.BasketPreset, summary.BasketLabel)</h2>
+                            </div>
+                            <span class="tone-pill @(GetGapTone(summary.SharedModelMinusBaselineRmse))">
+                                Abstand @FormatSignedRmse(summary.SharedModelMinusBaselineRmse)
+                            </span>
+                        </div>
+
+                        <p class="ranking-copy">
+                            Beste gefundene Suite-Konfiguration: @FormatFeatureProfileLabel(summary.FeatureProfile) mit
+                            @summary.Lags Lags. Gemeinsames Modell: @FormatModelLabel(summary.SharedModelName, summary.SharedModelLabel).
+                        </p>
+
+                        <div class="benchmark-metrics">
+                            <div>
+                                <span>Gemeinsame RMSE</span>
+                                <strong>@FormatRmse(summary.SharedModelRmse)</strong>
+                            </div>
+                            <div>
+                                <span>Baseline-RMSE</span>
+                                <strong>@FormatRmse(summary.BaselineRmse)</strong>
+                            </div>
+                            <div>
+                                <span>Richtungstreffer</span>
+                                <strong>@FormatPercent(summary.SharedModelDirectionalAccuracy * 100)</strong>
+                            </div>
+                        </div>
+
+                        <div class="detail-stats-grid">
+                            <article class="mini-stat">
+                                <span>Bestes Setup</span>
+                                <strong>@FormatFeatureProfileLabel(summary.FeatureProfile) / @summary.Lags Lags</strong>
+                                <small>@summary.ExperimentId</small>
+                            </article>
+                            <article class="mini-stat">
+                                <span>Ø 5-Tage-Ausblick</span>
+                                <strong>@FormatPercent(summary.MeanForecastHorizonChangePct)</strong>
+                                <small>@summary.TickerCount Assets</small>
+                            </article>
+                            <article class="mini-stat">
+                                <span>Ø Abstand zum letzten Schlusskurs</span>
+                                <strong>@FormatPlainPercent(summary.MeanAverageForecastDistancePctToLastClose)</strong>
+                                <small>ueber alle Assets</small>
+                            </article>
+                            <article class="mini-stat">
+                                <span>Staerkster Forecast</span>
+                                <strong>@summary.TopForecastTicker</strong>
+                                <small>@FormatPercent(summary.TopForecastHorizonChangePct)</small>
+                            </article>
+                        </div>
+
+                        <div>
+                            <span class="tag-label">Assets im Korb</span>
+                            <div class="tag-list">
+                                @foreach (var ticker in summary.Tickers)
+                                {
+                                    <span class="ticker-tag muted">@ticker</span>
+                                }
+                            </div>
+                        </div>
+                    </article>
+                }
+            </section>
+        }
+
         <section class="workspace-grid" id="ticker-lab">
             <article class="ticker-lab panel-shell">
                 <div class="panel-header">
@@ -328,6 +401,13 @@ else
                             <span>Diversified-Vergleich</span>
                             <strong>@payload.SourceRuns.DiversifiedProfileComparison</strong>
                         </div>
+                        @if (!string.IsNullOrWhiteSpace(payload.SourceRuns.MultiAssetSuiteRun))
+                        {
+                            <div>
+                                <span>Multi-Asset-Suite</span>
+                                <strong>@payload.SourceRuns.MultiAssetSuiteRun</strong>
+                            </div>
+                        }
                     </div>
                 </article>
 
@@ -488,6 +568,20 @@ else
         {
             "core" => "Bachelor Kernkorb",
             "diversified" => "Bachelor diversifiziert",
+            _ => fallback,
+        };
+    }
+
+    private static string FormatMultiAssetBasketLabel(string basketKey, string fallback)
+    {
+        return basketKey switch
+        {
+            "starter" => "Starter-Korb",
+            "bachelor_core" => "Bachelor Kernkorb",
+            "bachelor_diversified" => "Bachelor diversifiziert",
+            "etf_core" => "ETF-Kernkorb",
+            "etf_sectors" => "ETF-Sektorkorb",
+            "mixed_assets" => "Gemischter Aktien- und ETF-Korb",
             _ => fallback,
         };
     }

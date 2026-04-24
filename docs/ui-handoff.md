@@ -1,6 +1,6 @@
 # UI Handoff
 
-Stand: 2026-04-21
+Stand: 2026-04-22
 
 ## Zweck
 
@@ -18,6 +18,8 @@ Ergaenzende Tabellen:
 
 - `StockPredictor.ML/storage/dashboard/LATEST/featured_tickers.csv`
 - `StockPredictor.ML/storage/dashboard/LATEST/basket_summary.csv`
+- `StockPredictor.ML/storage/dashboard/LATEST/company_ranking.csv`
+- `StockPredictor.ML/storage/dashboard/LATEST/multi_asset_summary.csv`
 
 ## Inhalt von `dashboard_payload.json`
 
@@ -52,6 +54,17 @@ Die JSON-Datei ist bewusst in wenige Bereiche gegliedert:
     - relative Baseline-Differenz
     - RSI
 
+- `multi_asset_summaries`
+  - beste gefundene gemeinsame Multi-Asset-Konfiguration pro Korb aus der Multi-Asset-Suite
+  - aktuell sinnvoll fuer `mixed_assets` und `etf_core`
+  - enthaelt u. a.:
+    - bestes Feature-Profil und Lag-Zahl
+    - gemeinsames Sieger-Modell
+    - gemeinsame RMSE gegen Baseline
+    - mittlere 5-Tage-Prognoseveraenderung
+    - mittlerer Forecast-Abstand zum letzten Schlusskurs
+    - enthaltene Assets im Korb
+
 - `basket_summaries`
   - zusammengefasste Korbvergleiche fuer `bachelor_core` und `bachelor_diversified`
   - sinnvoll fuer Vergleichskarten oder kleine Balkendiagramme
@@ -65,9 +78,10 @@ Wenn die Blazor-App als naechstes umgesetzt wird, ist diese Reihenfolge sinnvoll
 
 1. Startseite mit 3 bis 5 Kennzahlenkarten aus `summary_cards`
 2. Bereich "Unternehmensranking" aus `company_ranking`
-3. Bereich "Featured Tickers" aus `featured_tickers`
-4. Bereich "Basket Comparison" aus `basket_summaries`
-5. Detailansicht fuer einen Ticker mit Forecast-Pfad
+3. Bereich "Gemeinsame Multi-Asset-Laeufe" aus `multi_asset_summaries`
+4. Bereich "Featured Tickers" aus `featured_tickers`
+5. Bereich "Basket Comparison" aus `basket_summaries`
+6. Detailansicht fuer einen Ticker mit Forecast-Pfad
 
 ## Technische Empfehlung fuer die App
 
@@ -82,6 +96,7 @@ Die erste UI-Umsetzung in `StockPredictor.App/` ist erfolgt:
 - dunkles Dashboard statt Blazor-Template
 - Startseite mit Kennzahlenkarten aus `summary_cards`
 - Unternehmensranking aus `company_ranking`
+- Multi-Asset-Bestkonfigurationen aus `multi_asset_summaries`
 - Featured-Ticker-Bereich mit interaktiver Auswahl aus `featured_tickers`
 - Korbvergleich fuer `bachelor_core` und `bachelor_diversified`
 - direkter Dateizugriff der App auf `dashboard_payload.json` ueber einen kleinen C#-Datendienst

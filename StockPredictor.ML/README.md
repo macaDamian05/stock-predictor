@@ -9,6 +9,7 @@ Dieses Modul ueberfuehrt den frueheren Colab-Prototyp in eine reproduzierbare Py
 - `main.py`: CLI-Einstiegspunkt
 - `run_classical_pipeline.py`: erster Bachelorarbeits-tauglicher Einstieg fuer den Vergleich mehrerer klassischer Modelle
 - `run_multi_asset_pipeline.py`: gemeinsames klassisches Training ueber mehrere Ticker oder ETFs mit einem geteilten Modell
+- `run_multi_asset_experiment_suite.py`: kompakte Vergleichssuite fuer gemeinsame Multi-Asset-Laeufe ueber mehrere Koerbe
 - `run_walk_forward_benchmark.py`: Vergleich mehrerer Ticker mit gemeinsamer Walk-Forward-Auswertung
 - `run_experiment_suite.py`: reproduzierbare Experimentsuite ueber Koerbe, Feature-Profile und Lag-Werte
 - `generate_profile_comparison.py`: konsolidiert mehrere Benchmark-Runs zu einem Profilvergleich
@@ -82,6 +83,7 @@ python run_classical_pipeline.py AAPL --walk-forward-folds 6 --walk-forward-trai
 python run_classical_pipeline.py AAPL --feature-profile technical_basic
 python run_multi_asset_pipeline.py --basket-preset mixed_assets
 python run_multi_asset_pipeline.py --basket-preset etf_core --feature-profile technical_basic
+python run_multi_asset_experiment_suite.py --basket-presets mixed_assets etf_core
 python run_walk_forward_benchmark.py --basket-preset starter
 python run_walk_forward_benchmark.py --basket-preset bachelor_core --feature-profile technical_extended
 python run_experiment_suite.py --basket-preset starter
@@ -89,6 +91,7 @@ python run_experiment_suite.py --basket-preset bachelor_core --feature-profiles 
 python generate_profile_comparison.py BACHELOR_DIVERSIFIED_LAG_ONLY BACHELOR_DIVERSIFIED_TECHNICAL_EXTENDED_PART1 BACHELOR_DIVERSIFIED_TECHNICAL_EXTENDED_PART2 --run-name bachelor_diversified_profile_comparison --basket-name bachelor_diversified
 python generate_thesis_results.py
 python export_dashboard_payload.py
+python export_dashboard_payload.py --multi-asset-suite-run latest
 python export_dashboard_payload.py AAPL TSLA DOU.DE NVDA SAP.DE
 python run_classical_pipeline.py --csv-path .\data\aapl.csv --date-column Date --close-column Close
 python main.py AAPL
@@ -133,6 +136,11 @@ Verfuegbare Parameter:
 - `--feature-profiles`: mehrere Profile in einem Lauf vergleichen
 - `--lag-values`: mehrere Lag-Zahlen in einem Lauf vergleichen
 - `--run-name`: eigener Name fuer den Suite-Ordner
+- `run_multi_asset_experiment_suite.py`
+- `--basket-presets`: mehrere Multi-Asset-Koerbe wie `mixed_assets` und `etf_core` in einem Lauf vergleichen
+- `--feature-profiles`: gemeinsame Feature-Profile fuer die gepoolten Modelle
+- `--lag-values`: gemeinsame Lag-Zahlen fuer die Suite
+- `--run-name`: Zielordner unter `storage/multi_asset_suites/`
 - `generate_profile_comparison.py`
 - `benchmark_runs`: eine oder mehrere Benchmark-Run-Ordner unter `storage/benchmarks/`
 - `--run-name`: Zielordner unter `storage/experiments/`
@@ -145,6 +153,7 @@ Verfuegbare Parameter:
 - `export_dashboard_payload.py`
 - `tickers`: Featured-Ticker fuer den spaeteren App-Einstieg
 - `--thesis-run`: Quelle fuer den konsolidierten Thesis-Stand
+- `--multi-asset-suite-run`: optionaler Multi-Asset-Suite-Stand fuer die Dashboard-Zusammenfassung
 - `--run-name`: Zielordner unter `storage/dashboard/`
 - `ticker`: Tickersymbol, optional auch interaktiv
 - `--retrain`: neues Volltraining statt Laden/Weitertrainieren
@@ -181,6 +190,8 @@ Der Thesis-Export speichert unter `storage/thesis/<run>/` eine kompakte Ergebnis
 Der Dashboard-Export speichert unter `storage/dashboard/<run>/` eine UI-freundliche JSON-Datei sowie ergaenzende CSVs. Diese Schicht dient als Handover fuer die spaetere Blazor-App.
 Dazu gehoert jetzt auch ein Unternehmensranking ueber die exportierten Ticker in `company_ranking.csv` und im JSON-Payload.
 Der neue Multi-Asset-Pfad speichert unter `storage/multi_asset/<run>/` sein gemeinsames Modell, gepoolte Vorhersagen, Per-Ticker-Metriken, Forecast-Zusammenfassungen und einen Report.
+Die neue Multi-Asset-Suite speichert unter `storage/multi_asset_suites/<run>/` eine kompakte Vergleichstabelle, Bestkonfigurationen pro Korb, einen Plot und einen Kurzreport.
+Der Dashboard-Export uebernimmt diese Bestkonfigurationen optional als `multi_asset_summaries` und als `multi_asset_summary.csv`.
 
 ## Derzeitiger Modellzuschnitt
 
@@ -190,7 +201,7 @@ Der neue Multi-Asset-Pfad speichert unter `storage/multi_asset/<run>/` sein geme
 - Klassische Evaluation: Holdout-Test plus Walk-Forward-Backtesting mit expandierendem Trainingsfenster
 - Benchmark-Evaluation: mehrere Ticker mit gemeinsamer Ranking-Tabelle auf Basis der Walk-Forward-Metriken
 - Multi-Asset-Evaluation: ein gemeinsames klassisches Modell ueber mehrere Assets mit tickerkodierten Identitaetsmerkmalen und datumsgesteuertem Holdout/Walk-Forward
-- Dashboard-Export: Unternehmensranking ueber mehrere Ticker auf Basis von 5-Tage-Ausblick und relativer Modellguete
+- Dashboard-Export: Unternehmensranking ueber mehrere Ticker plus Multi-Asset-Bestkonfigurationen auf Basis vorhandener Suite-Runs
 - Experimentsuite: Kombinationen aus Koerben, Feature-Profilen und Lag-Werten mit aggregiertem Vergleich
 - Klassische Zusatzwerte: RSI, durchschnittliche Forecast-Steigung, durchschnittlicher Forecast-Abstand zum letzten Schlusskurs und 5-Tage-Prognosepfad
 - Modelltyp: Single-Layer-LSTM fuer den neuralen Einzelwertpfad

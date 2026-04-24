@@ -11,6 +11,7 @@ from core.paths import (
     ensure_runtime_directories,
     get_classical_artifact_paths,
     get_dashboard_artifact_paths,
+    get_multi_asset_suite_artifact_paths,
     get_thesis_artifact_paths,
 )
 from core.predictor import average_distance_pct_to_reference, average_distance_to_reference
@@ -18,11 +19,20 @@ from core.predictor import average_distance_pct_to_reference, average_distance_t
 
 DEFAULT_DASHBOARD_RUN = "latest"
 DEFAULT_THESIS_RUN = "BACHELOR_THESIS_RESULTS"
+DEFAULT_MULTI_ASSET_SUITE_RUN = "latest"
 DEFAULT_TICKERS = ["AAPL", "TSLA", "DOU.DE"]
 PROFILE_DISPLAY_NAMES = {
     "lag_only": "Lag Only",
     "technical_basic": "Technical Basic",
     "technical_extended": "Technical Extended",
+}
+MULTI_ASSET_BASKET_DISPLAY_NAMES = {
+    "starter": "Starter Basket",
+    "bachelor_core": "Bachelor Core",
+    "bachelor_diversified": "Bachelor Diversified",
+    "etf_core": "ETF Core",
+    "etf_sectors": "ETF Sectors",
+    "mixed_assets": "Mixed Assets",
 }
 COMPANY_RANKING_WEIGHTS = {
     "forecast_horizon_change_pct": 0.45,
@@ -51,12 +61,23 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_DASHBOARD_RUN,
         help="Output folder name below storage/dashboard/.",
     )
+    parser.add_argument(
+        "--multi-asset-suite-run",
+        default=DEFAULT_MULTI_ASSET_SUITE_RUN,
+        help="Optional multi-asset suite run folder below storage/multi_asset_suites/.",
+    )
     return parser.parse_args()
 
 
 def load_json(path: Path) -> dict[str, object]:
     if not path.exists():
         raise FileNotFoundError(f"Required artifact file not found: {path}")
+    return json.loads(path.read_text(encoding="utf-8-sig"))
+
+
+def try_load_json(path: Path) -> dict[str, object] | None:
+    if not path.exists():
+        return None
     return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
@@ -280,17 +301,71 @@ def build_basket_summary_records(thesis_payload: dict[str, object]) -> list[dict
     return records
 
 
+def build_multi_asset_summary_records(
+    multi_asset_suite_payload: dict[str, object] | None,
+) -> list[dict[str, object]]:
+    if not multi_asset_suite_payload:
+        return []
+
+    summary_records = []
+    for record in multi_asset_suite_payload.get("basket_best_configs", []):
+        tickers = str(record.get("tickers", "")).split(",")
+        summary_records.append(
+            {
+                "basket_preset": record["basket_preset"],
+                "basket_label": MULTI_ASSET_BASKET_DISPLAY_NAMES.get(
+                    record["basket_preset"],
+                    record["basket_preset"].replace("_", " ").title(),
+                ),
+                "experiment_id": record["experiment_id"],
+                "feature_profile": record["feature_profile"],
+                "feature_profile_label": PROFILE_DISPLAY_NAMES[record["feature_profile"]],
+                "lags": int(record["lags"]),
+                "shared_model_name": record["shared_model_name"],
+                "shared_model_label": record["shared_model_label"],
+                "shared_model_rmse": record["shared_model_rmse"],
+                "baseline_rmse": record["baseline_rmse"],
+                "shared_model_minus_baseline_rmse": record["shared_model_minus_baseline_rmse"],
+                "shared_model_directional_accuracy": record["shared_model_directional_accuracy"],
+                "ticker_count": int(record["ticker_count"]),
+                "mean_forecast_horizon_change_pct": record["mean_forecast_horizon_change_pct"],
+                "mean_average_forecast_distance_pct_to_last_close": record[
+                    "mean_average_forecast_distance_pct_to_last_close"
+                ],
+                "top_forecast_ticker": record["top_forecast_ticker"],
+                "top_forecast_horizon_change_pct": record["top_forecast_horizon_change_pct"],
+                "tickers": [ticker for ticker in tickers if ticker],
+            }
+        )
+
+    return summary_records
+
+
 def build_payload(
     thesis_payload: dict[str, object],
     featured_records: list[dict[str, object]],
     basket_summary_records: list[dict[str, object]],
     company_ranking_records: list[dict[str, object]],
+    multi_asset_summary_records: list[dict[str, object]],
+    multi_asset_suite_run: str | None,
 ) -> dict[str, object]:
+    notes = [
+        "Die naive Persistence-Baseline bleibt ein wichtiger Referenzwert.",
+        "technical_extended liegt im Mittel leicht vor lag_only, aber der Vorteil ist klein.",
+        "Die besten Modelltypen wechseln je nach Ticker.",
+        "Das Unternehmensranking kombiniert 5-Tage-Ausblick, relative Walk-Forward-Guete, Richtungstreffer und Abstand zur Baseline.",
+    ]
+    if multi_asset_summary_records:
+        notes.append(
+            "Zusaetzlich werden gemeinsame Multi-Asset-Laeufe fuer Aktien- und ETF-Koerbe separat zusammengefasst."
+        )
+
     return {
-        "ui_contract_version": "1.1",
+        "ui_contract_version": "1.2",
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "source_runs": {
             "thesis_run": thesis_payload["run_name"],
+            "multi_asset_suite_run": multi_asset_suite_run or "",
             **thesis_payload["source_runs"],
         },
         "summary_cards": {
@@ -303,13 +378,9 @@ def build_payload(
         },
         "featured_tickers": featured_records,
         "company_ranking": company_ranking_records,
+        "multi_asset_summaries": multi_asset_summary_records,
         "basket_summaries": basket_summary_records,
-        "notes": [
-            "Die naive Persistence-Baseline bleibt ein wichtiger Referenzwert.",
-            "technical_extended liegt im Mittel leicht vor lag_only, aber der Vorteil ist klein.",
-            "Die besten Modelltypen wechseln je nach Ticker.",
-            "Das Unternehmensranking kombiniert 5-Tage-Ausblick, relative Walk-Forward-Guete, Richtungstreffer und Abstand zur Baseline.",
-        ],
+        "notes": notes,
     }
 
 
@@ -320,9 +391,12 @@ def main() -> None:
     tickers = [ticker.upper() for ticker in (args.tickers or DEFAULT_TICKERS)]
     thesis_artifacts = get_thesis_artifact_paths(args.thesis_run)
     thesis_payload = load_json(thesis_artifacts.summary_json)
+    multi_asset_suite_artifacts = get_multi_asset_suite_artifact_paths(args.multi_asset_suite_run)
+    multi_asset_suite_payload = try_load_json(multi_asset_suite_artifacts.summary_json)
     featured_records = [build_featured_ticker_record(ticker) for ticker in tickers]
     company_ranking_records = build_company_ranking_records(featured_records)
     basket_summary_records = build_basket_summary_records(thesis_payload)
+    multi_asset_summary_records = build_multi_asset_summary_records(multi_asset_suite_payload)
 
     artifacts = get_dashboard_artifact_paths(args.run_name)
     featured_frame = pd.DataFrame(featured_records).drop(columns=["forecast_path"])
@@ -330,16 +404,23 @@ def main() -> None:
     basket_summary_frame = pd.DataFrame(basket_summary_records).drop(
         columns=["technical_extended_better_tickers", "lag_only_better_tickers"]
     )
+    multi_asset_summary_frame = pd.DataFrame(multi_asset_summary_records).drop(
+        columns=["tickers"],
+        errors="ignore",
+    )
 
     featured_frame.to_csv(artifacts.featured_tickers_csv, index=False)
     company_ranking_frame.to_csv(artifacts.company_ranking_csv, index=False)
     basket_summary_frame.to_csv(artifacts.basket_summary_csv, index=False)
+    multi_asset_summary_frame.to_csv(artifacts.multi_asset_summary_csv, index=False)
 
     payload = build_payload(
         thesis_payload=thesis_payload,
         featured_records=featured_records,
         basket_summary_records=basket_summary_records,
         company_ranking_records=company_ranking_records,
+        multi_asset_summary_records=multi_asset_summary_records,
+        multi_asset_suite_run=multi_asset_suite_payload["run_name"] if multi_asset_suite_payload else None,
     )
     artifacts.payload_json.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
@@ -353,6 +434,14 @@ def main() -> None:
             f"5T={ranking_entry['forecast_horizon_change_pct']:+.2f}% | "
             f"rel.RMSE={ranking_entry['relative_rmse_pct']:.2f}%"
         )
+    if multi_asset_summary_records:
+        print("Multi-asset best configs:")
+        for multi_asset_summary in multi_asset_summary_records:
+            print(
+                f"  {multi_asset_summary['basket_preset']}: "
+                f"{multi_asset_summary['feature_profile']} lag{multi_asset_summary['lags']} | "
+                f"{multi_asset_summary['shared_model_label']} RMSE={multi_asset_summary['shared_model_rmse']:.4f}"
+            )
     print(f"Artifacts written to: {artifacts.base_dir}")
 
 

@@ -1,6 +1,6 @@
 # Stock Predictor
 
-Stand: 2026-04-21
+Stand: 2026-04-22
 
 ## Projektziel
 
@@ -31,7 +31,9 @@ Der ML-Prototyp in `StockPredictor.ML/` kann derzeit:
 - mehrere Ticker in einem Benchmark-Lauf vergleichen und gemeinsame Ergebnisdateien erzeugen
 - im klassischen Pfad ein gemeinsames Multi-Asset-Training ueber mehrere Ticker mit einem geteilten Modell ausfuehren
 - Multi-Asset-Forecasts und Per-Ticker-Auswertungen aus einem gemeinsamen Modell erzeugen
+- eine kompakte Multi-Asset-Experimentsuite fuer `mixed_assets` und `etf_core` ausfuehren
 - mehrere Ticker im Dashboard-Export gleichzeitig betrachten und daraus ein Unternehmensranking ableiten
+- die besten Multi-Asset-Konfigurationen im Dashboard-Export und in der App sichtbar machen
 - feste Ticker-Koerbe wie `starter`, `bachelor_core`, `bachelor_diversified`, `etf_core`, `etf_sectors` und `mixed_assets` verwenden
 - ganze Experiment-Suiten ueber mehrere Feature-Profile und Lag-Werte ausfuehren
 - vorhandene Benchmark-Runs zu Profilvergleichen zusammenfassen
@@ -99,11 +101,13 @@ python run_walk_forward_benchmark.py --basket-preset starter
 python run_walk_forward_benchmark.py --basket-preset bachelor_core --feature-profile technical_extended
 python run_multi_asset_pipeline.py --basket-preset mixed_assets
 python run_multi_asset_pipeline.py --basket-preset etf_core --feature-profile technical_basic
+python run_multi_asset_experiment_suite.py --basket-presets mixed_assets etf_core
 python run_experiment_suite.py --basket-preset starter
 python run_experiment_suite.py --basket-preset bachelor_core --feature-profiles lag_only technical_basic technical_extended --lag-values 5 10
 python generate_profile_comparison.py BACHELOR_DIVERSIFIED_LAG_ONLY BACHELOR_DIVERSIFIED_TECHNICAL_EXTENDED_PART1 BACHELOR_DIVERSIFIED_TECHNICAL_EXTENDED_PART2 --run-name bachelor_diversified_profile_comparison --basket-name bachelor_diversified
 python generate_thesis_results.py
 python export_dashboard_payload.py
+python export_dashboard_payload.py --multi-asset-suite-run latest
 python run_classical_pipeline.py --csv-path .\data\aapl.csv --date-column Date --close-column Close
 python main.py TSLA --retrain --forecast-days 10
 python main.py ENR.DE --no-plots
@@ -127,6 +131,14 @@ Wenn die App keine Daten findet oder die UI aktualisiert werden soll:
 ```powershell
 cd StockPredictor.ML
 .\.venv\Scripts\python.exe export_dashboard_payload.py
+```
+
+Wenn die neuen gemeinsamen Aktien-/ETF-Laeufe mit im Dashboard auftauchen sollen:
+
+```powershell
+cd StockPredictor.ML
+.\.venv\Scripts\python.exe run_multi_asset_experiment_suite.py --basket-presets mixed_assets etf_core --run-name latest
+.\.venv\Scripts\python.exe export_dashboard_payload.py --multi-asset-suite-run latest
 ```
 
 ## Persistente Daten
@@ -160,7 +172,7 @@ Diese Dateien sollten bei jeder groesseren fachlichen oder technischen Aenderung
 - der LSTM-Pfad trainiert weiterhin pro Ticker separat
 - das Training nutzt aktuell nur den Schlusskurs als Modell-Input
 - RSI wird momentan fuer Interpretation genutzt, nicht als Eingangsfeature des Netzes
-- spezielle ETF-Auswertung im Dashboard sowie Nachrichten, Sentiment und Intraday-Daten sind noch Zukunftsthemen
+- spezielle ETF-Detaildarstellungen im Dashboard sowie Nachrichten, Sentiment und Intraday-Daten sind noch Zukunftsthemen
 
 ## Aktuelle Beobachtung
 

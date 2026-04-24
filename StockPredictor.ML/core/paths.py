@@ -12,6 +12,7 @@ CLASSICAL_DATA_DIR = STORAGE_DIR / "classical"
 BENCHMARK_DATA_DIR = STORAGE_DIR / "benchmarks"
 EXPERIMENT_DATA_DIR = STORAGE_DIR / "experiments"
 MULTI_ASSET_DATA_DIR = STORAGE_DIR / "multi_asset"
+MULTI_ASSET_SUITE_DATA_DIR = STORAGE_DIR / "multi_asset_suites"
 THESIS_DATA_DIR = STORAGE_DIR / "thesis"
 DASHBOARD_DATA_DIR = STORAGE_DIR / "dashboard"
 
@@ -86,6 +87,18 @@ class MultiAssetArtifactPaths:
 
 
 @dataclass(frozen=True)
+class MultiAssetSuiteArtifactPaths:
+    run_name: str
+    safe_name: str
+    base_dir: Path
+    summary_csv: Path
+    summary_json: Path
+    best_configs_csv: Path
+    report: Path
+    comparison_plot: Path
+
+
+@dataclass(frozen=True)
 class ProfileComparisonArtifactPaths:
     run_name: str
     safe_name: str
@@ -129,6 +142,7 @@ class DashboardArtifactPaths:
     featured_tickers_csv: Path
     basket_summary_csv: Path
     company_ranking_csv: Path
+    multi_asset_summary_csv: Path
 
 
 def ensure_runtime_directories() -> None:
@@ -138,6 +152,7 @@ def ensure_runtime_directories() -> None:
     BENCHMARK_DATA_DIR.mkdir(parents=True, exist_ok=True)
     EXPERIMENT_DATA_DIR.mkdir(parents=True, exist_ok=True)
     MULTI_ASSET_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    MULTI_ASSET_SUITE_DATA_DIR.mkdir(parents=True, exist_ok=True)
     THESIS_DATA_DIR.mkdir(parents=True, exist_ok=True)
     DASHBOARD_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -245,6 +260,23 @@ def get_multi_asset_artifact_paths(run_name: str) -> MultiAssetArtifactPaths:
     )
 
 
+def get_multi_asset_suite_artifact_paths(run_name: str) -> MultiAssetSuiteArtifactPaths:
+    safe_name = sanitize_name(run_name, uppercase=True)
+    base_dir = MULTI_ASSET_SUITE_DATA_DIR / safe_name
+    base_dir.mkdir(parents=True, exist_ok=True)
+
+    return MultiAssetSuiteArtifactPaths(
+        run_name=run_name,
+        safe_name=safe_name,
+        base_dir=base_dir,
+        summary_csv=base_dir / "multi_asset_suite_summary.csv",
+        summary_json=base_dir / "multi_asset_suite_summary.json",
+        best_configs_csv=base_dir / "basket_best_configs.csv",
+        report=base_dir / "multi_asset_suite_report.md",
+        comparison_plot=base_dir / "multi_asset_suite_comparison.png",
+    )
+
+
 def get_profile_comparison_artifact_paths(run_name: str) -> ProfileComparisonArtifactPaths:
     safe_name = sanitize_name(run_name, uppercase=True)
     base_dir = EXPERIMENT_DATA_DIR / safe_name
@@ -303,4 +335,5 @@ def get_dashboard_artifact_paths(run_name: str) -> DashboardArtifactPaths:
         featured_tickers_csv=base_dir / "featured_tickers.csv",
         basket_summary_csv=base_dir / "basket_summary.csv",
         company_ranking_csv=base_dir / "company_ranking.csv",
+        multi_asset_summary_csv=base_dir / "multi_asset_summary.csv",
     )

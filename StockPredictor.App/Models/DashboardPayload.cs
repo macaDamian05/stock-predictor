@@ -22,6 +22,9 @@ public sealed class DashboardPayload
     [JsonPropertyName("company_ranking")]
     public List<CompanyRankingEntry> CompanyRanking { get; init; } = [];
 
+    [JsonPropertyName("multi_asset_summaries")]
+    public List<MultiAssetSummary> MultiAssetSummaries { get; init; } = [];
+
     [JsonPropertyName("basket_summaries")]
     public List<BasketSummary> BasketSummaries { get; init; } = [];
 
@@ -33,6 +36,9 @@ public sealed class DashboardSourceRuns
 {
     [JsonPropertyName("thesis_run")]
     public string ThesisRun { get; init; } = string.Empty;
+
+    [JsonPropertyName("multi_asset_suite_run")]
+    public string MultiAssetSuiteRun { get; init; } = string.Empty;
 
     [JsonPropertyName("starter_suite")]
     public string StarterSuite { get; init; } = string.Empty;
@@ -333,4 +339,61 @@ public sealed class BasketSummary
 
     [JsonPropertyName("lag_only_better_tickers")]
     public List<string> LagOnlyBetterTickers { get; init; } = [];
+}
+
+public sealed class MultiAssetSummary
+{
+    [JsonPropertyName("basket_preset")]
+    public string BasketPreset { get; init; } = string.Empty;
+
+    [JsonPropertyName("basket_label")]
+    public string BasketLabel { get; init; } = string.Empty;
+
+    [JsonPropertyName("experiment_id")]
+    public string ExperimentId { get; init; } = string.Empty;
+
+    [JsonPropertyName("feature_profile")]
+    public string FeatureProfile { get; init; } = string.Empty;
+
+    [JsonPropertyName("feature_profile_label")]
+    public string FeatureProfileLabel { get; init; } = string.Empty;
+
+    [JsonPropertyName("lags")]
+    public int Lags { get; init; }
+
+    [JsonPropertyName("shared_model_name")]
+    public string SharedModelName { get; init; } = string.Empty;
+
+    [JsonPropertyName("shared_model_label")]
+    public string SharedModelLabel { get; init; } = string.Empty;
+
+    [JsonPropertyName("shared_model_rmse")]
+    public double SharedModelRmse { get; init; }
+
+    [JsonPropertyName("baseline_rmse")]
+    public double BaselineRmse { get; init; }
+
+    [JsonPropertyName("shared_model_minus_baseline_rmse")]
+    public double SharedModelMinusBaselineRmse { get; init; }
+
+    [JsonPropertyName("shared_model_directional_accuracy")]
+    public double SharedModelDirectionalAccuracy { get; init; }
+
+    [JsonPropertyName("ticker_count")]
+    public int TickerCount { get; init; }
+
+    [JsonPropertyName("mean_forecast_horizon_change_pct")]
+    public double MeanForecastHorizonChangePct { get; init; }
+
+    [JsonPropertyName("mean_average_forecast_distance_pct_to_last_close")]
+    public double MeanAverageForecastDistancePctToLastClose { get; init; }
+
+    [JsonPropertyName("top_forecast_ticker")]
+    public string TopForecastTicker { get; init; } = string.Empty;
+
+    [JsonPropertyName("top_forecast_horizon_change_pct")]
+    public double TopForecastHorizonChangePct { get; init; }
+
+    [JsonPropertyName("tickers")]
+    public List<string> Tickers { get; init; } = [];
 }

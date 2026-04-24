@@ -1,6 +1,6 @@
 # Development History
 
-Stand: 2026-04-21
+Stand: 2026-04-22
 
 ## Zweck dieses Dokuments
 
@@ -259,6 +259,23 @@ Warum diese Phase wichtig ist:
 - damit wird ein zentraler Wunsch aus dem Notebook-Stand erstmals direkt im aktiven Projekt umgesetzt
 - der Mehrfachvergleich ist nicht mehr nur ein Reporting ueber viele Einzelmodelle, sondern ein echtes gemeinsames Training
 - ETFs werden damit technisch in denselben klassischen Evaluationspfad eingebunden, auch wenn sie in der Dashboard-UI noch nicht gesondert dargestellt werden
+
+## Phase 15: Multi-Asset-Experimentsuite und Dashboard-Anbindung
+
+Im naechsten Schritt wurde der neue gemeinsame Multi-Asset-Pfad nicht nur als Einzellauf, sondern auch als kleine reproduzierbare Suite verankert.
+
+Wichtige Merkmale dieser Phase:
+
+- eigenes Skript fuer kompakte Vergleiche ueber `mixed_assets`, `etf_core` und weitere feste Koerbe
+- Vergleich mehrerer Feature-Profile und Lag-Werte fuer das gemeinsame Modell in einem Lauf
+- Aggregation der besten Multi-Asset-Konfiguration pro Korb in einer kompakten Suite-Zusammenfassung
+- direkte Uebernahme dieser Bestkonfigurationen in den Dashboard-Export und in die Blazor-Startseite
+
+Warum diese Phase wichtig ist:
+
+- der neue Mehrfachpfad ist damit nicht mehr nur technisch vorhanden, sondern systematisch auswertbar
+- Aktien- und ETF-Koerbe koennen jetzt mit demselben gepoolten Verfahren reproduzierbar gegeneinander gestellt werden
+- die Dashboard-UI zeigt damit nicht mehr nur Einzel-Ticker und klassische Korbvergleiche, sondern auch den besten gemeinsamen Multi-Asset-Stand
 
 ## Zwischenfazit fuer die Bachelorarbeit
 

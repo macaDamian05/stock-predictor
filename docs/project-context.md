@@ -1,6 +1,6 @@
 # Project Context
 
-Stand: 2026-04-21
+Stand: 2026-04-22
 
 ## Kanonische Entscheidungen
 
@@ -26,11 +26,13 @@ Stand: 2026-04-21
 - zusaetzliche gespeicherte Walk-Forward-Metriken, Fold-Ergebnisse und ein Walk-Forward-Plot
 - Mehrfachvergleich mehrerer Ticker mit gemeinsamer Benchmark-Zusammenfassung
 - gemeinsames klassisches Training ueber mehrere Aktien oder ETFs mit tickerkodierten Identitaetsmerkmalen
+- kompakte Multi-Asset-Experimentsuite fuer `mixed_assets`, `etf_core` und weitere feste Koerbe
 - reproduzierbare Experiment-Suite ueber mehrere Profile und Lag-Werte
 - wiederverwendbarer Profilvergleich ueber mehrere Benchmark-Runs
 - konsolidierter Thesis-Export fuer Tabellen, Grafiken und Ergebnisberichte aus vorhandenen Runs
 - Dashboard-Handover und erste umgesetzte Blazor-UI unter `storage/dashboard/LATEST/dashboard_payload.json`
 - Unternehmensranking fuer die im Dashboard exportierten Ticker auf Basis von Forecast und Modellguete
+- Multi-Asset-Bestkonfigurationen aus der Suite im Dashboard-Export und auf der Startseite sichtbar
 - rekursiver Forecast im klassischen Pfad baut Features nun konsistent aus der fortgeschriebenen Close-Historie neu auf
 - Single-Ticker-Training und -Prognose mit einem LSTM auf Basis historischer Schlusskurse
 - persistente Speicherung pro Ticker
@@ -41,7 +43,7 @@ Stand: 2026-04-21
 Noch nicht umgesetzt:
 
 - gemeinsames Training im LSTM-Pfad
-- spezielle ETF-Darstellung im Dashboard
+- spezielle ETF-Detaildarstellung im Dashboard jenseits der neuen Multi-Asset-Zusammenfassungen
 - News- oder Sentimentdaten
 - Backtesting ueber mehrere Assets und Marktphasen auf Forschungsniveau
 

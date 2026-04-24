@@ -1,6 +1,6 @@
 # Thesis Notes
 
-Stand: 2026-04-21
+Stand: 2026-04-22
 
 ## Arbeitstitel
 
@@ -36,6 +36,7 @@ Der aktuelle technische Stand umfasst:
 - Experiment-Suite ueber mehrere Feature-Profile, Lag-Werte und feste Ticker-Koerbe
 - wiederverwendbarer Profilvergleich aus mehreren Benchmark-Runs
 - gemeinsames klassisches Training ueber mehrere Assets mit einem geteilten Modell und tickerkodierten Identitaetsmerkmalen
+- kompakte Multi-Asset-Experimentsuite fuer feste Aktien- und ETF-Koerbe
 - Download historischer Kursdaten ueber `yfinance`
 - Training eines LSTM-Modells pro Ticker
 - persistente Speicherung von Modell, Scaler, Metadaten und Trainingslog
@@ -84,6 +85,7 @@ Erste Ergebnisbeobachtung:
 - Im zusaetzlichen `bachelor_diversified`-Vergleich bestaetigt sich dieses Muster. `technical_extended` ist zwar auch dort im Mittel leicht besser, liegt aber tickerweise nur bei einem Teil der Werte vorne. Das zeigt, dass Mittelwerte und Einzelticker-Auswertung gemeinsam betrachtet werden muessen.
 - Die Ergebnisse koennen jetzt als konsolidiertes BA-Ergebnispaket exportiert werden. Dadurch lassen sich Tabellen und Grafiken spaeter leichter in die schriftliche Auswertung uebernehmen.
 - Zusaetzlich koennen die Ergebnisse jetzt in eine kompakte Dashboard-Struktur exportiert werden. Das ist kein neuer Modellschritt, aber wichtig fuer die technische Uebergabe in die Anwendungsoberflaeche.
+- Gemeinsame Multi-Asset-Laeufe lassen sich nun als eigene Suite fuer `mixed_assets` und `etf_core` vergleichen und als Bestkonfigurationen direkt im Dashboard zeigen. Das verbindet die neue pooled-Training-Idee sauber mit der UI-Auswertung.
 
 ## Forschungsfragen
 
