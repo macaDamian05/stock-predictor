@@ -1,0 +1,9 @@
+ticker,lag_only_best_model,lag_only_best_rmse,technical_extended_best_model,technical_extended_best_rmse,technical_extended_minus_lag_only_rmse
+JPM,ridge_regression,2.459245018688038,decision_tree,2.427618706415329,-0.031626312272708734
+MSFT,random_forest,4.245012775848099,random_forest,4.218107602463289,-0.0269051733848098
+NVDA,random_forest,2.150353253145938,random_forest,2.1381910119240395,-0.012162241221898462
+SAP.DE,ridge_regression,2.57329732639477,random_forest,2.569114176698189,-0.004183149696581179
+KO,ridge_regression,0.6137972836591816,ridge_regression,0.6158210236325853,0.00202373997340366
+AAPL,random_forest,2.375231291768927,random_forest,2.381302762893809,0.006071471124881711
+TSLA,ridge_regression,10.49628498805127,ridge_regression,10.507533727999315,0.011248739948044317
+XOM,ridge_regression,1.4101934460470675,ridge_regression,1.4261650164962456,0.015971570449178074

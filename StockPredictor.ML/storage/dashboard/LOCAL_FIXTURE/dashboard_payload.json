@@ -1,0 +1,403 @@
+{
+  "ui_contract_version": "1.2",
+  "generated_at": "2026-04-23T00:41:34",
+  "source_runs": {
+    "thesis_run": "bachelor_thesis_results",
+    "multi_asset_suite_run": "LOCAL_FIXTURE",
+    "starter_suite": "BACHELOR_SUITE_STARTER",
+    "core_profile_comparison": "BACHELOR_CORE_PROFILE_COMPARISON",
+    "diversified_profile_comparison": "BACHELOR_DIVERSIFIED_PROFILE_COMPARISON"
+  },
+  "summary_cards": {
+    "starter_best_experiment": {
+      "experiment_id": "lag_only_lag10",
+      "feature_profile": "lag_only",
+      "lags": 10,
+      "ticker_count": 3,
+      "successful_tickers": 3,
+      "failed_tickers": 0,
+      "mean_walk_forward_baseline_rmse": 4.369853408483389,
+      "mean_best_learned_rmse": 4.382607234712337,
+      "mean_best_learned_directional_accuracy": 0.4891906889787123,
+      "mean_best_learned_minus_baseline_rmse": 0.01275382622894794,
+      "dominant_best_model": "ridge_regression",
+      "ridge_wins": 2,
+      "decision_tree_wins": 0,
+      "random_forest_wins": 1,
+      "dominant_best_model_label": "Ridge Regression"
+    },
+    "starter_tickers_beating_baseline": [
+      "AAPL"
+    ],
+    "best_core_profile": {
+      "feature_profile": "technical_extended",
+      "ticker_count": 8,
+      "mean_walk_forward_baseline_rmse": 3.282528,
+      "mean_best_learned_rmse": 3.285482,
+      "mean_best_learned_directional_accuracy": 0.512328,
+      "mean_best_learned_minus_baseline_rmse": 0.002953,
+      "dominant_best_model": "random_forest",
+      "feature_profile_label": "Technical Extended",
+      "dominant_best_model_label": "Random Forest"
+    },
+    "best_diversified_profile": {
+      "feature_profile": "technical_extended",
+      "ticker_count": 10,
+      "mean_walk_forward_baseline_rmse": 2.801385471302735,
+      "mean_best_learned_rmse": 2.8037359505311823,
+      "mean_best_learned_directional_accuracy": 0.5080699366291903,
+      "mean_best_learned_minus_baseline_rmse": 0.0023504792284472385,
+      "dominant_best_model": "ridge_regression",
+      "feature_profile_label": "Technical Extended",
+      "dominant_best_model_label": "Ridge Regression"
+    }
+  },
+  "featured_tickers": [
+    {
+      "ticker": "AAPL",
+      "forecast_model": "random_forest",
+      "forecast_model_label": "Random Forest",
+      "last_close_date": "2026-04-16",
+      "last_close": 263.3999938964844,
+      "next_forecast_date": "2026-04-17",
+      "next_predicted_close": 263.67155847142146,
+      "next_predicted_change_pct": 0.10309968915329648,
+      "forecast_end_date": "2026-04-23",
+      "forecast_end_close": 264.7762507217015,
+      "forecast_horizon_change_pct": 0.5224969085451114,
+      "forecast_days": 5,
+      "average_recent_rsi": 63.781204833224365,
+      "average_forecast_slope": 0.2761730625700096,
+      "average_forecast_distance_to_last_close": 0.7996462902361827,
+      "average_forecast_distance_pct_to_last_close": 0.30358629793683367,
+      "feature_profile": "technical_extended",
+      "feature_profile_label": "Technical Extended",
+      "holdout_best_model": "random_forest",
+      "walk_forward_best_model": "random_forest",
+      "walk_forward_best_rmse": 2.381638345219022,
+      "walk_forward_baseline_rmse": 2.3791370117688597,
+      "walk_forward_best_directional_accuracy": 0.5250457038391225,
+      "beats_baseline_rmse": false,
+      "data_start": "1990-01-02",
+      "data_end": "2026-04-16",
+      "forecast_path": [
+        {
+          "date": "2026-04-17",
+          "predicted_return": 0.0010309968915330622,
+          "predicted_close": 263.67155847142146
+        },
+        {
+          "date": "2026-04-20",
+          "predicted_return": 0.0008510895242806695,
+          "predicted_close": 263.8959665726872
+        },
+        {
+          "date": "2026-04-21",
+          "predicted_return": 0.001229675113281721,
+          "predicted_close": 264.22047287527704
+        },
+        {
+          "date": "2026-04-22",
+          "predicted_return": 0.0008079594094865232,
+          "predicted_close": 264.4339522925156
+        },
+        {
+          "date": "2026-04-23",
+          "predicted_return": 0.0012944571838008959,
+          "predicted_close": 264.7762507217015
+        }
+      ]
+    },
+    {
+      "ticker": "TSLA",
+      "forecast_model": "ridge_regression",
+      "forecast_model_label": "Ridge Regression",
+      "last_close_date": "2026-04-16",
+      "last_close": 388.8999938964844,
+      "next_forecast_date": "2026-04-17",
+      "next_predicted_close": 387.89735133657217,
+      "next_predicted_change_pct": -0.2578150104520449,
+      "forecast_end_date": "2026-04-23",
+      "forecast_end_close": 383.4258449269602,
+      "forecast_horizon_change_pct": -1.4075981114520797,
+      "forecast_days": 5,
+      "average_recent_rsi": 45.88022123170705,
+      "average_forecast_slope": -1.117876602402987,
+      "average_forecast_distance_to_last_close": 3.4884877887285257,
+      "average_forecast_distance_pct_to_last_close": 0.8970141022056883,
+      "feature_profile": "technical_extended",
+      "feature_profile_label": "Technical Extended",
+      "holdout_best_model": "ridge_regression",
+      "walk_forward_best_model": "ridge_regression",
+      "walk_forward_best_rmse": 10.507533727999313,
+      "walk_forward_baseline_rmse": 10.46981617432135,
+      "walk_forward_best_directional_accuracy": 0.5333333333333333,
+      "beats_baseline_rmse": false,
+      "data_start": "2010-06-29",
+      "data_end": "2026-04-16",
+      "forecast_path": [
+        {
+          "date": "2026-04-17",
+          "predicted_return": -0.0025781501045204374,
+          "predicted_close": 387.89735133657217
+        },
+        {
+          "date": "2026-04-20",
+          "predicted_return": -0.002487963213967843,
+          "predicted_close": 386.93227699565125
+        },
+        {
+          "date": "2026-04-21",
+          "predicted_return": -0.004430885471230732,
+          "predicted_close": 385.217824391161
+        },
+        {
+          "date": "2026-04-22",
+          "predicted_return": -0.0042406955215748224,
+          "predicted_close": 383.5842328884346
+        },
+        {
+          "date": "2026-04-23",
+          "predicted_return": -0.0004129157246159287,
+          "predicted_close": 383.4258449269602
+        }
+      ]
+    },
+    {
+      "ticker": "DOU.DE",
+      "forecast_model": "ridge_regression",
+      "forecast_model_label": "Ridge Regression",
+      "last_close_date": "2026-04-16",
+      "last_close": 10.819999694824219,
+      "next_forecast_date": "2026-04-17",
+      "next_predicted_close": 10.914989290227826,
+      "next_predicted_change_pct": 0.8779075608388975,
+      "forecast_end_date": "2026-04-23",
+      "forecast_end_close": 10.972633041156238,
+      "forecast_horizon_change_pct": 1.4106594328743949,
+      "forecast_days": 5,
+      "average_recent_rsi": 67.47049898957057,
+      "average_forecast_slope": 0.01441093773210289,
+      "average_forecast_distance_to_last_close": 0.13807252628248748,
+      "average_forecast_distance_pct_to_last_close": 1.2760862308391276,
+      "feature_profile": "technical_extended",
+      "feature_profile_label": "Technical Extended",
+      "holdout_best_model": "ridge_regression",
+      "walk_forward_best_model": "ridge_regression",
+      "walk_forward_best_rmse": 0.27982560675686463,
+      "walk_forward_baseline_rmse": 0.2759081779642825,
+      "walk_forward_best_directional_accuracy": 0.46,
+      "beats_baseline_rmse": false,
+      "data_start": "2024-03-22",
+      "data_end": "2026-04-16",
+      "forecast_path": [
+        {
+          "date": "2026-04-17",
+          "predicted_return": 0.008779075608389008,
+          "predicted_close": 10.914989290227826
+        },
+        {
+          "date": "2026-04-20",
+          "predicted_return": 0.0015049692913805528,
+          "predicted_close": 10.931416013925366
+        },
+        {
+          "date": "2026-04-21",
+          "predicted_return": 0.003822617593177989,
+          "predicted_close": 10.973202637098543
+        },
+        {
+          "date": "2026-04-22",
+          "predicted_return": 0.002270757849925539,
+          "predicted_close": 10.998120123125558
+        },
+        {
+          "date": "2026-04-23",
+          "predicted_return": -0.0023174034911410376,
+          "predicted_close": 10.972633041156238
+        }
+      ]
+    }
+  ],
+  "company_ranking": [
+    {
+      "rank": 1,
+      "ticker": "AAPL",
+      "ranking_score": 82.99310284488361,
+      "forecast_model": "random_forest",
+      "forecast_model_label": "Random Forest",
+      "feature_profile": "technical_extended",
+      "feature_profile_label": "Technical Extended",
+      "last_close": 263.3999938964844,
+      "next_predicted_change_pct": 0.10309968915329648,
+      "forecast_horizon_change_pct": 0.5224969085451114,
+      "average_forecast_distance_to_last_close": 0.7996462902361827,
+      "average_forecast_distance_pct_to_last_close": 0.30358629793683367,
+      "walk_forward_best_directional_accuracy": 0.5250457038391225,
+      "walk_forward_best_rmse": 2.381638345219022,
+      "walk_forward_baseline_rmse": 2.3791370117688597,
+      "relative_rmse_pct": 0.9041907366767065,
+      "relative_gap_vs_baseline_pct": 0.0009496330706618216,
+      "average_recent_rsi": 63.781204833224365,
+      "beats_baseline_rmse": false
+    },
+    {
+      "rank": 2,
+      "ticker": "DOU.DE",
+      "ranking_score": 46.28690423910606,
+      "forecast_model": "ridge_regression",
+      "forecast_model_label": "Ridge Regression",
+      "feature_profile": "technical_extended",
+      "feature_profile_label": "Technical Extended",
+      "last_close": 10.819999694824219,
+      "next_predicted_change_pct": 0.8779075608388975,
+      "forecast_horizon_change_pct": 1.4106594328743949,
+      "average_forecast_distance_to_last_close": 0.13807252628248748,
+      "average_forecast_distance_pct_to_last_close": 1.2760862308391276,
+      "walk_forward_best_directional_accuracy": 0.46,
+      "walk_forward_best_rmse": 0.27982560675686463,
+      "walk_forward_baseline_rmse": 0.2759081779642825,
+      "relative_rmse_pct": 2.586188675132034,
+      "relative_gap_vs_baseline_pct": 0.03620544272710124,
+      "average_recent_rsi": 67.47049898957057,
+      "beats_baseline_rmse": false
+    },
+    {
+      "rank": 3,
+      "ticker": "TSLA",
+      "ranking_score": 32.51845452328117,
+      "forecast_model": "ridge_regression",
+      "forecast_model_label": "Ridge Regression",
+      "feature_profile": "technical_extended",
+      "feature_profile_label": "Technical Extended",
+      "last_close": 388.8999938964844,
+      "next_predicted_change_pct": -0.2578150104520449,
+      "forecast_horizon_change_pct": -1.4075981114520797,
+      "average_forecast_distance_to_last_close": 3.4884877887285257,
+      "average_forecast_distance_pct_to_last_close": 0.8970141022056883,
+      "walk_forward_best_directional_accuracy": 0.5333333333333333,
+      "walk_forward_best_rmse": 10.507533727999313,
+      "walk_forward_baseline_rmse": 10.46981617432135,
+      "relative_rmse_pct": 2.7018600907451185,
+      "relative_gap_vs_baseline_pct": 0.009698522568761546,
+      "average_recent_rsi": 45.88022123170705,
+      "beats_baseline_rmse": false
+    }
+  ],
+  "multi_asset_summaries": [
+    {
+      "basket_preset": "mixed_assets",
+      "basket_label": "Mixed Assets",
+      "experiment_id": "mixed_assets__technical_extended__lag10",
+      "feature_profile": "technical_extended",
+      "feature_profile_label": "Technical Extended",
+      "lags": 10,
+      "shared_model_name": "ridge_regression",
+      "shared_model_label": "Ridge Regression",
+      "shared_model_rmse": 0.0184,
+      "baseline_rmse": 0.0197,
+      "shared_model_minus_baseline_rmse": -0.0013,
+      "shared_model_directional_accuracy": 0.584,
+      "ticker_count": 6,
+      "mean_forecast_horizon_change_pct": 1.42,
+      "mean_average_forecast_distance_pct_to_last_close": 2.31,
+      "top_forecast_ticker": "NVDA",
+      "top_forecast_horizon_change_pct": 3.84,
+      "tickers": [
+        "AAPL",
+        "MSFT",
+        "NVDA",
+        "SPY",
+        "QQQ",
+        "VTI"
+      ]
+    },
+    {
+      "basket_preset": "etf_core",
+      "basket_label": "ETF Core",
+      "experiment_id": "etf_core__technical_basic__lag5",
+      "feature_profile": "technical_basic",
+      "feature_profile_label": "Technical Basic",
+      "lags": 5,
+      "shared_model_name": "random_forest",
+      "shared_model_label": "Random Forest",
+      "shared_model_rmse": 0.0129,
+      "baseline_rmse": 0.0135,
+      "shared_model_minus_baseline_rmse": -0.0006,
+      "shared_model_directional_accuracy": 0.562,
+      "ticker_count": 5,
+      "mean_forecast_horizon_change_pct": 0.68,
+      "mean_average_forecast_distance_pct_to_last_close": 1.14,
+      "top_forecast_ticker": "QQQ",
+      "top_forecast_horizon_change_pct": 1.52,
+      "tickers": [
+        "SPY",
+        "QQQ",
+        "VTI",
+        "IWM",
+        "DIA"
+      ]
+    }
+  ],
+  "basket_summaries": [
+    {
+      "basket_key": "core",
+      "basket_label": "Bachelor Core",
+      "best_profile": "technical_extended",
+      "best_profile_label": "Technical Extended",
+      "mean_best_learned_rmse": 3.285482,
+      "mean_walk_forward_baseline_rmse": 3.282528,
+      "mean_gap_vs_baseline": 0.002953,
+      "dominant_best_model": "random_forest",
+      "dominant_best_model_label": "Random Forest",
+      "technical_extended_better_count": 4,
+      "lag_only_better_count": 4,
+      "technical_extended_better_tickers": [
+        "JPM",
+        "MSFT",
+        "NVDA",
+        "SAP.DE"
+      ],
+      "lag_only_better_tickers": [
+        "KO",
+        "AAPL",
+        "TSLA",
+        "XOM"
+      ]
+    },
+    {
+      "basket_key": "diversified",
+      "basket_label": "Bachelor Diversified",
+      "best_profile": "technical_extended",
+      "best_profile_label": "Technical Extended",
+      "mean_best_learned_rmse": 2.8037359505311823,
+      "mean_walk_forward_baseline_rmse": 2.801385471302735,
+      "mean_gap_vs_baseline": 0.0023504792284472385,
+      "dominant_best_model": "ridge_regression",
+      "dominant_best_model_label": "Ridge Regression",
+      "technical_extended_better_count": 4,
+      "lag_only_better_count": 6,
+      "technical_extended_better_tickers": [
+        "JPM",
+        "MSFT",
+        "NVDA",
+        "SAP.DE"
+      ],
+      "lag_only_better_tickers": [
+        "DTE.DE",
+        "PG",
+        "KO",
+        "AAPL",
+        "TSLA",
+        "XOM"
+      ]
+    }
+  ],
+  "notes": [
+    "Die naive Persistence-Baseline bleibt ein wichtiger Referenzwert.",
+    "technical_extended liegt im Mittel leicht vor lag_only, aber der Vorteil ist klein.",
+    "Die besten Modelltypen wechseln je nach Ticker.",
+    "Das Unternehmensranking kombiniert 5-Tage-Ausblick, relative Walk-Forward-Guete, Richtungstreffer und Abstand zur Baseline.",
+    "Zusaetzlich werden gemeinsame Multi-Asset-Laeufe fuer Aktien- und ETF-Koerbe separat zusammengefasst."
+  ]
+}

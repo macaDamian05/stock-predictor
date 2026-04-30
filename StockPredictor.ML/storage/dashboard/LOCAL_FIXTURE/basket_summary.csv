@@ -1,0 +1,3 @@
+basket_key,basket_label,best_profile,best_profile_label,mean_best_learned_rmse,mean_walk_forward_baseline_rmse,mean_gap_vs_baseline,dominant_best_model,dominant_best_model_label,technical_extended_better_count,lag_only_better_count
+core,Bachelor Core,technical_extended,Technical Extended,3.285482,3.282528,0.002953,random_forest,Random Forest,4,4
+diversified,Bachelor Diversified,technical_extended,Technical Extended,2.8037359505311823,2.801385471302735,0.0023504792284472385,ridge_regression,Ridge Regression,4,6

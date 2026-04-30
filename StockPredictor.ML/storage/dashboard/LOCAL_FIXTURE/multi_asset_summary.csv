@@ -1,0 +1,3 @@
+basket_preset,basket_label,experiment_id,feature_profile,feature_profile_label,lags,shared_model_name,shared_model_label,shared_model_rmse,baseline_rmse,shared_model_minus_baseline_rmse,shared_model_directional_accuracy,ticker_count,mean_forecast_horizon_change_pct,mean_average_forecast_distance_pct_to_last_close,top_forecast_ticker,top_forecast_horizon_change_pct
+mixed_assets,Mixed Assets,mixed_assets__technical_extended__lag10,technical_extended,Technical Extended,10,ridge_regression,Ridge Regression,0.0184,0.0197,-0.0013,0.584,6,1.42,2.31,NVDA,3.84
+etf_core,ETF Core,etf_core__technical_basic__lag5,technical_basic,Technical Basic,5,random_forest,Random Forest,0.0129,0.0135,-0.0006,0.562,5,0.68,1.14,QQQ,1.52

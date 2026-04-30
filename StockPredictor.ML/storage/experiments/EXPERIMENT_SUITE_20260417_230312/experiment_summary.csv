@@ -1,0 +1,7 @@
+experiment_id,feature_profile,lags,ticker_count,successful_tickers,failed_tickers,mean_walk_forward_baseline_rmse,mean_best_learned_rmse,mean_best_learned_directional_accuracy,mean_best_learned_minus_baseline_rmse,dominant_best_model,ridge_wins,decision_tree_wins,random_forest_wins
+lag_only_lag5,lag_only,5,3,3,0,4.36668723984491,4.37169830099148,0.49861508677950916,0.005011061146570646,ridge_regression,2,0,1
+technical_extended_lag5,technical_extended,5,3,3,0,4.374953788018164,4.381312519073263,0.49976889670546676,0.006358731055099265,ridge_regression,2,0,1
+lag_only_lag10,lag_only,10,3,3,0,4.369853408483389,4.382607234712337,0.4891906889787123,0.01275382622894794,ridge_regression,2,0,1
+technical_basic_lag5,technical_basic,5,3,3,0,4.374953788018164,4.382990804587609,0.5044100926418748,0.008037016569445462,ridge_regression,2,0,1
+technical_extended_lag10,technical_extended,10,3,3,0,4.374953788018164,4.389554032549996,0.5062482226284786,0.014600244531831933,ridge_regression,2,0,1
+technical_basic_lag10,technical_basic,10,3,3,0,4.374953788018164,4.3911164626630566,0.49328972505701724,0.01616267464489261,ridge_regression,2,0,1

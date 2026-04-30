@@ -1,0 +1,98 @@
+{
+  "basket": "bachelor_core",
+  "compared_profiles": [
+    "lag_only",
+    "technical_extended"
+  ],
+  "source_runs": [
+    "BACHELOR_CORE_LAG_ONLY",
+    "BACHELOR_CORE_TECHNICAL_EXTENDED_PART1",
+    "BACHELOR_CORE_TECHNICAL_EXTENDED_PART2"
+  ],
+  "summary": [
+    {
+      "feature_profile": "technical_extended",
+      "ticker_count": 8,
+      "mean_walk_forward_baseline_rmse": 3.2825284544126747,
+      "mean_best_learned_rmse": 3.2854817535653504,
+      "mean_best_learned_directional_accuracy": 0.5123282556515512,
+      "mean_best_learned_minus_baseline_rmse": 0.0029532991526752816,
+      "dominant_best_model": "random_forest"
+    },
+    {
+      "feature_profile": "lag_only",
+      "ticker_count": 8,
+      "mean_walk_forward_baseline_rmse": 3.2800170592530877,
+      "mean_best_learned_rmse": 3.2904269229504113,
+      "mean_best_learned_directional_accuracy": 0.501854262255808,
+      "mean_best_learned_minus_baseline_rmse": 0.01040986369732351,
+      "dominant_best_model": "ridge_regression"
+    }
+  ],
+  "per_ticker": [
+    {
+      "ticker": "JPM",
+      "lag_only_best_model": "ridge_regression",
+      "lag_only_best_rmse": 2.459245018688038,
+      "technical_extended_best_model": "decision_tree",
+      "technical_extended_best_rmse": 2.427618706415329,
+      "technical_extended_minus_lag_only_rmse": -0.031626312272708734
+    },
+    {
+      "ticker": "MSFT",
+      "lag_only_best_model": "random_forest",
+      "lag_only_best_rmse": 4.245012775848099,
+      "technical_extended_best_model": "random_forest",
+      "technical_extended_best_rmse": 4.218107602463289,
+      "technical_extended_minus_lag_only_rmse": -0.0269051733848098
+    },
+    {
+      "ticker": "NVDA",
+      "lag_only_best_model": "random_forest",
+      "lag_only_best_rmse": 2.150353253145938,
+      "technical_extended_best_model": "random_forest",
+      "technical_extended_best_rmse": 2.1381910119240395,
+      "technical_extended_minus_lag_only_rmse": -0.012162241221898462
+    },
+    {
+      "ticker": "SAP.DE",
+      "lag_only_best_model": "ridge_regression",
+      "lag_only_best_rmse": 2.57329732639477,
+      "technical_extended_best_model": "random_forest",
+      "technical_extended_best_rmse": 2.569114176698189,
+      "technical_extended_minus_lag_only_rmse": -0.004183149696581179
+    },
+    {
+      "ticker": "KO",
+      "lag_only_best_model": "ridge_regression",
+      "lag_only_best_rmse": 0.6137972836591816,
+      "technical_extended_best_model": "ridge_regression",
+      "technical_extended_best_rmse": 0.6158210236325853,
+      "technical_extended_minus_lag_only_rmse": 0.00202373997340366
+    },
+    {
+      "ticker": "AAPL",
+      "lag_only_best_model": "random_forest",
+      "lag_only_best_rmse": 2.375231291768927,
+      "technical_extended_best_model": "random_forest",
+      "technical_extended_best_rmse": 2.381302762893809,
+      "technical_extended_minus_lag_only_rmse": 0.006071471124881711
+    },
+    {
+      "ticker": "TSLA",
+      "lag_only_best_model": "ridge_regression",
+      "lag_only_best_rmse": 10.49628498805127,
+      "technical_extended_best_model": "ridge_regression",
+      "technical_extended_best_rmse": 10.507533727999315,
+      "technical_extended_minus_lag_only_rmse": 0.011248739948044317
+    },
+    {
+      "ticker": "XOM",
+      "lag_only_best_model": "ridge_regression",
+      "lag_only_best_rmse": 1.4101934460470675,
+      "technical_extended_best_model": "ridge_regression",
+      "technical_extended_best_rmse": 1.4261650164962456,
+      "technical_extended_minus_lag_only_rmse": 0.015971570449178074
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "run_name": "benchmark_validation_aapl",
+  "tickers": [
+    "AAPL"
+  ],
+  "basket_preset": "starter",
+  "successful_tickers": [
+    "AAPL"
+  ],
+  "failed_tickers": [],
+  "feature_profile": "lag_only",
+  "models": {
+    "ridge_regression": {
+      "alpha": 1.0
+    },
+    "decision_tree": {
+      "max_depth": 8,
+      "min_samples_leaf": 5,
+      "random_state": 42
+    },
+    "random_forest": {
+      "n_estimators": 300,
+      "max_depth": 12,
+      "min_samples_leaf": 5,
+      "random_state": 42
+    }
+  },
+  "walk_forward": {
+    "folds": 5,
+    "initial_train_size": 0.7
+  },
+  "results": [
+    {
+      "ticker": "AAPL",
+      "data_start": "1990-01-02",
+      "data_end": "2026-04-16",
+      "data_rows": 9139,
+      "supervised_rows": 9128,
+      "walk_forward_fold_count": 5,
+      "walk_forward_total_predictions": 2738,
+      "best_learned_model": "random_forest",
+      "best_learned_rmse": 2.375231291768927,
+      "best_learned_directional_accuracy": 0.5262965668371073,
+      "best_learned_minus_baseline_rmse": -0.002613412864157283,
+      "holdout_baseline_persistence_rmse": 2.8817637685974375,
+      "holdout_baseline_persistence_directional_accuracy": 0.002190580503833516,
+      "walk_forward_baseline_persistence_rmse": 2.3778447046330844,
+      "walk_forward_baseline_persistence_directional_accuracy": 0.002191380569758948,
+      "holdout_ridge_regression_rmse": 2.964692519890663,
+      "holdout_ridge_regression_directional_accuracy": 0.4665936473165389,
+      "walk_forward_ridge_regression_rmse": 2.386411190774979,
+      "walk_forward_ridge_regression_directional_accuracy": 0.5007304601899196,
+      "holdout_decision_tree_rmse": 2.9310218643859165,
+      "holdout_decision_tree_directional_accuracy": 0.5312157721796276,
+      "walk_forward_decision_tree_rmse": 2.4095801276964304,
+      "walk_forward_decision_tree_directional_accuracy": 0.5237399561723886,
+      "holdout_random_forest_rmse": 2.8900479171683613,
+      "holdout_random_forest_directional_accuracy": 0.5323110624315444,
+      "walk_forward_random_forest_rmse": 2.375231291768927,
+      "walk_forward_random_forest_directional_accuracy": 0.5262965668371073
+    }
+  ]
+}

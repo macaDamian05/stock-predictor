@@ -1,0 +1,80 @@
+{
+  "run_name": "bachelor_feature_refresh",
+  "tickers": [
+    "AAPL",
+    "TSLA",
+    "DOU.DE"
+  ],
+  "successful_tickers": [
+    "DOU.DE",
+    "AAPL",
+    "TSLA"
+  ],
+  "failed_tickers": [],
+  "random_forest": {
+    "n_estimators": 300,
+    "max_depth": 12,
+    "min_samples_leaf": 5,
+    "random_state": 42
+  },
+  "walk_forward": {
+    "folds": 5,
+    "initial_train_size": 0.7
+  },
+  "results": [
+    {
+      "ticker": "DOU.DE",
+      "data_start": "2024-03-22",
+      "data_end": "2026-04-16",
+      "data_rows": 522,
+      "supervised_rows": 501,
+      "holdout_baseline_rmse": 0.3041820621105458,
+      "holdout_random_forest_rmse": 0.31536394765876347,
+      "holdout_baseline_directional_accuracy": 0.07920792079207921,
+      "holdout_random_forest_directional_accuracy": 0.39603960396039606,
+      "walk_forward_baseline_rmse": 0.2759081779642825,
+      "walk_forward_random_forest_rmse": 0.29579431561486746,
+      "walk_forward_baseline_directional_accuracy": 0.12,
+      "walk_forward_random_forest_directional_accuracy": 0.41333333333333333,
+      "walk_forward_fold_count": 5,
+      "walk_forward_total_predictions": 150,
+      "rf_minus_baseline_rmse": 0.019886137650584945
+    },
+    {
+      "ticker": "AAPL",
+      "data_start": "1990-01-02",
+      "data_end": "2026-04-16",
+      "data_rows": 9139,
+      "supervised_rows": 9118,
+      "holdout_baseline_rmse": 2.8833282749477034,
+      "holdout_random_forest_rmse": 2.897651582828925,
+      "holdout_baseline_directional_accuracy": 0.0021929824561403508,
+      "holdout_random_forest_directional_accuracy": 0.5328947368421053,
+      "walk_forward_baseline_rmse": 2.3791370117688597,
+      "walk_forward_random_forest_rmse": 2.381638345219022,
+      "walk_forward_baseline_directional_accuracy": 0.0021937842778793418,
+      "walk_forward_random_forest_directional_accuracy": 0.5250457038391225,
+      "walk_forward_fold_count": 5,
+      "walk_forward_total_predictions": 2735,
+      "rf_minus_baseline_rmse": 0.0025013334501622353
+    },
+    {
+      "ticker": "TSLA",
+      "data_start": "2010-06-29",
+      "data_end": "2026-04-16",
+      "data_rows": 3974,
+      "supervised_rows": 3953,
+      "holdout_baseline_rmse": 10.32352953784048,
+      "holdout_random_forest_rmse": 10.61484368143765,
+      "holdout_baseline_directional_accuracy": 0.0,
+      "holdout_random_forest_directional_accuracy": 0.5195954487989887,
+      "walk_forward_baseline_rmse": 10.46981617432135,
+      "walk_forward_random_forest_rmse": 10.572875820596115,
+      "walk_forward_baseline_directional_accuracy": 0.0008438818565400844,
+      "walk_forward_random_forest_directional_accuracy": 0.5316455696202531,
+      "walk_forward_fold_count": 5,
+      "walk_forward_total_predictions": 1185,
+      "rf_minus_baseline_rmse": 0.10305964627476527
+    }
+  ]
+}
