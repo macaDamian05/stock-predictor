@@ -64,7 +64,9 @@ Der Webteil in `StockPredictor.App/` liest jetzt den kompakt exportierten Dashbo
 
 ### Python / ML
 
-Empfohlen ist Python 3.11. Die auf diesem Rechner vorhandene Python-3.14-Installation ist fuer TensorFlow derzeit nicht vorbereitet.
+Empfohlen ist Python 3.11, wenn der volle Pfad inklusive LSTM/TensorFlow genutzt werden soll.
+Fuer den klassischen Pfad mit `requirements-classical.txt` hat in einem frischen Rechnerwechsel-Setup auch Python 3.13 funktioniert.
+Wichtig: Ein `venv` aendert die Python-Version nicht, sondern uebernimmt genau die Python-Version, mit der es erstellt wurde.
 
 Schnellster Weg fuer den ersten wissenschaftlich sauberen Modellvergleich:
 
@@ -78,6 +80,8 @@ python run_classical_pipeline.py AAPL
 ```
 
 Artefakte landen danach unter `StockPredictor.ML/storage/classical/AAPL/`.
+
+Wenn auf einem anderen Rechner kein `py -3.11` vorhanden ist, ist das der sicherste Einstieg, um wenigstens den klassischen Pfad reproduzierbar zum Laufen zu bringen.
 
 PowerShell-Beispiel:
 
@@ -126,12 +130,24 @@ Die Startseite liest den aktuellen Export aus:
 
 - `StockPredictor.ML/storage/dashboard/LATEST/dashboard_payload.json`
 
-Wenn die App keine Daten findet oder die UI aktualisiert werden soll:
+Nach einem frischen Clone oder einem Rechnerwechsel ist die Web-App oft zunaechst leer.
+Der Grund ist in der Regel nicht Blazor, sondern fehlende lokale Laufzeit-Artefakte unter `StockPredictor.ML/storage/`.
+Diese Ordner sind standardmaessig in Git ignoriert und werden deshalb nicht automatisch auf einen zweiten Rechner mitgenommen.
+
+Wenn die App keine Daten findet oder die UI aktualisiert werden soll und die benoetigten ML-Artefakte bereits lokal vorhanden sind:
 
 ```powershell
 cd StockPredictor.ML
 .\.venv\Scripts\python.exe export_dashboard_payload.py
 ```
+
+Der reine Dashboard-Export setzt vorher mindestens diese lokalen Eingaben voraus:
+
+- `StockPredictor.ML/storage/classical/<ticker>/...` fuer die Featured Ticker
+- `StockPredictor.ML/storage/thesis/<run>/thesis_results_summary.json` fuer die Korb- und Thesis-Zusammenfassung
+- optional `StockPredictor.ML/storage/multi_asset_suites/<run>/...` fuer den Multi-Asset-Abschnitt
+
+Wenn diese Ordner auf dem aktuellen Rechner fehlen, muss zuerst die ML-Pipeline lokal neu ausgefuehrt oder ein bereits erzeugter `storage/`-Stand uebernommen werden.
 
 Wenn die neuen gemeinsamen Aktien-/ETF-Laeufe mit im Dashboard auftauchen sollen:
 
@@ -140,6 +156,15 @@ cd StockPredictor.ML
 .\.venv\Scripts\python.exe run_multi_asset_experiment_suite.py --basket-presets mixed_assets etf_core --run-name latest
 .\.venv\Scripts\python.exe export_dashboard_payload.py --multi-asset-suite-run latest
 ```
+
+## Bekannte Stolpersteine beim Rechnerwechsel
+
+- `.gitignore` versteckt keine Dateien im Explorer. Wenn `StockPredictor.ML/storage/dashboard/` oder `storage/thesis/` lokal fehlen, wurden sie auf diesem Rechner schlicht noch nicht erzeugt oder kopiert.
+- Die Web-App kann erfolgreich starten und trotzdem leer sein, wenn `StockPredictor.ML/storage/dashboard/LATEST/dashboard_payload.json` noch nicht existiert.
+- Ein `venv` loest kein Versionsproblem von selbst. Wer ein `venv` mit `Python 3.13` erstellt, bekommt auch ein `Python-3.13-venv`; fuer den LSTM-/TensorFlow-Pfad bleibt `Python 3.11` vorerst die sicherere Wahl.
+- Die klassischen Benchmark- und Experiment-Skripte laden Marktdaten ueber `yfinance`. Bei instabilem Internet oder DNS-Problemen koennen einzelne Ticker fehlschlagen, waehrend der Rest des Laufs trotzdem Artefakte schreibt.
+- Teilfehlschlaege durch `yfinance` stehen danach in den jeweiligen Summary-Dateien unter `failed_tickers`, zum Beispiel in `storage/benchmarks/<run>/benchmark_summary.json`.
+- Wenn das Dashboard auf mehreren Rechnern sofort sichtbar sein soll, muessen die benoetigten Exportdateien entweder lokal neu erzeugt oder gezielt ausserhalb des Standard-Ignore-Verhaltens mitgenommen werden.
 
 ## Persistente Daten
 

@@ -27,7 +27,7 @@ Dieses Modul ueberfuehrt den frueheren Colab-Prototyp in eine reproduzierbare Py
 
 ## Erster sinnvoller Startpfad
 
-Da lokal aktuell nur Python 3.14 vorhanden ist, ist der klassische Pfad der direkt lauffaehige Einstieg:
+Wenn auf einem anderen Rechner noch kein passendes Python-3.11-Setup vorhanden ist, ist der klassische Pfad der direkt lauffaehige Einstieg:
 
 ```powershell
 cd StockPredictor.ML
@@ -37,6 +37,10 @@ python -m pip install --upgrade pip
 pip install -r requirements-classical.txt
 python run_classical_pipeline.py AAPL
 ```
+
+Wichtig: Ein `venv` aendert die Python-Version nicht. Es verwendet immer genau die Python-Version, mit der es angelegt wurde.
+Fuer `requirements-classical.txt` hat in einem frischen Rechnerwechsel-Setup auch Python 3.13 funktioniert.
+Fuer `requirements.txt` und den LSTM-/TensorFlow-Pfad bleibt Python 3.11 weiterhin die sicherere Wahl.
 
 Beispiel mit CSV:
 
@@ -60,7 +64,7 @@ Der Lauf erzeugt:
 
 Der klassische Pfad trainiert auf der naechsten Tagesrendite und rechnet diese Vorhersage fuer Reporting und Visualisierung wieder in einen naechsten Schlusskurs um. Das ist fuer lange Kursreihen stabiler als ein direktes Lernen auf absoluten Preisniveaus. Standardmaessig werden sowohl ein einfacher Holdout-Test als auch ein Walk-Forward-Backtesting gerechnet.
 
-## Schnellstart
+## Schnellstart fuer den vollen LSTM-Pfad
 
 Empfohlen ist Python 3.11:
 
@@ -72,6 +76,15 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 python main.py AAPL
 ```
+
+## Hinweise fuer frisches Setup und Rechnerwechsel
+
+- Ein frischer Clone enthaelt standardmaessig keine lokalen Laufzeit-Artefakte unter `storage/`, weil diese Ordner in Git ignoriert werden.
+- Wenn auf dem neuen Rechner zwar der Code vorhanden ist, aber `storage/classical/`, `storage/thesis/` oder `storage/dashboard/` leer sind, ist das erwartetes Verhalten.
+- Fuer einen schnellen Funktionstest zuerst immer den klassischen Einzel-Lauf starten, zum Beispiel `python run_classical_pipeline.py AAPL`.
+- Der Dashboard-Export funktioniert erst dann vollstaendig, wenn die benoetigten klassischen Artefakte und der zugehoerige Thesis-Export bereits lokal vorliegen.
+- Wenn Marktdaten nicht lokal per CSV geliefert werden, haengen Benchmarks und Experimentsuiten von einer funktionierenden `yfinance`-/Internet-Verbindung ab.
+- Bei Netz- oder DNS-Problemen koennen einzelne Ticker in Benchmark-Laeufen fehlschlagen, waehrend andere Ticker desselben Laufs erfolgreich gespeichert werden.
 
 ## Wichtige CLI-Optionen
 
@@ -192,6 +205,12 @@ Dazu gehoert jetzt auch ein Unternehmensranking ueber die exportierten Ticker in
 Der neue Multi-Asset-Pfad speichert unter `storage/multi_asset/<run>/` sein gemeinsames Modell, gepoolte Vorhersagen, Per-Ticker-Metriken, Forecast-Zusammenfassungen und einen Report.
 Die neue Multi-Asset-Suite speichert unter `storage/multi_asset_suites/<run>/` eine kompakte Vergleichstabelle, Bestkonfigurationen pro Korb, einen Plot und einen Kurzreport.
 Der Dashboard-Export uebernimmt diese Bestkonfigurationen optional als `multi_asset_summaries` und als `multi_asset_summary.csv`.
+
+Wichtig fuer den Rechnerwechsel:
+
+- `storage/`-Artefakte sind lokale Laufzeitdaten und werden standardmaessig nicht ueber Git zwischen Rechnern transportiert.
+- Eine leere Web-App bedeutet deshalb meist nicht, dass der Export kaputt ist, sondern dass `storage/dashboard/LATEST/dashboard_payload.json` auf diesem Rechner noch nicht erzeugt wurde.
+- Benchmark- und Experiment-Zusammenfassungen dokumentieren Teilfehlschlaege in ihren JSON-Dateien, typischerweise unter `failed_tickers`.
 
 ## Derzeitiger Modellzuschnitt
 
