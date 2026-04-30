@@ -1,0 +1,65 @@
+{
+  "basket": "bachelor_diversified",
+  "compared_profiles": [
+    "lag_only",
+    "technical_extended"
+  ],
+  "source_runs": [
+    "BACHELOR_CORE_LAG_ONLY_REDUCED",
+    "BACHELOR_CORE_TECHNICAL_EXTENDED"
+  ],
+  "summary": [
+    {
+      "feature_profile": "technical_extended",
+      "ticker_count": 4,
+      "mean_walk_forward_baseline_rmse": 4.821796505389731,
+      "mean_best_learned_rmse": 4.823623907129292,
+      "mean_best_learned_directional_accuracy": 0.528910549457547,
+      "mean_best_learned_minus_baseline_rmse": 0.0018274017395604192,
+      "dominant_best_model": "random_forest"
+    },
+    {
+      "feature_profile": "lag_only",
+      "ticker_count": 4,
+      "mean_walk_forward_baseline_rmse": 4.817763017465465,
+      "mean_best_learned_rmse": 4.828961339343254,
+      "mean_best_learned_directional_accuracy": 0.5206471669894155,
+      "mean_best_learned_minus_baseline_rmse": 0.011198321877787687,
+      "dominant_best_model": "random_forest"
+    }
+  ],
+  "per_ticker": [
+    {
+      "ticker": "MSFT",
+      "lag_only_best_model": "random_forest",
+      "lag_only_best_rmse": 4.264416761152716,
+      "technical_extended_best_model": "random_forest",
+      "technical_extended_best_rmse": 4.23865961279865,
+      "technical_extended_minus_lag_only_rmse": -0.025757148354065507
+    },
+    {
+      "ticker": "NVDA",
+      "lag_only_best_model": "random_forest",
+      "lag_only_best_rmse": 2.165799952313882,
+      "technical_extended_best_model": "random_forest",
+      "technical_extended_best_rmse": 2.155476448468092,
+      "technical_extended_minus_lag_only_rmse": -0.010323503845789617
+    },
+    {
+      "ticker": "AAPL",
+      "lag_only_best_model": "random_forest",
+      "lag_only_best_rmse": 2.386729469009268,
+      "technical_extended_best_model": "random_forest",
+      "technical_extended_best_rmse": 2.393369416617136,
+      "technical_extended_minus_lag_only_rmse": 0.006639947607868013
+    },
+    {
+      "ticker": "TSLA",
+      "lag_only_best_model": "ridge_regression",
+      "lag_only_best_rmse": 10.498899174897147,
+      "technical_extended_best_model": "ridge_regression",
+      "technical_extended_best_rmse": 10.506990150633287,
+      "technical_extended_minus_lag_only_rmse": 0.008090975736140038
+    }
+  ]
+}

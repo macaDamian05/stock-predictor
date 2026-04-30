@@ -1,0 +1,5 @@
+ticker,lag_only_best_model,lag_only_best_rmse,technical_extended_best_model,technical_extended_best_rmse,technical_extended_minus_lag_only_rmse
+MSFT,random_forest,4.264416761152716,random_forest,4.23865961279865,-0.025757148354065507
+NVDA,random_forest,2.165799952313882,random_forest,2.155476448468092,-0.010323503845789617
+AAPL,random_forest,2.386729469009268,random_forest,2.393369416617136,0.006639947607868013
+TSLA,ridge_regression,10.498899174897147,ridge_regression,10.506990150633287,0.008090975736140038

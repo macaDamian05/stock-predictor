@@ -1,0 +1,3 @@
+feature_profile,ticker_count,mean_walk_forward_baseline_rmse,mean_best_learned_rmse,mean_best_learned_directional_accuracy,mean_best_learned_minus_baseline_rmse,dominant_best_model
+technical_extended,4,4.821796505389731,4.823623907129292,0.528910549457547,0.0018274017395604192,random_forest
+lag_only,4,4.817763017465465,4.828961339343254,0.5206471669894155,0.011198321877787687,random_forest
