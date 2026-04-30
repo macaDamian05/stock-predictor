@@ -1,0 +1,28 @@
+{
+  "holdout": {
+    "baseline_persistence": {
+      "mae": 0.20058823566810757,
+      "mse": 0.08223920580562039,
+      "rmse": 0.28677378856098473,
+      "directional_accuracy": 0.0784313725490196
+    },
+    "ridge_regression": {
+      "mae": 0.2023902345660021,
+      "mse": 0.08086614838550579,
+      "rmse": 0.2843697388709034,
+      "directional_accuracy": 0.5
+    },
+    "decision_tree": {
+      "mae": 0.30430516266663704,
+      "mse": 0.16893535703830714,
+      "rmse": 0.4110174656122379,
+      "directional_accuracy": 0.49019607843137253
+    },
+    "random_forest": {
+      "mae": 0.21182345689584894,
+      "mse": 0.08747340108680962,
+      "rmse": 0.2957590253683049,
+      "directional_accuracy": 0.4215686274509804
+    }
+  }
+}

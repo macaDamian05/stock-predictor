@@ -1,0 +1,55 @@
+{
+  "forecast_model": "ridge_regression",
+  "forecast_model_label": "Ridge Regression",
+  "forecast_date": "2026-04-30",
+  "last_close_date": "2026-04-29",
+  "last_close": 10.039999961853027,
+  "average_distance_to_last_close": 0.0720134598714317,
+  "average_distance_pct_to_last_close": 0.7172655392932947,
+  "model_predictions": {
+    "baseline_persistence": {
+      "predicted_return": 0.0,
+      "predicted_close": 10.039999961853027
+    },
+    "ridge_regression": {
+      "predicted_return": 0.005262963302311984,
+      "predicted_close": 10.092840113207474
+    },
+    "decision_tree": {
+      "predicted_return": -0.005984510640819641,
+      "predicted_close": 9.97991547524749
+    },
+    "random_forest": {
+      "predicted_return": 0.007203306731709557,
+      "predicted_close": 10.112321161164608
+    }
+  },
+  "forecast_days": 5,
+  "forecast_path": [
+    {
+      "date": "2026-04-30",
+      "predicted_return": 0.005262963302311984,
+      "predicted_close": 10.092840113207474
+    },
+    {
+      "date": "2026-05-01",
+      "predicted_return": 0.002117542995373092,
+      "predicted_close": 10.114212136092616
+    },
+    {
+      "date": "2026-05-04",
+      "predicted_return": -0.001365962878344771,
+      "predicted_close": 10.10039649777101
+    },
+    {
+      "date": "2026-05-05",
+      "predicted_return": 0.0021845595560658704,
+      "predicted_close": 10.12246141546027
+    },
+    {
+      "date": "2026-05-06",
+      "predicted_return": 0.0007602430194399413,
+      "predicted_close": 10.130156946090924
+    }
+  ]
+}

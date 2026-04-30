@@ -1,0 +1,327 @@
+{
+  "source_name": "DOU.DE",
+  "last_close": 10.039999961853027,
+  "average_recent_rsi": 44.666458353770416,
+  "average_forecast_slope": 0.009329208220862473,
+  "average_forecast_distance_to_last_close": 0.0720134598714317,
+  "average_forecast_distance_pct_to_last_close": 0.7172655392932947,
+  "forecast_days": 5,
+  "feature_profile": "technical_extended",
+  "forecast_model": "ridge_regression",
+  "holdout_best_model": "ridge_regression",
+  "walk_forward_best_model": "ridge_regression",
+  "next_forecast": {
+    "forecast_model": "ridge_regression",
+    "forecast_model_label": "Ridge Regression",
+    "forecast_date": "2026-04-30",
+    "last_close_date": "2026-04-29",
+    "last_close": 10.039999961853027,
+    "average_distance_to_last_close": 0.0720134598714317,
+    "average_distance_pct_to_last_close": 0.7172655392932947,
+    "model_predictions": {
+      "baseline_persistence": {
+        "predicted_return": 0.0,
+        "predicted_close": 10.039999961853027
+      },
+      "ridge_regression": {
+        "predicted_return": 0.005262963302311984,
+        "predicted_close": 10.092840113207474
+      },
+      "decision_tree": {
+        "predicted_return": -0.005984510640819641,
+        "predicted_close": 9.97991547524749
+      },
+      "random_forest": {
+        "predicted_return": 0.007203306731709557,
+        "predicted_close": 10.112321161164608
+      }
+    },
+    "forecast_days": 5,
+    "forecast_path": [
+      {
+        "date": "2026-04-30",
+        "predicted_return": 0.005262963302311984,
+        "predicted_close": 10.092840113207474
+      },
+      {
+        "date": "2026-05-01",
+        "predicted_return": 0.002117542995373092,
+        "predicted_close": 10.114212136092616
+      },
+      {
+        "date": "2026-05-04",
+        "predicted_return": -0.001365962878344771,
+        "predicted_close": 10.10039649777101
+      },
+      {
+        "date": "2026-05-05",
+        "predicted_return": 0.0021845595560658704,
+        "predicted_close": 10.12246141546027
+      },
+      {
+        "date": "2026-05-06",
+        "predicted_return": 0.0007602430194399413,
+        "predicted_close": 10.130156946090924
+      }
+    ]
+  },
+  "metrics": {
+    "holdout": {
+      "baseline_persistence": {
+        "mae": 0.20058823566810757,
+        "mse": 0.08223920580562039,
+        "rmse": 0.28677378856098473,
+        "directional_accuracy": 0.0784313725490196
+      },
+      "ridge_regression": {
+        "mae": 0.2023902345660021,
+        "mse": 0.08086614838550579,
+        "rmse": 0.2843697388709034,
+        "directional_accuracy": 0.5
+      },
+      "decision_tree": {
+        "mae": 0.30430516266663704,
+        "mse": 0.16893535703830714,
+        "rmse": 0.4110174656122379,
+        "directional_accuracy": 0.49019607843137253
+      },
+      "random_forest": {
+        "mae": 0.21182345689584894,
+        "mse": 0.08747340108680962,
+        "rmse": 0.2957590253683049,
+        "directional_accuracy": 0.4215686274509804
+      }
+    },
+    "walk_forward": {
+      "fold_count": 5,
+      "initial_train_size": 0.7,
+      "total_rows": 510,
+      "total_predictions": 153,
+      "overall": {
+        "baseline_persistence": {
+          "mae": 0.1806535970151814,
+          "mse": 0.07169673053530597,
+          "rmse": 0.26776245169049745,
+          "directional_accuracy": 0.11764705882352941
+        },
+        "ridge_regression": {
+          "mae": 0.18839678740699597,
+          "mse": 0.07390876595700291,
+          "rmse": 0.271861666950313,
+          "directional_accuracy": 0.42483660130718953
+        },
+        "decision_tree": {
+          "mae": 0.2560684035806395,
+          "mse": 0.1254845516775288,
+          "rmse": 0.3542379873440013,
+          "directional_accuracy": 0.3790849673202614
+        },
+        "random_forest": {
+          "mae": 0.20043804490425038,
+          "mse": 0.08116372658629668,
+          "rmse": 0.28489248250225324,
+          "directional_accuracy": 0.39215686274509803
+        }
+      },
+      "mean_across_folds": {
+        "baseline_persistence": {
+          "mae": 0.18059785186603505,
+          "mse": 0.07146554666659902,
+          "rmse": 0.2526299692084277,
+          "directional_accuracy": 0.1167741935483871
+        },
+        "ridge_regression": {
+          "mae": 0.18828269168183664,
+          "mse": 0.07366002120523626,
+          "rmse": 0.2564101896025431,
+          "directional_accuracy": 0.4249462365591398
+        },
+        "decision_tree": {
+          "mae": 0.25579488952090135,
+          "mse": 0.12516599142404825,
+          "rmse": 0.3438278350915654,
+          "directional_accuracy": 0.3802150537634409
+        },
+        "random_forest": {
+          "mae": 0.20038269738321307,
+          "mse": 0.08091120325254744,
+          "rmse": 0.27174787623183333,
+          "directional_accuracy": 0.39182795698924733
+        }
+      },
+      "best_learned_model": "ridge_regression",
+      "folds": [
+        {
+          "fold": 1,
+          "train_rows": 357,
+          "test_rows": 31,
+          "train_start": "2024-04-23",
+          "train_end": "2025-09-16",
+          "test_start": "2025-09-18",
+          "test_end": "2025-10-30",
+          "baseline_persistence": {
+            "mae": 0.10709676434916834,
+            "mse": 0.021909672546474124,
+            "rmse": 0.14801916276777857,
+            "directional_accuracy": 0.1935483870967742
+          },
+          "ridge_regression": {
+            "mae": 0.1107626511586906,
+            "mse": 0.020570914553618782,
+            "rmse": 0.14342564119995693,
+            "directional_accuracy": 0.4838709677419355
+          },
+          "decision_tree": {
+            "mae": 0.1978097175823532,
+            "mse": 0.08451333649115363,
+            "rmse": 0.2907117756320745,
+            "directional_accuracy": 0.2903225806451613
+          },
+          "random_forest": {
+            "mae": 0.14275147696559676,
+            "mse": 0.03743726183352953,
+            "rmse": 0.19348711025163803,
+            "directional_accuracy": 0.3870967741935484
+          },
+          "best_learned_model": "ridge_regression"
+        },
+        {
+          "fold": 2,
+          "train_rows": 388,
+          "test_rows": 31,
+          "train_start": "2024-04-23",
+          "train_end": "2025-10-29",
+          "test_start": "2025-10-31",
+          "test_end": "2025-12-12",
+          "baseline_persistence": {
+            "mae": 0.18193549494589528,
+            "mse": 0.07940646382001197,
+            "rmse": 0.28179152545811587,
+            "directional_accuracy": 0.1935483870967742
+          },
+          "ridge_regression": {
+            "mae": 0.21019052162370655,
+            "mse": 0.09456881309855361,
+            "rmse": 0.30752042712404265,
+            "directional_accuracy": 0.3548387096774194
+          },
+          "decision_tree": {
+            "mae": 0.26633906270715374,
+            "mse": 0.13761927631575152,
+            "rmse": 0.3709707216422228,
+            "directional_accuracy": 0.2903225806451613
+          },
+          "random_forest": {
+            "mae": 0.19520426134791818,
+            "mse": 0.08638979044394682,
+            "rmse": 0.29392140181338755,
+            "directional_accuracy": 0.3548387096774194
+          },
+          "best_learned_model": "random_forest"
+        },
+        {
+          "fold": 3,
+          "train_rows": 419,
+          "test_rows": 31,
+          "train_start": "2024-04-23",
+          "train_end": "2025-12-11",
+          "test_start": "2025-12-15",
+          "test_end": "2026-02-02",
+          "baseline_persistence": {
+            "mae": 0.2612903041224326,
+            "mse": 0.14845163554547336,
+            "rmse": 0.38529421945504627,
+            "directional_accuracy": 0.0967741935483871
+          },
+          "ridge_regression": {
+            "mae": 0.26135154821248885,
+            "mse": 0.14389828298383336,
+            "rmse": 0.3793392716076644,
+            "directional_accuracy": 0.41935483870967744
+          },
+          "decision_tree": {
+            "mae": 0.345083539413129,
+            "mse": 0.20210508024776253,
+            "rmse": 0.44956098612731343,
+            "directional_accuracy": 0.3870967741935484
+          },
+          "random_forest": {
+            "mae": 0.2716605245548277,
+            "mse": 0.1575426275437962,
+            "rmse": 0.3969163986833955,
+            "directional_accuracy": 0.4838709677419355
+          },
+          "best_learned_model": "ridge_regression"
+        },
+        {
+          "fold": 4,
+          "train_rows": 450,
+          "test_rows": 30,
+          "train_start": "2024-04-23",
+          "train_end": "2026-01-30",
+          "test_start": "2026-02-03",
+          "test_end": "2026-03-16",
+          "baseline_persistence": {
+            "mae": 0.231999937693278,
+            "mse": 0.08063994410213127,
+            "rmse": 0.2839717311672612,
+            "directional_accuracy": 0.03333333333333333
+          },
+          "ridge_regression": {
+            "mae": 0.233979282228877,
+            "mse": 0.08176710974454048,
+            "rmse": 0.2859494880998049,
+            "directional_accuracy": 0.43333333333333335
+          },
+          "decision_tree": {
+            "mae": 0.3122075043174586,
+            "mse": 0.15654994062183578,
+            "rmse": 0.39566392383162224,
+            "directional_accuracy": 0.43333333333333335
+          },
+          "random_forest": {
+            "mae": 0.2569672804954488,
+            "mse": 0.09621533621746646,
+            "rmse": 0.3101859703749776,
+            "directional_accuracy": 0.3
+          },
+          "best_learned_model": "ridge_regression"
+        },
+        {
+          "fold": 5,
+          "train_rows": 480,
+          "test_rows": 30,
+          "train_start": "2024-04-23",
+          "train_end": "2026-03-13",
+          "test_start": "2026-03-17",
+          "test_end": "2026-04-29",
+          "baseline_persistence": {
+            "mae": 0.12066675821940104,
+            "mse": 0.02692001731890438,
+            "rmse": 0.1640732071939364,
+            "directional_accuracy": 0.06666666666666667
+          },
+          "ridge_regression": {
+            "mae": 0.12512945518542018,
+            "mse": 0.02749498564563508,
+            "rmse": 0.16581611998124635,
+            "directional_accuracy": 0.43333333333333335
+          },
+          "decision_tree": {
+            "mae": 0.1575346235844122,
+            "mse": 0.04504232344373779,
+            "rmse": 0.212231768224594,
+            "directional_accuracy": 0.5
+          },
+          "random_forest": {
+            "mae": 0.13532994355227396,
+            "mse": 0.026971000223998245,
+            "rmse": 0.164228500035768,
+            "directional_accuracy": 0.43333333333333335
+          },
+          "best_learned_model": "random_forest"
+        }
+      ]
+    }
+  }
+}

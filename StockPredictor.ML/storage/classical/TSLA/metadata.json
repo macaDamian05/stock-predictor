@@ -1,0 +1,74 @@
+{
+  "source_name": "TSLA",
+  "source_type": "ticker",
+  "csv_path": null,
+  "date_column": null,
+  "close_column": null,
+  "lags": 10,
+  "feature_profile": "technical_extended",
+  "training_target": "next_day_return",
+  "reported_forecast_value": "next_day_close",
+  "forecast_days": 5,
+  "display_days": 200,
+  "rsi_window": 14,
+  "test_size": 0.2,
+  "train_rows": 3169,
+  "test_rows": 793,
+  "data_rows": 3983,
+  "data_start": "2010-06-29",
+  "data_end": "2026-04-29",
+  "feature_columns": [
+    "close_current",
+    "return_lag_0",
+    "return_lag_1",
+    "return_lag_2",
+    "return_lag_3",
+    "return_lag_4",
+    "return_lag_5",
+    "return_lag_6",
+    "return_lag_7",
+    "return_lag_8",
+    "return_lag_9",
+    "return_mean_5",
+    "return_mean_10",
+    "return_mean_20",
+    "sma_5_gap",
+    "sma_10_gap",
+    "sma_20_gap",
+    "volatility_5",
+    "volatility_10",
+    "volatility_20",
+    "momentum_5",
+    "momentum_10",
+    "momentum_20",
+    "rsi_14",
+    "ema_5_gap",
+    "ema_10_gap",
+    "ema_20_gap",
+    "breakout_20_gap",
+    "drawdown_20_gap",
+    "price_zscore_20"
+  ],
+  "models": {
+    "ridge_regression": {
+      "alpha": 1.0
+    },
+    "decision_tree": {
+      "max_depth": 8,
+      "min_samples_leaf": 5,
+      "random_state": 42
+    },
+    "random_forest": {
+      "n_estimators": 300,
+      "max_depth": 12,
+      "min_samples_leaf": 5,
+      "random_state": 42
+    }
+  },
+  "walk_forward": {
+    "enabled": true,
+    "folds": 5,
+    "initial_train_size": 0.7
+  },
+  "forecast_model": "ridge_regression"
+}
