@@ -101,6 +101,7 @@ Moegliche Leitfragen:
 - noch keine Nachrichten-, Sentiment- oder Fundamentaldaten
 - derzeit nur Tagesdaten, keine Intraday-Daten
 - Abhaengigkeit von Datenqualitaet und Verfuegbarkeit in `yfinance`
+- keine Nutzerprofile, keine Broker-Anbindung und kein automatisches Trading im aktuellen Bachelorarbeitsstand
 
 ## Moegliche Ausbaupfade
 

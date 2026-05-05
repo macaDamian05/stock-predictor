@@ -10,6 +10,12 @@ public sealed class DashboardPayload
     [JsonPropertyName("generated_at")]
     public DateTime GeneratedAt { get; init; }
 
+    [JsonPropertyName("data_until")]
+    public DateOnly? DataUntil { get; init; }
+
+    [JsonPropertyName("stale_after_days")]
+    public int StaleAfterDays { get; init; }
+
     [JsonPropertyName("source_runs")]
     public DashboardSourceRuns SourceRuns { get; init; } = new();
 
@@ -148,11 +154,26 @@ public sealed class FeaturedTicker
     [JsonPropertyName("ticker")]
     public string Ticker { get; init; } = string.Empty;
 
+    [JsonPropertyName("forecast_generated_at")]
+    public DateTime? ForecastGeneratedAt { get; init; }
+
+    [JsonPropertyName("data_until")]
+    public DateOnly? DataUntil { get; init; }
+
     [JsonPropertyName("forecast_model")]
     public string ForecastModel { get; init; } = string.Empty;
 
     [JsonPropertyName("forecast_model_label")]
     public string ForecastModelLabel { get; init; } = string.Empty;
+
+    [JsonPropertyName("selected_model")]
+    public ModelDescriptor SelectedModel { get; init; } = new();
+
+    [JsonPropertyName("available_models")]
+    public List<ModelDescriptor> AvailableModels { get; init; } = [];
+
+    [JsonPropertyName("model_metrics")]
+    public List<ModelMetric> ModelMetrics { get; init; } = [];
 
     [JsonPropertyName("last_close_date")]
     public DateOnly LastCloseDate { get; init; }
@@ -180,6 +201,9 @@ public sealed class FeaturedTicker
 
     [JsonPropertyName("forecast_days")]
     public int ForecastDays { get; init; }
+
+    [JsonPropertyName("forecast_horizon_days")]
+    public int ForecastHorizonDays { get; init; }
 
     [JsonPropertyName("average_recent_rsi")]
     public double AverageRecentRsi { get; init; }
@@ -225,6 +249,78 @@ public sealed class FeaturedTicker
 
     [JsonPropertyName("forecast_path")]
     public List<ForecastPoint> ForecastPath { get; init; } = [];
+}
+
+public sealed class ModelDescriptor
+{
+    [JsonPropertyName("model_key")]
+    public string ModelKey { get; init; } = string.Empty;
+
+    [JsonPropertyName("model_label")]
+    public string ModelLabel { get; init; } = string.Empty;
+}
+
+public sealed class ModelMetric
+{
+    [JsonPropertyName("model_key")]
+    public string ModelKey { get; init; } = string.Empty;
+
+    [JsonPropertyName("model_label")]
+    public string ModelLabel { get; init; } = string.Empty;
+
+    [JsonPropertyName("is_selected")]
+    public bool IsSelected { get; init; }
+
+    [JsonPropertyName("has_next_step_prediction")]
+    public bool HasNextStepPrediction { get; init; }
+
+    [JsonPropertyName("next_predicted_close")]
+    public double? NextPredictedClose { get; init; }
+
+    [JsonPropertyName("next_predicted_change_pct")]
+    public double? NextPredictedChangePct { get; init; }
+
+    [JsonPropertyName("holdout_mae")]
+    public double? HoldoutMae { get; init; }
+
+    [JsonPropertyName("holdout_rmse")]
+    public double? HoldoutRmse { get; init; }
+
+    [JsonPropertyName("holdout_directional_accuracy")]
+    public double? HoldoutDirectionalAccuracy { get; init; }
+
+    [JsonPropertyName("walk_forward_mae")]
+    public double? WalkForwardMae { get; init; }
+
+    [JsonPropertyName("walk_forward_rmse")]
+    public double? WalkForwardRmse { get; init; }
+
+    [JsonPropertyName("walk_forward_directional_accuracy")]
+    public double? WalkForwardDirectionalAccuracy { get; init; }
+
+    [JsonPropertyName("walk_forward_rmse_gap_vs_baseline")]
+    public double? WalkForwardRmseGapVsBaseline { get; init; }
+
+    [JsonPropertyName("walk_forward_mae_gap_vs_baseline")]
+    public double? WalkForwardMaeGapVsBaseline { get; init; }
+
+    [JsonPropertyName("walk_forward_directional_accuracy_gap_vs_baseline")]
+    public double? WalkForwardDirectionalAccuracyGapVsBaseline { get; init; }
+
+    [JsonPropertyName("holdout_rmse_gap_vs_baseline")]
+    public double? HoldoutRmseGapVsBaseline { get; init; }
+
+    [JsonPropertyName("holdout_mae_gap_vs_baseline")]
+    public double? HoldoutMaeGapVsBaseline { get; init; }
+
+    [JsonPropertyName("metadata_available")]
+    public bool? MetadataAvailable { get; init; }
+
+    [JsonPropertyName("notes")]
+    public string? Notes { get; init; }
+
+    [JsonPropertyName("data_until")]
+    public DateOnly? DataUntil { get; init; }
 }
 
 public sealed class ForecastPoint

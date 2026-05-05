@@ -1,9 +1,11 @@
 {
-  "ui_contract_version": "1.2",
-  "generated_at": "2026-04-30T22:30:57",
+  "ui_contract_version": "1.3",
+  "generated_at": "2026-05-05T05:35:24",
+  "data_until": "2026-04-29",
+  "stale_after_days": 3,
   "source_runs": {
     "thesis_run": "BACHELOR_THESIS_RESULTS",
-    "multi_asset_suite_run": "",
+    "multi_asset_suite_run": "latest",
     "starter_suite": "BACHELOR_SUITE_STARTER",
     "core_profile_comparison": "BACHELOR_CORE_PROFILE_COMPARISON",
     "diversified_profile_comparison": "BACHELOR_DIVERSIFIED_PROFILE_COMPARISON"
@@ -55,8 +57,110 @@
   "featured_tickers": [
     {
       "ticker": "AAPL",
+      "forecast_generated_at": "2026-05-01T01:51:39",
+      "data_until": "2026-04-29",
       "forecast_model": "random_forest",
       "forecast_model_label": "Random Forest",
+      "selected_model": {
+        "model_key": "random_forest",
+        "model_label": "Random Forest"
+      },
+      "available_models": [
+        {
+          "model_key": "baseline_persistence",
+          "model_label": "Persistence-Baseline"
+        },
+        {
+          "model_key": "ridge_regression",
+          "model_label": "Ridge Regression"
+        },
+        {
+          "model_key": "decision_tree",
+          "model_label": "Decision Tree"
+        },
+        {
+          "model_key": "random_forest",
+          "model_label": "Random Forest"
+        }
+      ],
+      "model_metrics": [
+        {
+          "model_key": "baseline_persistence",
+          "model_label": "Persistence-Baseline",
+          "is_selected": false,
+          "has_next_step_prediction": true,
+          "next_predicted_close": 270.1700134277344,
+          "next_predicted_change_pct": 0.0,
+          "holdout_mae": 1.9814154404538877,
+          "holdout_rmse": 2.8984598848166065,
+          "holdout_directional_accuracy": 0.002190580503833516,
+          "walk_forward_mae": 1.45270620810019,
+          "walk_forward_rmse": 2.391485752813634,
+          "walk_forward_directional_accuracy": 0.002191380569758948,
+          "walk_forward_rmse_gap_vs_baseline": 0.0,
+          "walk_forward_mae_gap_vs_baseline": 0.0,
+          "walk_forward_directional_accuracy_gap_vs_baseline": 0.0,
+          "holdout_rmse_gap_vs_baseline": 0.0,
+          "holdout_mae_gap_vs_baseline": 0.0
+        },
+        {
+          "model_key": "ridge_regression",
+          "model_label": "Ridge Regression",
+          "is_selected": false,
+          "has_next_step_prediction": true,
+          "next_predicted_close": 268.337899166423,
+          "next_predicted_change_pct": -0.6781338306449003,
+          "holdout_mae": 2.1301749161825576,
+          "holdout_rmse": 3.0400180618409536,
+          "holdout_directional_accuracy": 0.47371303395399783,
+          "walk_forward_mae": 1.4618540307941605,
+          "walk_forward_rmse": 2.3949047249132893,
+          "walk_forward_directional_accuracy": 0.5116873630387144,
+          "walk_forward_rmse_gap_vs_baseline": 0.0034189720996553596,
+          "walk_forward_mae_gap_vs_baseline": 0.00914782269397052,
+          "walk_forward_directional_accuracy_gap_vs_baseline": 0.5094959824689554,
+          "holdout_rmse_gap_vs_baseline": 0.14155817702434703,
+          "holdout_mae_gap_vs_baseline": 0.14875947572866988
+        },
+        {
+          "model_key": "decision_tree",
+          "model_label": "Decision Tree",
+          "is_selected": false,
+          "has_next_step_prediction": true,
+          "next_predicted_close": 270.5008794644823,
+          "next_predicted_change_pct": 0.12246586234723189,
+          "holdout_mae": 1.9977790621676716,
+          "holdout_rmse": 2.935226598721163,
+          "holdout_directional_accuracy": 0.5290251916757941,
+          "walk_forward_mae": 1.4635406305481242,
+          "walk_forward_rmse": 2.420961781359508,
+          "walk_forward_directional_accuracy": 0.5237399561723886,
+          "walk_forward_rmse_gap_vs_baseline": 0.029476028545873945,
+          "walk_forward_mae_gap_vs_baseline": 0.0108344224479342,
+          "walk_forward_directional_accuracy_gap_vs_baseline": 0.5215485756026296,
+          "holdout_rmse_gap_vs_baseline": 0.036766713904556436,
+          "holdout_mae_gap_vs_baseline": 0.016363621713783916
+        },
+        {
+          "model_key": "random_forest",
+          "model_label": "Random Forest",
+          "is_selected": true,
+          "has_next_step_prediction": true,
+          "next_predicted_close": 270.3777175116475,
+          "next_predicted_change_pct": 0.07687902934820912,
+          "holdout_mae": 1.9835237428457466,
+          "holdout_rmse": 2.9115312561833657,
+          "holdout_directional_accuracy": 0.5323110624315444,
+          "walk_forward_mae": 1.453357670386266,
+          "walk_forward_rmse": 2.393369416617136,
+          "walk_forward_directional_accuracy": 0.5252008765522279,
+          "walk_forward_rmse_gap_vs_baseline": 0.0018836638035022446,
+          "walk_forward_mae_gap_vs_baseline": 0.0006514622860760433,
+          "walk_forward_directional_accuracy_gap_vs_baseline": 0.5230094959824689,
+          "holdout_rmse_gap_vs_baseline": 0.013071371366759177,
+          "holdout_mae_gap_vs_baseline": 0.002108302391858885
+        }
+      ],
       "last_close_date": "2026-04-29",
       "last_close": 270.1700134277344,
       "next_forecast_date": "2026-04-30",
@@ -66,6 +170,7 @@
       "forecast_end_close": 271.2341979908209,
       "forecast_horizon_change_pct": 0.3938944035960512,
       "forecast_days": 5,
+      "forecast_horizon_days": 5,
       "average_recent_rsi": 63.35675121535363,
       "average_forecast_slope": 0.21412011979334977,
       "average_forecast_distance_to_last_close": 0.5925503361670394,
@@ -110,8 +215,110 @@
     },
     {
       "ticker": "TSLA",
+      "forecast_generated_at": "2026-05-01T01:51:39",
+      "data_until": "2026-04-29",
       "forecast_model": "ridge_regression",
       "forecast_model_label": "Ridge Regression",
+      "selected_model": {
+        "model_key": "ridge_regression",
+        "model_label": "Ridge Regression"
+      },
+      "available_models": [
+        {
+          "model_key": "baseline_persistence",
+          "model_label": "Persistence-Baseline"
+        },
+        {
+          "model_key": "ridge_regression",
+          "model_label": "Ridge Regression"
+        },
+        {
+          "model_key": "decision_tree",
+          "model_label": "Decision Tree"
+        },
+        {
+          "model_key": "random_forest",
+          "model_label": "Random Forest"
+        }
+      ],
+      "model_metrics": [
+        {
+          "model_key": "baseline_persistence",
+          "model_label": "Persistence-Baseline",
+          "is_selected": false,
+          "has_next_step_prediction": true,
+          "next_predicted_close": 372.79998779296875,
+          "next_predicted_change_pct": 0.0,
+          "holdout_mae": 7.467629566168575,
+          "holdout_rmse": 10.321084310026043,
+          "holdout_directional_accuracy": 0.0,
+          "walk_forward_mae": 7.579714354441222,
+          "walk_forward_rmse": 10.468303349627538,
+          "walk_forward_directional_accuracy": 0.0008417508417508417,
+          "walk_forward_rmse_gap_vs_baseline": 0.0,
+          "walk_forward_mae_gap_vs_baseline": 0.0,
+          "walk_forward_directional_accuracy_gap_vs_baseline": 0.0,
+          "holdout_rmse_gap_vs_baseline": 0.0,
+          "holdout_mae_gap_vs_baseline": 0.0
+        },
+        {
+          "model_key": "ridge_regression",
+          "model_label": "Ridge Regression",
+          "is_selected": true,
+          "has_next_step_prediction": true,
+          "next_predicted_close": 373.1822939218997,
+          "next_predicted_change_pct": 0.10254993064626738,
+          "holdout_mae": 7.495422232516496,
+          "holdout_rmse": 10.341872775327314,
+          "holdout_directional_accuracy": 0.519546027742749,
+          "walk_forward_mae": 7.583866048321822,
+          "walk_forward_rmse": 10.506990150633287,
+          "walk_forward_directional_accuracy": 0.5336700336700336,
+          "walk_forward_rmse_gap_vs_baseline": 0.03868680100574906,
+          "walk_forward_mae_gap_vs_baseline": 0.0041516938805994386,
+          "walk_forward_directional_accuracy_gap_vs_baseline": 0.5328282828282828,
+          "holdout_rmse_gap_vs_baseline": 0.020788465301270875,
+          "holdout_mae_gap_vs_baseline": 0.027792666347921546
+        },
+        {
+          "model_key": "decision_tree",
+          "model_label": "Decision Tree",
+          "is_selected": false,
+          "has_next_step_prediction": true,
+          "next_predicted_close": 373.2028434091974,
+          "next_predicted_change_pct": 0.10806213235510231,
+          "holdout_mae": 7.607923630598787,
+          "holdout_rmse": 10.61911919095505,
+          "holdout_directional_accuracy": 0.5056746532156369,
+          "walk_forward_mae": 7.723289641568767,
+          "walk_forward_rmse": 10.717560805608592,
+          "walk_forward_directional_accuracy": 0.5269360269360269,
+          "walk_forward_rmse_gap_vs_baseline": 0.24925745598105387,
+          "walk_forward_mae_gap_vs_baseline": 0.14357528712754508,
+          "walk_forward_directional_accuracy_gap_vs_baseline": 0.5260942760942761,
+          "holdout_rmse_gap_vs_baseline": 0.29803488092900743,
+          "holdout_mae_gap_vs_baseline": 0.1402940644302122
+        },
+        {
+          "model_key": "random_forest",
+          "model_label": "Random Forest",
+          "is_selected": false,
+          "has_next_step_prediction": true,
+          "next_predicted_close": 369.1846970349062,
+          "next_predicted_change_pct": -0.9697668659984671,
+          "holdout_mae": 7.676375874796141,
+          "holdout_rmse": 10.593948648231931,
+          "holdout_directional_accuracy": 0.5258511979823455,
+          "walk_forward_mae": 7.609528936057448,
+          "walk_forward_rmse": 10.572550034767831,
+          "walk_forward_directional_accuracy": 0.5353535353535354,
+          "walk_forward_rmse_gap_vs_baseline": 0.10424668514029278,
+          "walk_forward_mae_gap_vs_baseline": 0.02981458161622541,
+          "walk_forward_directional_accuracy_gap_vs_baseline": 0.5345117845117845,
+          "holdout_rmse_gap_vs_baseline": 0.2728643382058884,
+          "holdout_mae_gap_vs_baseline": 0.20874630862756582
+        }
+      ],
       "last_close_date": "2026-04-29",
       "last_close": 372.79998779296875,
       "next_forecast_date": "2026-04-30",
@@ -121,6 +328,7 @@
       "forecast_end_close": 374.28110081044537,
       "forecast_horizon_change_pct": 0.39729427735366585,
       "forecast_days": 5,
+      "forecast_horizon_days": 5,
       "average_recent_rsi": 62.5740431961445,
       "average_forecast_slope": 0.2747017221364132,
       "average_forecast_distance_to_last_close": 0.8659034539031267,
@@ -165,8 +373,110 @@
     },
     {
       "ticker": "DOU.DE",
+      "forecast_generated_at": "2026-05-01T01:51:39",
+      "data_until": "2026-04-29",
       "forecast_model": "ridge_regression",
       "forecast_model_label": "Ridge Regression",
+      "selected_model": {
+        "model_key": "ridge_regression",
+        "model_label": "Ridge Regression"
+      },
+      "available_models": [
+        {
+          "model_key": "baseline_persistence",
+          "model_label": "Persistence-Baseline"
+        },
+        {
+          "model_key": "ridge_regression",
+          "model_label": "Ridge Regression"
+        },
+        {
+          "model_key": "decision_tree",
+          "model_label": "Decision Tree"
+        },
+        {
+          "model_key": "random_forest",
+          "model_label": "Random Forest"
+        }
+      ],
+      "model_metrics": [
+        {
+          "model_key": "baseline_persistence",
+          "model_label": "Persistence-Baseline",
+          "is_selected": false,
+          "has_next_step_prediction": true,
+          "next_predicted_close": 10.039999961853027,
+          "next_predicted_change_pct": 0.0,
+          "holdout_mae": 0.20058823566810757,
+          "holdout_rmse": 0.28677378856098473,
+          "holdout_directional_accuracy": 0.0784313725490196,
+          "walk_forward_mae": 0.1806535970151814,
+          "walk_forward_rmse": 0.26776245169049745,
+          "walk_forward_directional_accuracy": 0.11764705882352941,
+          "walk_forward_rmse_gap_vs_baseline": 0.0,
+          "walk_forward_mae_gap_vs_baseline": 0.0,
+          "walk_forward_directional_accuracy_gap_vs_baseline": 0.0,
+          "holdout_rmse_gap_vs_baseline": 0.0,
+          "holdout_mae_gap_vs_baseline": 0.0
+        },
+        {
+          "model_key": "ridge_regression",
+          "model_label": "Ridge Regression",
+          "is_selected": true,
+          "has_next_step_prediction": true,
+          "next_predicted_close": 10.092840113207474,
+          "next_predicted_change_pct": 0.5262963302312018,
+          "holdout_mae": 0.2023902345660021,
+          "holdout_rmse": 0.2843697388709034,
+          "holdout_directional_accuracy": 0.5,
+          "walk_forward_mae": 0.18839678740699597,
+          "walk_forward_rmse": 0.271861666950313,
+          "walk_forward_directional_accuracy": 0.42483660130718953,
+          "walk_forward_rmse_gap_vs_baseline": 0.004099215259815547,
+          "walk_forward_mae_gap_vs_baseline": 0.007743190391814564,
+          "walk_forward_directional_accuracy_gap_vs_baseline": 0.30718954248366015,
+          "holdout_rmse_gap_vs_baseline": -0.0024040496900813446,
+          "holdout_mae_gap_vs_baseline": 0.0018019988978945356
+        },
+        {
+          "model_key": "decision_tree",
+          "model_label": "Decision Tree",
+          "is_selected": false,
+          "has_next_step_prediction": true,
+          "next_predicted_close": 9.97991547524749,
+          "next_predicted_change_pct": -0.5984510640819618,
+          "holdout_mae": 0.30430516266663704,
+          "holdout_rmse": 0.4110174656122379,
+          "holdout_directional_accuracy": 0.49019607843137253,
+          "walk_forward_mae": 0.2560684035806395,
+          "walk_forward_rmse": 0.3542379873440013,
+          "walk_forward_directional_accuracy": 0.3790849673202614,
+          "walk_forward_rmse_gap_vs_baseline": 0.08647553565350385,
+          "walk_forward_mae_gap_vs_baseline": 0.07541480656545807,
+          "walk_forward_directional_accuracy_gap_vs_baseline": 0.261437908496732,
+          "holdout_rmse_gap_vs_baseline": 0.12424367705125317,
+          "holdout_mae_gap_vs_baseline": 0.10371692699852947
+        },
+        {
+          "model_key": "random_forest",
+          "model_label": "Random Forest",
+          "is_selected": false,
+          "has_next_step_prediction": true,
+          "next_predicted_close": 10.112321161164608,
+          "next_predicted_change_pct": 0.7203306731709658,
+          "holdout_mae": 0.21182345689584894,
+          "holdout_rmse": 0.2957590253683049,
+          "holdout_directional_accuracy": 0.4215686274509804,
+          "walk_forward_mae": 0.20043804490425038,
+          "walk_forward_rmse": 0.28489248250225324,
+          "walk_forward_directional_accuracy": 0.39215686274509803,
+          "walk_forward_rmse_gap_vs_baseline": 0.017130030811755792,
+          "walk_forward_mae_gap_vs_baseline": 0.019784447889068968,
+          "walk_forward_directional_accuracy_gap_vs_baseline": 0.27450980392156865,
+          "holdout_rmse_gap_vs_baseline": 0.008985236807320163,
+          "holdout_mae_gap_vs_baseline": 0.011235221227741371
+        }
+      ],
       "last_close_date": "2026-04-29",
       "last_close": 10.039999961853027,
       "next_forecast_date": "2026-04-30",
@@ -176,6 +486,7 @@
       "forecast_end_close": 10.130156946090924,
       "forecast_horizon_change_pct": 0.8979779340682059,
       "forecast_days": 5,
+      "forecast_horizon_days": 5,
       "average_recent_rsi": 44.666458353770416,
       "average_forecast_slope": 0.009329208220862473,
       "average_forecast_distance_to_last_close": 0.0720134598714317,
@@ -284,7 +595,61 @@
       "beats_baseline_rmse": false
     }
   ],
-  "multi_asset_summaries": [],
+  "multi_asset_summaries": [
+    {
+      "basket_preset": "mixed_assets",
+      "basket_label": "Mixed Assets",
+      "experiment_id": "mixed_assets__technical_basic__lag5",
+      "feature_profile": "technical_basic",
+      "feature_profile_label": "Technical Basic",
+      "lags": 5,
+      "shared_model_name": "random_forest",
+      "shared_model_label": "Random Forest",
+      "shared_model_rmse": 3.365636085392292,
+      "baseline_rmse": 3.3773932214348976,
+      "shared_model_minus_baseline_rmse": -0.01175713604260542,
+      "shared_model_directional_accuracy": 0.5410575048732943,
+      "ticker_count": 6,
+      "mean_forecast_horizon_change_pct": 0.29878402196227655,
+      "mean_average_forecast_distance_pct_to_last_close": 0.17926629341668163,
+      "top_forecast_ticker": "NVDA",
+      "top_forecast_horizon_change_pct": 0.3020580979588905,
+      "tickers": [
+        "AAPL",
+        "MSFT",
+        "NVDA",
+        "SPY",
+        "QQQ",
+        "VTI"
+      ]
+    },
+    {
+      "basket_preset": "etf_core",
+      "basket_label": "ETF Core",
+      "experiment_id": "etf_core__technical_extended__lag5",
+      "feature_profile": "technical_extended",
+      "feature_profile_label": "Technical Extended",
+      "lags": 5,
+      "shared_model_name": "ridge_regression",
+      "shared_model_label": "Ridge Regression",
+      "shared_model_rmse": 3.501885091212541,
+      "baseline_rmse": 3.50947135718972,
+      "shared_model_minus_baseline_rmse": -0.007586265977178819,
+      "shared_model_directional_accuracy": 0.5103117505995204,
+      "ticker_count": 5,
+      "mean_forecast_horizon_change_pct": -0.1053987328266337,
+      "mean_average_forecast_distance_pct_to_last_close": 0.06995896697411,
+      "top_forecast_ticker": "IWM",
+      "top_forecast_horizon_change_pct": -0.0008109426576918821,
+      "tickers": [
+        "SPY",
+        "QQQ",
+        "VTI",
+        "IWM",
+        "DIA"
+      ]
+    }
+  ],
   "basket_summaries": [
     {
       "basket_key": "core",
@@ -333,6 +698,8 @@
     "Die naive Persistence-Baseline bleibt ein wichtiger Referenzwert.",
     "technical_extended liegt im Mittel leicht vor lag_only, aber der Vorteil ist klein.",
     "Die besten Modelltypen wechseln je nach Ticker.",
-    "Das Unternehmensranking kombiniert 5-Tage-Ausblick, relative Walk-Forward-Guete, Richtungstreffer und Abstand zur Baseline."
+    "Das Unternehmensranking kombiniert 5-Tage-Ausblick, relative Walk-Forward-Guete, Richtungstreffer und Abstand zur Baseline.",
+    "Zusaetzlich werden gemeinsame Multi-Asset-Laeufe fuer Aktien- und ETF-Koerbe separat zusammengefasst.",
+    "Die UI zeigt den zuletzt exportierten ML-Stand und keine garantierte Live-Prognose."
   ]
 }

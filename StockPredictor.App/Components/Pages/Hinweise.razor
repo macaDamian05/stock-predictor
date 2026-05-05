@@ -1,52 +1,126 @@
 @page "/hinweise"
+@inject ExplanationService ExplanationService
 
-<PageTitle>Hinweise und Erklärungen</PageTitle>
+<PageTitle>FAQ, Methodik und Hinweise</PageTitle>
 
 <div class="info-page">
     <section class="info-card intro-card">
-        <span class="info-kicker">Hinweise & Erklärungen</span>
-        <h1>Wie dieses Dashboard gelesen werden sollte</h1>
+        <span class="info-kicker">FAQ, Methodik & Hinweise</span>
+        <h1>Fachbegriffe verständlich erklärt</h1>
         <p>
-            Diese Anwendung ist Teil einer Bachelorarbeit zur Prognose von Aktienkursen mit Machine Learning.
-            Sie soll Forschungsergebnisse verständlich darstellen, aber keine Handlungsempfehlungen für reale Investitionen geben.
+            Diese Anwendung zeigt den zuletzt exportierten Forschungsstand der Bachelorarbeit.
+            Kurse, Modellprognosen und Backtests sind deshalb bewusst getrennt dargestellt.
+            Das kleine Fragezeichen im Dashboard öffnet kurze Erklärungen direkt an der Kennzahl.
         </p>
+        <p>
+            Für kurze Rückfragen gibt es zusätzlich einen lokalen <a class="info-link" href="chat">FAQ-Chat</a>.
+            Er bleibt thematisch auf Dashboard, Kennzahlen und Methoden begrenzt.
+        </p>
+
+        <div class="info-pills">
+            <span class="info-pill">Kurse zuerst</span>
+            <span class="info-pill">Prognosen als Forschung</span>
+            <span class="info-pill">Kein Live-Trading-System</span>
+        </div>
     </section>
 
     <section class="info-card">
-        <h2>Wofür die Website gedacht ist</h2>
-        <ul>
-            <li>Visualisierung von Modellvergleichen und Benchmark-Ergebnissen.</li>
-            <li>Darstellung ausgewählter Ticker mit kurzfristigem Prognosepfad.</li>
-            <li>Nachvollziehbare Aufbereitung für die Bachelorarbeit.</li>
-        </ul>
+        <span class="info-kicker">Schnellüberblick</span>
+        <h2>Was das Dashboard zeigt</h2>
+
+        <div class="quick-grid">
+            <article class="quick-card">
+                <h3>Markt- und Asset-Übersicht</h3>
+                <p>
+                    Die Startseite zeigt zuerst vorbereitete Ticker, letzte Schlusskurse, Watchlist und Suchfunktion.
+                </p>
+            </article>
+            <article class="quick-card">
+                <h3>Modellprognosen</h3>
+                <p>
+                    Prognosen sind forschungsbasierte Schätzungen und werden getrennt von Kursinformationen angezeigt.
+                </p>
+            </article>
+            <article class="quick-card">
+                <h3>Modellvergleich</h3>
+                <p>
+                    Backtest-Metriken helfen dabei, einfache Referenzen und gelernte Modelle nachvollziehbar zu vergleichen.
+                </p>
+            </article>
+        </div>
     </section>
 
     <section class="info-card">
-        <h2>Wie die Kennzahlen zu lesen sind</h2>
-        <ul>
-            <li>`RMSE` misst die mittlere Vorhersageabweichung. Kleinere Werte sind besser.</li>
-            <li>`Richtungstreffer` zeigt, wie oft die prognostizierte Bewegungsrichtung mit der tatsächlichen Richtung übereinstimmt.</li>
-            <li>`Abstand zur Baseline` vergleicht das beste gelernte Modell mit der naiven Persistence-Baseline.</li>
-            <li>`RSI` ist ein technischer Indikator und dient hier nur als zusätzliche Einordnung.</li>
-        </ul>
+        <span class="info-kicker">FAQ</span>
+        <h2>Häufige Fragen in einfacher Sprache</h2>
+
+        <div class="faq-list">
+            @foreach (var item in _faqItems)
+            {
+                <details class="faq-item">
+                    <summary>@item.Question</summary>
+                    <p>@item.Answer</p>
+                </details>
+            }
+        </div>
     </section>
 
-    <section class="info-card">
-        <h2>Wichtige Grenzen</h2>
-        <ul>
-            <li>Die Modelle liefern statistische Schätzungen, keine sicheren Vorhersagen.</li>
-            <li>Mehr Komplexität bedeutet nicht automatisch bessere Ergebnisse.</li>
-            <li>Die Baseline ist in vielen Fällen überraschend stark und bleibt deshalb ein wichtiger Referenzwert.</li>
-            <li>Die Website zeigt den exportierten Forschungsstand, kein Live-Trading-System.</li>
-        </ul>
+    <section class="info-card" id="glossar">
+        <span class="info-kicker">Glossar</span>
+        <h2>Wichtige Begriffe kurz erklärt</h2>
+        <p class="section-copy">
+            Die gleichen Begriffe tauchen auch direkt im Dashboard auf. Dort können sie über das kleine Fragezeichen
+            kompakt geöffnet werden.
+        </p>
+
+        @foreach (var category in _categories)
+        {
+            var terms = ExplanationService.GetTermsByCategory(category);
+
+            if (terms.Count == 0)
+            {
+                continue;
+            }
+
+            <section class="glossary-group">
+                <div class="group-header">
+                    <h3>@category</h3>
+                </div>
+
+                <div class="glossary-grid">
+                    @foreach (var term in terms)
+                    {
+                        <article class="glossary-card">
+                            <div class="glossary-head">
+                                <h4>@term.Title</h4>
+                            </div>
+                            <p class="glossary-short">@term.ShortText</p>
+                            <p class="glossary-long">@term.LongText</p>
+                        </article>
+                    }
+                </div>
+            </section>
+        }
     </section>
 
     <section class="info-card warning-card">
-        <h2>Rechtlicher und fachlicher Hinweis</h2>
+        <span class="info-kicker">Rechtlicher Hinweis</span>
+        <h2>Keine Anlageberatung</h2>
         <p>
-            Keine Anlageberatung. Kapitalanlagen bergen Risiken. Vergangene Wertentwicklungen sind kein verlässlicher
-            Indikator für zukünftige Ergebnisse. Entscheidungen über reale Investitionen sollten nicht allein auf Basis
-            dieser Anwendung getroffen werden.
+            Diese App ist ein Forschungs- und Demonstrationssystem im Rahmen einer Bachelorarbeit.
+            Vergangene Wertentwicklungen sind kein verlässlicher Indikator für zukünftige Ergebnisse.
+            Reale Investitionsentscheidungen sollten nicht allein auf Basis dieser Anwendung getroffen werden.
         </p>
     </section>
 </div>
+
+@code {
+    private IReadOnlyList<string> _categories = [];
+    private IReadOnlyList<ExplanationFaqItem> _faqItems = [];
+
+    protected override void OnInitialized()
+    {
+        _categories = ExplanationService.GetCategories();
+        _faqItems = ExplanationService.GetFaqItems();
+    }
+}

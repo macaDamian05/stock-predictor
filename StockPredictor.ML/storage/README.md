@@ -2,6 +2,8 @@
 
 Dieses Verzeichnis ist fuer lokale Laufzeitdaten vorgesehen.
 
+Nach einem frischen Clone kann dieses Verzeichnis auf einem neuen Rechner teilweise oder ganz fehlen. Das ist erwartetes Verhalten, weil viele Laufzeitdaten lokal erzeugt werden.
+
 Erwartete Unterordner:
 
 - `trainingsdaten/<ticker>/` fuer LSTM-Modell, Scaler, Metadaten und Log
@@ -67,5 +69,31 @@ Typische Artefakte des Dashboard-Exports:
 - `dashboard_payload.json`
 - `featured_tickers.csv`
 - `basket_summary.csv`
+- `company_ranking.csv`
+- `multi_asset_summary.csv`
 
-Die eigentlichen Modellartefakte sind in Git ignoriert.
+Der Payload ist fuer die Blazor-UI gedacht und enthaelt inzwischen neben Kennzahlen auch Prognose-Metadaten wie `generated_at`, `data_until`, `stale_after_days`, `selected_model`, `available_models` und kompakte `model_metrics`.
+
+## Blazor-App nach frischem Clone wieder befuellen
+
+Die Blazor-App erwartet standardmaessig:
+
+- `StockPredictor.ML/storage/dashboard/LATEST/dashboard_payload.json`
+
+Wenn diese Datei auf dem aktuellen Rechner fehlt, muss der Dashboard-Export lokal erneut erzeugt werden:
+
+```powershell
+cd StockPredictor.ML
+.\.venv\Scripts\python.exe export_dashboard_payload.py
+```
+
+Wenn der Export danach immer noch nichts schreibt, fehlen typischerweise vorherige lokale Eingaben wie:
+
+- `storage/classical/<ticker>/...`
+- `storage/thesis/<run>/thesis_results_summary.json`
+- optional `storage/multi_asset_suites/<run>/...`
+
+## Versionierungsregel
+
+Kleine Dokumentationsdateien oder bewusst mitgenommene Demo-/Referenzdaten koennen unter `storage/` versioniert werden.
+Lokale Modellartefakte, Scaler, Python-Umgebungen, Cache-Dateien und grosse Laufzeitoutputs sollen dagegen standardmaessig nicht neu Git-ready werden.

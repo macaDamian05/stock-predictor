@@ -1,0 +1,33 @@
+@inject ExplanationService ExplanationService
+
+@if (_term is not null)
+{
+    <details class="info-tooltip">
+        <summary class="info-tooltip-trigger" aria-label="@GetAriaLabel()">
+            ?
+        </summary>
+        <div class="info-tooltip-panel" role="note">
+            <strong>@_term.Title</strong>
+            <p>@_term.ShortText</p>
+        </div>
+    </details>
+}
+
+@code {
+    private ExplanationTerm? _term;
+
+    [Parameter]
+    public string TermKey { get; set; } = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        _term = ExplanationService.GetTerm(TermKey);
+    }
+
+    private string GetAriaLabel()
+    {
+        return _term is null
+            ? "Erklärung öffnen"
+            : $"Erklärung zu {_term.Title} öffnen";
+    }
+}

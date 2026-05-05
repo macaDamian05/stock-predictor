@@ -1,6 +1,6 @@
 # Project Context
 
-Stand: 2026-04-22
+Stand: 2026-05-05
 
 ## Kanonische Entscheidungen
 
@@ -31,6 +31,24 @@ Stand: 2026-04-22
 - wiederverwendbarer Profilvergleich ueber mehrere Benchmark-Runs
 - konsolidierter Thesis-Export fuer Tabellen, Grafiken und Ergebnisberichte aus vorhandenen Runs
 - Dashboard-Handover und erste umgesetzte Blazor-UI unter `storage/dashboard/LATEST/dashboard_payload.json`
+- robuster Leerzustand in der Blazor-App, falls `storage/dashboard/LATEST/dashboard_payload.json` auf dem aktuellen Rechner fehlt
+- marktzentrierte Startseite mit Watchlist-/Ticker-Kacheln vor den laengeren Forschungs- und Benchmark-Bloecken
+- Asset-Suche auf Basis des vorhandenen Dashboard-Payloads
+- lokale Watchlist im Browser fuer gespeicherte Favoriten
+- eigene Asset-Detailroute mit Platzhalteransicht fuer Ticker ohne vorbereitete Prognosedaten
+- Toggle auf der Startseite fuer `Kurse` vs. `Prognosen`, wobei Prognosen bewusst als Forschungsblock markiert bleiben
+- sichtbarer Prognosekontext in Start- und Detailansicht mit Datenstand, Prognosezeitpunkt, Prognosehorizont und Modell/Methode
+- optionaler Modellvergleich fuer Persistence-Baseline und vorhandene gelernte Modelle
+- Warnhinweis fuer aeltere Exporte auf Basis von `data_until` und `stale_after_days`
+- zentrales Erklaersystem fuer Fachbegriffe, Kennzahlen und Modellnamen in der Blazor-App
+- ausgebaute Hinweise-Seite als FAQ- und Glossar-Bereich in einfacher Sprache
+- eigener News-Bereich in der Blazor-App mit Demo-Daten, Kategorie-Filter und optionalem Ticker-Filter
+- News dienen aktuell nur als Kontext und fliessen noch nicht in die ML-Prognose ein
+- optionale lokale Browser-Benachrichtigungen fuer neue Payloads, aktualisierte Prognosedaten und Watchlist-Assets
+- Fallback auf neutrale In-App-Toasts, wenn Browser-Benachrichtigungen nicht erlaubt sind
+- Testbenachrichtigung bleibt zusaetzlich immer als sichtbarer In-App-Hinweis erhalten
+- lokaler FAQ-Chat mit optionaler Ollama-Anbindung und automatischem Fallback auf eingebettete FAQ-/Glossar-Antworten
+- deaktivierter Platzhalter fuer spaetere Profile sowie Broker-/TradingView-Zukunftsthemen ohne aktive API-Anbindung
 - Unternehmensranking fuer die im Dashboard exportierten Ticker auf Basis von Forecast und Modellguete
 - Multi-Asset-Bestkonfigurationen aus der Suite im Dashboard-Export und auf der Startseite sichtbar
 - rekursiver Forecast im klassischen Pfad baut Features nun konsistent aus der fortgeschriebenen Close-Historie neu auf
@@ -79,3 +97,5 @@ Aktuelle empirische Beobachtung:
 - Feature-Set weiter testen und dokumentieren
 - Thesis-Ergebnispaket nach groesseren neuen Runs aktualisieren
 - Dashboard-UI um weitere Detailansichten, Filter und spaetere API-Anbindung erweitern
+- Asset-Suche spaeter ueber den aktuellen Payload hinaus erweitern
+- spaetere Integrationen nur getrennt von der Forschungslogik betrachten; siehe `docs/future-integrations.md`

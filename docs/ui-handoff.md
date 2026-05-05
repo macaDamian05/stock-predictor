@@ -1,6 +1,6 @@
 # UI Handoff
 
-Stand: 2026-04-22
+Stand: 2026-05-05
 
 ## Zweck
 
@@ -33,11 +33,16 @@ Die JSON-Datei ist bewusst in wenige Bereiche gegliedert:
   - einzelne Tickerkarten fuer den Einstieg in die App
   - aktuell vorbereitet fuer `AAPL`, `TSLA`, `DOU.DE`
   - enthaelt u. a.:
+    - Datenstand je Asset
+    - Prognose erzeugt am
     - letzter Schlusskurs
     - naechster prognostizierter Schlusskurs
     - 5-Tage-Horizont
+    - Prognosehorizont in Handelstagen
     - durchschnittlicher Forecast-Abstand zum letzten Schlusskurs
-    - Forecast-Modell
+    - ausgewaehltes Forecast-Modell
+    - verfuegbare Alternativmodelle
+    - kompakte Modellmetriken fuer Holdout und Walk-Forward
     - Walk-Forward-RMSE
     - Baseline-RMSE
     - RSI
@@ -76,33 +81,59 @@ Die JSON-Datei ist bewusst in wenige Bereiche gegliedert:
 
 Wenn die Blazor-App als naechstes umgesetzt wird, ist diese Reihenfolge sinnvoll:
 
-1. Startseite mit 3 bis 5 Kennzahlenkarten aus `summary_cards`
-2. Bereich "Unternehmensranking" aus `company_ranking`
-3. Bereich "Gemeinsame Multi-Asset-Laeufe" aus `multi_asset_summaries`
-4. Bereich "Featured Tickers" aus `featured_tickers`
-5. Bereich "Basket Comparison" aus `basket_summaries`
-6. Detailansicht fuer einen Ticker mit Forecast-Pfad
+1. Kompakter Hero-Bereich ohne lange Theorie
+2. Markt-/Watchlist-Kacheln aus `featured_tickers`
+3. Umschaltbare Detailflaeche fuer `Kurse` vs. `Prognosen`
+4. Optionaler `Modellvergleich` fuer Baseline und gelernte Modelle
+5. Benchmark- und Modelluebersicht aus `summary_cards`
+6. Multi-Asset- und Korbvergleiche aus `multi_asset_summaries` und `basket_summaries`
+7. Methodik nur noch als kompakter Teaser mit Link auf `hinweise`
 
 ## Technische Empfehlung fuer die App
 
 - Die Blazor-App sollte zunaechst nur lesend auf `dashboard_payload.json` zugreifen.
 - Kein direktes Parsen der rohen Benchmark- oder Thesis-Dateien in der UI.
 - Wenn spaeter Live-Aktualisierung gebraucht wird, kann um diese JSON-Datei herum eine API gelegt werden.
+- Wenn `dashboard_payload.json` lokal fehlt oder unlesbar ist, sollte die UI einen klaren Leerzustand mit Dateipfad und Export-Befehlen anzeigen statt einfach leer zu wirken.
+- Die UI sollte Prognosen immer als zuletzt exportierten Forschungsstand kennzeichnen, nicht als Live-Datenstrom oder Trading-Signal.
+- Ein aelterer Export sollte ueber `data_until` und `stale_after_days` sichtbar markiert werden.
 
 ## Aktueller Status
 
 Die erste UI-Umsetzung in `StockPredictor.App/` ist erfolgt:
 
 - dunkles Dashboard statt Blazor-Template
-- Startseite mit Kennzahlenkarten aus `summary_cards`
-- Unternehmensranking aus `company_ranking`
-- Multi-Asset-Bestkonfigurationen aus `multi_asset_summaries`
-- Featured-Ticker-Bereich mit interaktiver Auswahl aus `featured_tickers`
-- Korbvergleich fuer `bachelor_core` und `bachelor_diversified`
+- Startseite jetzt marktzentriert statt textlastig
+- Asset-Suche direkt auf Basis des vorhandenen Payloads
+- lokale Watchlist im Browser für Favoriten
+- eigene Detailroute `/assets/<ticker>` für vorbereitete und fehlende Assets
+- Watchlist-/Ticker-Kacheln aus `featured_tickers` stehen vor den langen Benchmark-Bloecken
+- Toggle fuer `Nur Kurse`, `Kurse + Prognosen` und `Modellvergleich` auf Start- und Detailansicht
+- Prognosen sind optisch als Forschungsblock markiert und nicht wie Trading-Signale aufgebaut
+- Benchmark- und Multi-Asset-Bloecke bleiben vorhanden, aber weiter unten in der Hierarchie
 - direkter Dateizugriff der App auf `dashboard_payload.json` ueber einen kleinen C#-Datendienst
+- klarer Fehler-/Leerzustand mit Hinweis auf `cd StockPredictor.ML` und `.\.venv\Scripts\python.exe export_dashboard_payload.py`, falls die lokale Payload fehlt
+- unbekannte Ticker werden in der Detailansicht als Platzhalter erklärt, statt ein Training zu erzwingen
+- sichtbare Prognose-Metadaten wie Datenstand, Prognosezeitpunkt, Modell/Methode und Prognosehorizont
+- kompakter Modellvergleich mit Baseline, Ridge Regression, Decision Tree und Random Forest, falls im Payload vorhanden
+- Warnhinweis fuer aeltere Exporte statt stillschweigend veralteter Prognosen
+- zentrales Erklaersystem fuer Fachbegriffe ueber kleine Fragezeichen-Tooltips
+- ausgebaute `hinweise`-Seite als FAQ- und Glossar-Bereich fuer Kennzahlen, Methoden und Modellbegriffe, dort mit ausgeschriebenen Volltexten statt zusaetzlicher Tooltip-Ueberlagerung
+- eigener News-Bereich mit kompakter Startseiten-Vorschau und separater News-Seite
+- Mock-News aus serioesen Quellenmustern funktionieren ohne API-Key und sind klar als Demo markiert
+- News werden aktuell nur als Kontext gezeigt und nicht automatisch in die Modellprognose uebernommen
+- lokale Notification-Schicht fuer optionale Browser-Benachrichtigungen und In-App-Toasts
+- Erkennung neuer Exportstaende ueber `generated_at` sowie kompakte Watchlist-Statusmeldungen
+- manuelle Testbenachrichtigung bleibt immer zusaetzlich als In-App-Hinweis sichtbar
+- keine Server-Push-Infrastruktur und keine Trading-Signale in Benachrichtigungen
+- neuer lokaler FAQ-Chat unter `/chat` mit optionaler Ollama-Anbindung
+- Fallback auf eingebettete FAQ-/Glossar-Antworten, wenn lokal kein Ollama-Modell verfuegbar ist
+- deaktivierter Zukunftsblock fuer `Profile: geplant`, `TradingView-Export: geplant` und `Broker-Anbindung: Zukunftsthema`
+- keine funktionalen Trading-APIs oder Broker-Schnittstellen in der aktuellen UI
 
 Die naechsten UI-Schritte sind damit nicht mehr Grundintegration, sondern Ausbau:
 
-- weitere Detailansichten
 - spaetere API-Schicht statt direktem Dateizugriff
+- spaetere echte News-API kann ueber die neue Provider-Schnittstelle angeschlossen werden
 - Filter, Sortierung und eventuell Chart-Erweiterungen
+- spaetere Erweiterung der Suche ueber den aktuellen Payload hinaus

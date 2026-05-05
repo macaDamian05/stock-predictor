@@ -1,0 +1,258 @@
+@page "/chat"
+@using System.Globalization
+@inject IChatAssistantService ChatAssistantService
+
+<PageTitle>Lokaler FAQ-Chat</PageTitle>
+
+@if (_isLoading)
+{
+    <section class="chat-shell chat-empty">
+        <span class="section-kicker">Laden</span>
+        <h1>Lokaler FAQ-Chat wird vorbereitet...</h1>
+        <p>Die App prüft, ob ein lokaler Ollama-Assistent erreichbar ist oder ob der FAQ-Fallback genutzt wird.</p>
+    </section>
+}
+else
+{
+    <div class="chat-page">
+        <section class="chat-shell chat-hero">
+            <div class="chat-hero-copy">
+                <span class="section-kicker">Lokaler FAQ-Chat</span>
+                <h1>Dashboard-Fragen lokal erklären lassen</h1>
+                <p>
+                    Dieser Chat beantwortet nur Fragen zum Dashboard, zu Kennzahlen, Modellen, Methoden
+                    und zum lokalen Forschungsstand der Bachelorarbeit. Keine Anlageberatung.
+                </p>
+            </div>
+
+            <div class="chat-status-pills">
+                <span class="meta-pill">@_availability.ActiveProvider</span>
+                <span class="meta-pill @(_availability.UsesFallback ? "meta-pill-warning" : "meta-pill-positive")">
+                    @(_availability.UsesFallback ? "Fallback aktiv" : "Ollama aktiv")
+                </span>
+                <span class="meta-pill">Modus: @FormatMode(_availability.ConfiguredMode)</span>
+            </div>
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(_statusNotice))
+        {
+            <section class="chat-shell chat-notice">
+                <span class="section-kicker">Status</span>
+                <p>@_statusNotice</p>
+            </section>
+        }
+
+        <div class="chat-layout">
+            <section class="chat-shell chat-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="section-kicker">Chat</span>
+                        <h2>Fragen zum Dashboard und zur Methodik</h2>
+                    </div>
+                    <button class="refresh-button" type="button" @onclick="RefreshAvailabilityAsync" disabled="@_isSending">
+                        Status neu prüfen
+                    </button>
+                </div>
+
+                <div class="message-list">
+                    @foreach (var message in _messages)
+                    {
+                        <article class="message-card message-@message.Role @(message.IsStatus ? "message-status" : string.Empty)">
+                            <div class="message-head">
+                                <strong>@GetRoleLabel(message.Role)</strong>
+                                <div class="message-meta">
+                                    @if (!string.IsNullOrWhiteSpace(message.SourceLabel))
+                                    {
+                                        <span>@message.SourceLabel</span>
+                                    }
+                                    <span>@FormatDateTime(message.CreatedAt)</span>
+                                </div>
+                            </div>
+                            <p>@message.Content</p>
+                        </article>
+                    }
+                </div>
+
+                <form class="chat-input-form" @onsubmit="SubmitAsync" @onsubmit:preventDefault="true">
+                    <label class="sr-only" for="chat-question">Frage an den lokalen FAQ-Chat</label>
+                    <textarea id="chat-question"
+                              class="chat-input"
+                              rows="4"
+                              placeholder="Zum Beispiel: Was bedeutet RMSE im Dashboard?"
+                              @bind="_draftQuestion"></textarea>
+                    <div class="chat-input-actions">
+                        <span class="input-note">Nur Dashboard-, Methodik- und Bachelorarbeitsfragen. Keine Anlageberatung.</span>
+                        <button class="send-button" type="submit" disabled="@(_isSending || string.IsNullOrWhiteSpace(_draftQuestion))">
+                            @(_isSending ? "Antwort wird erstellt..." : "Frage senden")
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <aside class="chat-side-column">
+                <section class="chat-shell side-card">
+                    <span class="section-kicker">Provider</span>
+                    <h3>@_availability.StatusLabel</h3>
+                    <p>@_availability.StatusMessage</p>
+                    <div class="detail-list">
+                        <div>
+                            <span>Ollama-URL</span>
+                            <strong>@(string.IsNullOrWhiteSpace(_availability.OllamaBaseUrl) ? "nicht konfiguriert" : _availability.OllamaBaseUrl)</strong>
+                        </div>
+                        <div>
+                            <span>Ollama-Modell</span>
+                            <strong>@(string.IsNullOrWhiteSpace(_availability.OllamaModel) ? "nicht konfiguriert" : _availability.OllamaModel)</strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="chat-shell side-card">
+                    <span class="section-kicker">Frageideen</span>
+                    <h3>Schnelle Einstiege</h3>
+                    <div class="suggestion-list">
+                        @foreach (var suggestion in _suggestedQuestions)
+                        {
+                            <button class="suggestion-button"
+                                    type="button"
+                                    @onclick="() => AskSuggestedQuestionAsync(suggestion)"
+                                    disabled="@_isSending">
+                                @suggestion
+                            </button>
+                        }
+                    </div>
+                </section>
+
+                <section class="chat-shell side-card">
+                    <span class="section-kicker">Setup & Grenzen</span>
+                    <h3>Optional mit Ollama</h3>
+                    <p>
+                        Die FAQ-, Tooltip- und Hinweise-Seiten bleiben unabhängig nutzbar. Dieser Chat berechnet
+                        keine neuen ML-Prognosen, sondern erklärt nur den lokal vorliegenden Exportstand.
+                    </p>
+
+                    @if (_availability.UsesFallback)
+                    {
+                        <div class="setup-steps">
+                            <code>ollama pull llama3.2</code>
+                            <code>ollama serve</code>
+                            <code>ChatAssistant:Mode = ollama</code>
+                        </div>
+                    }
+
+                    <a class="action-link" href="hinweise">FAQ & Methodik öffnen</a>
+                </section>
+            </aside>
+        </div>
+    </div>
+}
+
+@code {
+    private static readonly CultureInfo UiCulture = CultureInfo.GetCultureInfo("de-DE");
+
+    private readonly List<ChatAssistantMessage> _messages = [];
+    private IReadOnlyList<string> _suggestedQuestions = [];
+    private ChatAssistantAvailability _availability = new();
+    private string _draftQuestion = string.Empty;
+    private string _statusNotice = string.Empty;
+    private bool _isLoading = true;
+    private bool _isSending;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _suggestedQuestions = ChatAssistantService.GetSuggestedQuestions();
+        await RefreshAvailabilityAsync();
+        SeedWelcomeMessage();
+        _isLoading = false;
+    }
+
+    private async Task RefreshAvailabilityAsync()
+    {
+        _availability = await ChatAssistantService.GetAvailabilityAsync();
+        _statusNotice = _availability.StatusMessage;
+    }
+
+    private void SeedWelcomeMessage()
+    {
+        _messages.Clear();
+        _messages.Add(new ChatAssistantMessage
+        {
+            Role = "assistant",
+            SourceLabel = _availability.ActiveProvider,
+            IsStatus = true,
+            Content = _availability.UsesFallback
+                ? "Ich beantworte hier lokale Fragen zum Dashboard, zu Kennzahlen, Modellen und Methoden. Aktuell läuft der FAQ-Fallback, weil kein nutzbares Ollama-Modell aktiv ist."
+                : "Ich beantworte hier lokale Fragen zum Dashboard, zu Kennzahlen, Modellen und Methoden. Aktuell ist ein lokaler Ollama-Assistent aktiv."
+        });
+    }
+
+    private async Task AskSuggestedQuestionAsync(string question)
+    {
+        _draftQuestion = question;
+        await SubmitAsync();
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_isSending || string.IsNullOrWhiteSpace(_draftQuestion))
+        {
+            return;
+        }
+
+        var question = _draftQuestion.Trim();
+        _draftQuestion = string.Empty;
+        _statusNotice = string.Empty;
+
+        _messages.Add(new ChatAssistantMessage
+        {
+            Role = "user",
+            Content = question
+        });
+
+        _isSending = true;
+
+        try
+        {
+            var reply = await ChatAssistantService.AskAsync(_messages);
+            _messages.Add(new ChatAssistantMessage
+            {
+                Role = "assistant",
+                SourceLabel = reply.ProviderLabel,
+                Content = reply.Content,
+                IsStatus = reply.IsBlocked
+            });
+
+            if (!string.IsNullOrWhiteSpace(reply.StatusMessage))
+            {
+                _statusNotice = reply.StatusMessage;
+            }
+            else
+            {
+                await RefreshAvailabilityAsync();
+            }
+        }
+        finally
+        {
+            _isSending = false;
+        }
+    }
+
+    private static string GetRoleLabel(string role)
+    {
+        return string.Equals(role, "user", StringComparison.OrdinalIgnoreCase) ? "Du" : "Assistent";
+    }
+
+    private static string FormatDateTime(DateTime value)
+    {
+        return value.ToString("dd. MMM yyyy | HH:mm", UiCulture);
+    }
+
+    private static string FormatMode(string mode)
+    {
+        return mode switch
+        {
+            "ollama" => "Nur Ollama",
+            "mock" => "Nur Fallback",
+            _ => "Auto"
+        };
+    }
+}

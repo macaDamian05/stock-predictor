@@ -1,0 +1,194 @@
+@page "/news"
+@inject NewsService NewsService
+
+<PageTitle>News-Kontext</PageTitle>
+
+@if (_isLoading)
+{
+    <section class="news-shell news-empty">
+        <span class="section-kicker">Laden</span>
+        <h1>News-Kontext wird vorbereitet...</h1>
+        <p>Die App lädt den aktuellen News-Block für die lokale Demo-Ansicht.</p>
+    </section>
+}
+else if (_snapshot is null)
+{
+    <section class="news-shell news-empty">
+        <span class="section-kicker">News</span>
+        <h1>Der News-Bereich konnte nicht geladen werden.</h1>
+        <p>Bitte die Seite erneut laden. Die News sind aktuell nur ein ergänzender Kontextblock und unabhängig vom ML-Training.</p>
+    </section>
+}
+else
+{
+    var snapshot = _snapshot;
+
+    <div class="news-page">
+        <section class="news-shell news-hero">
+            <div class="news-hero-copy">
+                <span class="section-kicker">News-Kontext</span>
+                <h1>Nachrichten als Einordnung, nicht als Signal</h1>
+                <p>@snapshot.ModelUsageNotice</p>
+            </div>
+
+            <div class="news-hero-meta">
+                <span class="meta-pill">Quelle: @snapshot.ProviderLabel</span>
+                <span class="meta-pill @(snapshot.IsDemoData ? "demo-pill" : string.Empty)">
+                    @(snapshot.IsDemoData ? "Demo-Daten" : "News-Feed")
+                </span>
+            </div>
+        </section>
+
+        <section class="news-shell news-callout">
+            <p>@snapshot.ContextNotice</p>
+            <p>Keine Anlageberatung. Nachrichten werden aktuell nicht automatisch in die Modellprognosen übernommen.</p>
+        </section>
+
+        <section class="news-shell">
+            <div class="panel-header">
+                <div>
+                    <span class="section-kicker">Filter</span>
+                    <h2>News nach Kategorie und Ticker eingrenzen</h2>
+                </div>
+                <button class="filter-reset" type="button" @onclick="ResetFiltersAsync">
+                    Filter zurücksetzen
+                </button>
+            </div>
+
+            <div class="filter-grid">
+                <label class="filter-field">
+                    <span>Kategorie</span>
+                    <select value="@_selectedCategory" @onchange="HandleCategoryChangedAsync">
+                        @foreach (var category in snapshot.AvailableCategories)
+                        {
+                            <option value="@category">@category</option>
+                        }
+                    </select>
+                </label>
+
+                <label class="filter-field">
+                    <span>Ticker</span>
+                    <select value="@_selectedTicker" @onchange="HandleTickerChangedAsync">
+                        @foreach (var ticker in snapshot.AvailableTickers)
+                        {
+                            <option value="@ticker">@ticker</option>
+                        }
+                    </select>
+                </label>
+            </div>
+        </section>
+
+        <section class="news-list-section">
+            <div class="panel-header">
+                <div>
+                    <span class="section-kicker">News-Liste</span>
+                    <h2>@snapshot.Items.Count Einträge im aktuellen Filter</h2>
+                </div>
+            </div>
+
+            @if (snapshot.Items.Count == 0)
+            {
+                <section class="news-shell news-empty">
+                    <h3>Keine News für diese Filterkombination</h3>
+                    <p>Bitte eine andere Kategorie oder einen anderen Ticker auswählen.</p>
+                </section>
+            }
+            else
+            {
+                <div class="news-grid">
+                    @foreach (var item in snapshot.Items)
+                    {
+                        <article class="news-shell news-card">
+                            <div class="news-card-head">
+                                <span class="category-pill">@item.Category</span>
+                                @if (item.IsDemo)
+                                {
+                                    <span class="meta-pill demo-pill">Demo</span>
+                                }
+                            </div>
+
+                            <h3>@item.Title</h3>
+                            <p class="news-meta">@FormatPublishedAt(item.PublishedAt) · @item.Source</p>
+
+                            @if (item.AffectedTickers.Count > 0)
+                            {
+                                <div class="ticker-tag-list">
+                                    @foreach (var ticker in item.AffectedTickers)
+                                    {
+                                        <span class="ticker-tag">@ticker</span>
+                                    }
+                                </div>
+                            }
+
+                            <div class="news-actions">
+                                <a class="action-link action-secondary"
+                                   href="@item.Link"
+                                   target="_blank"
+                                   rel="noreferrer noopener">
+                                    Quellenkontext öffnen
+                                </a>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+        </section>
+    </div>
+}
+
+@code {
+    private NewsFeedSnapshot? _snapshot;
+    private string _selectedCategory = NewsService.AllCategories;
+    private string _selectedTicker = NewsService.AllTickers;
+    private bool _isLoading = true;
+
+    [SupplyParameterFromQuery]
+    public string? Category { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? Ticker { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _selectedCategory = string.IsNullOrWhiteSpace(Category) ? NewsService.AllCategories : Category.Trim();
+        _selectedTicker = string.IsNullOrWhiteSpace(Ticker) ? NewsService.AllTickers : Ticker.Trim();
+        await LoadSnapshotAsync();
+    }
+
+    private async Task LoadSnapshotAsync()
+    {
+        _isLoading = true;
+        _snapshot = await NewsService.GetSnapshotAsync(new NewsQuery
+        {
+            Category = _selectedCategory,
+            Ticker = _selectedTicker
+        });
+        _selectedCategory = _snapshot.SelectedCategory;
+        _selectedTicker = _snapshot.SelectedTicker;
+        _isLoading = false;
+    }
+
+    private async Task HandleCategoryChangedAsync(ChangeEventArgs args)
+    {
+        _selectedCategory = args.Value?.ToString() ?? NewsService.AllCategories;
+        await LoadSnapshotAsync();
+    }
+
+    private async Task HandleTickerChangedAsync(ChangeEventArgs args)
+    {
+        _selectedTicker = args.Value?.ToString() ?? NewsService.AllTickers;
+        await LoadSnapshotAsync();
+    }
+
+    private async Task ResetFiltersAsync()
+    {
+        _selectedCategory = NewsService.AllCategories;
+        _selectedTicker = NewsService.AllTickers;
+        await LoadSnapshotAsync();
+    }
+
+    private static string FormatPublishedAt(DateTime value)
+    {
+        return value.ToString("dd. MMM yyyy | HH:mm", System.Globalization.CultureInfo.GetCultureInfo("de-DE"));
+    }
+}

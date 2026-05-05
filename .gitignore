@@ -9,16 +9,18 @@ __pycache__/
 .pytest_cache/
 
 # ML storage
-#StockPredictor.ML/storage/trainingsdaten/
-#StockPredictor.ML/storage/classical/
-#StockPredictor.ML/storage/benchmarks/
-#StockPredictor.ML/storage/experiments/
-#StockPredictor.ML/storage/multi_asset/
-#StockPredictor.ML/storage/multi_asset_suites/
-#StockPredictor.ML/storage/thesis/
-#StockPredictor.ML/storage/dashboard/
-#StockPredictor.ML/storage/plots/
-#StockPredictor.ML/storage/yfinance-cache/
+# Kleine Referenz-CSV/JSON/README-Dateien unter storage/ koennen bewusst versioniert werden.
+# Klar lokale oder grosse Laufzeit-Artefakte sollen dagegen nicht versehentlich Git-ready werden.
+StockPredictor.ML/storage/trainingsdaten/
+StockPredictor.ML/storage/classical/
+StockPredictor.ML/storage/multi_asset/
+StockPredictor.ML/storage/multi_asset_suites/
+StockPredictor.ML/storage/plots/
+StockPredictor.ML/storage/yfinance-cache/
+StockPredictor.ML/storage/**/*.keras
+StockPredictor.ML/storage/**/*_scaler.save
+StockPredictor.ML/storage/**/classical_models.joblib
+StockPredictor.ML/storage/**/multi_asset_models.joblib
 
 # .NET
 .dotnet/

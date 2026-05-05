@@ -14,7 +14,7 @@ Dieses Modul ueberfuehrt den frueheren Colab-Prototyp in eine reproduzierbare Py
 - `run_experiment_suite.py`: reproduzierbare Experimentsuite ueber Koerbe, Feature-Profile und Lag-Werte
 - `generate_profile_comparison.py`: konsolidiert mehrere Benchmark-Runs zu einem Profilvergleich
 - `generate_thesis_results.py`: konsolidiert vorhandene Experimente zu BA-tauglichen Tabellen, Grafiken und einem Kurzreport
-- `export_dashboard_payload.py`: erstellt einen UI-freundlichen JSON- und CSV-Handover fuer die spaetere App
+- `export_dashboard_payload.py`: erstellt einen UI-freundlichen JSON- und CSV-Handover fuer die spaetere App, inklusive Datenstand, Prognosezeitpunkt, Modellwahl und Modellvergleich
 - `core/benchmark_presets.py`: feste Ticker-Koerbe fuer Starter- und Bachelor-Laeufe
 - `core/data_loader.py`: Download und Bereinigung der Marktdaten
 - `core/preprocessing.py`: Sequenzbildung und Skalierung
@@ -79,12 +79,40 @@ python main.py AAPL
 
 ## Hinweise fuer frisches Setup und Rechnerwechsel
 
-- Ein frischer Clone enthaelt standardmaessig keine lokalen Laufzeit-Artefakte unter `storage/`, weil diese Ordner in Git ignoriert werden.
+- Ein frischer Clone enthaelt standardmaessig nicht alle lokalen Laufzeit-Artefakte unter `storage/`, weil grosse oder klar lokale Outputs in Git ignoriert werden.
 - Wenn auf dem neuen Rechner zwar der Code vorhanden ist, aber `storage/classical/`, `storage/thesis/` oder `storage/dashboard/` leer sind, ist das erwartetes Verhalten.
 - Fuer einen schnellen Funktionstest zuerst immer den klassischen Einzel-Lauf starten, zum Beispiel `python run_classical_pipeline.py AAPL`.
 - Der Dashboard-Export funktioniert erst dann vollstaendig, wenn die benoetigten klassischen Artefakte und der zugehoerige Thesis-Export bereits lokal vorliegen.
 - Wenn Marktdaten nicht lokal per CSV geliefert werden, haengen Benchmarks und Experimentsuiten von einer funktionierenden `yfinance`-/Internet-Verbindung ab.
 - Bei Netz- oder DNS-Problemen koennen einzelne Ticker in Benchmark-Laeufen fehlschlagen, waehrend andere Ticker desselben Laufs erfolgreich gespeichert werden.
+
+## Blazor-Dashboard nach frischem Clone
+
+Die Blazor-App liest standardmaessig:
+
+- `storage/dashboard/LATEST/dashboard_payload.json`
+
+Wenn diese Datei auf dem aktuellen Rechner fehlt, startet die App jetzt mit einer klaren Leerzustandsmeldung statt mit einer scheinbar kaputten oder leeren Oberflaeche.
+
+Wenn die Datei vorhanden ist, zeigt die UI den zuletzt exportierten ML-Stand. Es gibt bewusst keine garantierte Live-Prognose, sondern eine Leseschicht ueber vorhandene Artefakte.
+Wichtige Kennzahlen und Modellbegriffe werden in der App zusaetzlich ueber kleine Tooltips sowie eine FAQ-/Glossar-Seite erklaert.
+Ein separater News-Bereich in der App liefert derzeit nur Kontext ueber Demo-Daten und wird noch nicht in die Modelllogik eingespeist.
+Zusätzlich kann die App lokale Browser-Benachrichtigungen für neue Exporte und Watchlist-Updates anzeigen; auch diese Hinweise bleiben rein statusbezogen und greifen nicht in die Modelllogik ein.
+
+Ebenfalls rein UI-seitig gibt es jetzt einen lokalen FAQ-Chat mit optionaler Ollama-Anbindung; ohne lokales Modell faellt die App auf einen eingebauten Erklaer-Fallback zurueck.
+
+Typische Befehle zum Wiederbefuellen:
+
+```powershell
+cd StockPredictor.ML
+.\.venv\Scripts\python.exe export_dashboard_payload.py
+```
+
+Wenn der Export danach immer noch nichts schreibt, fehlen in der Regel vorher lokale Eingaben wie:
+
+- `storage/classical/<ticker>/...`
+- `storage/thesis/<run>/thesis_results_summary.json`
+- optional `storage/multi_asset_suites/<run>/...`
 
 ## Wichtige CLI-Optionen
 
@@ -202,6 +230,7 @@ Der Thesis-Export speichert unter `storage/thesis/<run>/` eine kompakte Ergebnis
 
 Der Dashboard-Export speichert unter `storage/dashboard/<run>/` eine UI-freundliche JSON-Datei sowie ergaenzende CSVs. Diese Schicht dient als Handover fuer die spaetere Blazor-App.
 Dazu gehoert jetzt auch ein Unternehmensranking ueber die exportierten Ticker in `company_ranking.csv` und im JSON-Payload.
+Der Payload enthaelt inzwischen zusaetzlich Felder wie `generated_at`, `data_until`, `stale_after_days`, `selected_model`, `available_models`, `model_metrics` und `forecast_horizon_days`, damit die UI Aktualitaet, Methode und Backtest-Qualitaet sichtbar machen kann.
 Der neue Multi-Asset-Pfad speichert unter `storage/multi_asset/<run>/` sein gemeinsames Modell, gepoolte Vorhersagen, Per-Ticker-Metriken, Forecast-Zusammenfassungen und einen Report.
 Die neue Multi-Asset-Suite speichert unter `storage/multi_asset_suites/<run>/` eine kompakte Vergleichstabelle, Bestkonfigurationen pro Korb, einen Plot und einen Kurzreport.
 Der Dashboard-Export uebernimmt diese Bestkonfigurationen optional als `multi_asset_summaries` und als `multi_asset_summary.csv`.

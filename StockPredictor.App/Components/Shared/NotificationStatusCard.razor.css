@@ -1,0 +1,116 @@
+.notification-settings {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--text-subtle);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.notification-settings-copy {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.notification-settings-copy h3,
+.notification-settings-copy p {
+    margin: 0;
+}
+
+.notification-settings-copy p,
+.notification-footnote {
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.notification-test-note {
+    margin-bottom: 0;
+}
+
+.notification-status-row,
+.notification-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2rem;
+    padding: 0.35rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+.status-granted,
+.status-enabled {
+    border-color: rgba(66, 211, 146, 0.2);
+    background: rgba(66, 211, 146, 0.12);
+    color: #b9ffe0;
+}
+
+.status-blocked {
+    border-color: rgba(255, 161, 92, 0.2);
+    background: rgba(255, 161, 92, 0.12);
+    color: #ffe0b7;
+}
+
+.status-pending,
+.status-disabled,
+.status-unsupported {
+    border-color: rgba(90, 215, 255, 0.18);
+    background: rgba(90, 215, 255, 0.1);
+    color: #d1f3ff;
+}
+
+.action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.7rem;
+    padding: 0.65rem 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.95rem;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-secondary);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.action-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: rgba(90, 215, 255, 0.24);
+    background: rgba(90, 215, 255, 0.09);
+}
+
+.action-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.action-button.action-primary {
+    border-color: rgba(90, 215, 255, 0.2);
+    background: linear-gradient(180deg, rgba(90, 215, 255, 0.18), rgba(90, 215, 255, 0.09));
+}
+
+@media (max-width: 720px) {
+    .notification-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

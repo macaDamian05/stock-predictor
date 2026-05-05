@@ -1,6 +1,6 @@
 # Stock Predictor
 
-Stand: 2026-04-22
+Stand: 2026-05-05
 
 ## Projektziel
 
@@ -46,7 +46,9 @@ Der ML-Prototyp in `StockPredictor.ML/` kann derzeit:
 - historische Vorhersagen, Zukunftsprognosen, RSI, durchschnittliche Prognose-Steigung sowie einfache Guetemasse ausgeben
 - zusaetzlich den durchschnittlichen Preisabstand des Forecast-Pfads zum letzten realen Schlusskurs ausgeben
 
-Der Webteil in `StockPredictor.App/` liest jetzt den kompakt exportierten Dashboard-Payload und zeigt die wichtigsten ML-Ergebnisse in einer dunklen Dashboard-Oberflaeche.
+Der Webteil in `StockPredictor.App/` liest jetzt den kompakt exportierten Dashboard-Payload und zeigt ihn als dunkles, marktzentriertes Dashboard: zuerst Ticker und Kurse, danach Asset-Suche, lokale Watchlist, Detailansichten sowie Benchmark- und Forschungsblöcke. Für Prognosen werden dabei Datenstand, Exportzeitpunkt, Prognosehorizont, gewähltes Modell und ein kompakter Modellvergleich sichtbar gemacht. Die UI zeigt bewusst den zuletzt exportierten ML-Stand und keinen garantierten Live-Datenstrom. Wichtige Fachbegriffe lassen sich zusätzlich direkt über kleine Fragezeichen-Tooltips und eine FAQ-/Glossar-Seite erklären. Ergänzend gibt es jetzt einen News-Bereich mit seriös markierten Demo-Daten als Kontext, der aktuell noch nicht in die Modelle einfließt. Optional kann die App lokale Browser-Benachrichtigungen für neue Exportstände und Watchlist-Updates auslösen, ohne daraus Handlungsempfehlungen abzuleiten.
+
+Ergaenzend steht jetzt ein lokaler FAQ-Chat zur Verfuegung, der bei erreichbarem Ollama lokal antwortet und sonst automatisch auf einen eingebauten FAQ-/Glossar-Fallback zurueckfaellt.
 
 ## Repository-Struktur
 
@@ -59,6 +61,7 @@ Der Webteil in `StockPredictor.App/` liest jetzt den kompakt exportierten Dashbo
 - `docs/thesis-notes.md`: BA-relevante Notizen, Forschungsfragen und methodische Hinweise
 - `docs/development-history.md`: dokumentierter Entwicklungsverlauf mit frueheren Zwischenstaenden
 - `docs/ui-handoff.md`: Uebergabedokument fuer die spaetere Blazor-Oberflaeche
+- `docs/future-integrations.md`: konzeptionelle Notiz fuer spaetere Profile, Watchlists und moegliche Integrationen ohne Trading-Implementierung
 
 ## Lokales Setup
 
@@ -130,9 +133,72 @@ Die Startseite liest den aktuellen Export aus:
 
 - `StockPredictor.ML/storage/dashboard/LATEST/dashboard_payload.json`
 
+Die UI arbeitet damit rein auf dem zuletzt exportierten lokalen ML-Stand. Sie garantiert keine Live-Prognose und kennzeichnet ältere Exporte sichtbar.
+
+### Optional: lokaler FAQ-Chat mit Ollama
+
+Der Chat unter `/chat` funktioniert auch ohne lokales LLM. Standardmaessig nutzt die App `ChatAssistant:Mode = auto` und faellt automatisch auf einen lokalen FAQ-Fallback zurueck, wenn unter `ChatAssistant:OllamaBaseUrl` kein nutzbares Ollama-Modell erreichbar ist.
+
+Typischer lokaler Setup-Pfad:
+
+```powershell
+ollama pull llama3.2
+ollama serve
+dotnet run --project StockPredictor.App
+```
+
+Relevante Konfiguration in `StockPredictor.App/appsettings.json`:
+
+- `ChatAssistant:Mode = auto`: bevorzugt Ollama, faellt sonst lokal zurueck
+- `ChatAssistant:Mode = ollama`: erwartet ein lokal erreichbares Ollama-Modell
+- `ChatAssistant:Mode = mock`: erzwingt den FAQ-Fallback ohne Ollama
+- `ChatAssistant:OllamaBaseUrl`: Standard `http://127.0.0.1:11434/`
+- `ChatAssistant:OllamaModel`: Standard `llama3.2`
+
+### Frischer Clone: Dashboard wieder befuellen
+
+Wenn die Blazor-App nach einem frischen Clone leer startet, ist meist nicht die UI kaputt, sondern die lokale Datei
+`StockPredictor.ML/storage/dashboard/LATEST/dashboard_payload.json` fehlt auf diesem Rechner.
+
+Typischer Minimalablauf:
+
+```powershell
+cd StockPredictor.ML
+.\.venv\Scripts\python.exe export_dashboard_payload.py
+cd ..
+dotnet run --project StockPredictor.App
+```
+
+Die App zeigt bei fehlender Datei jetzt bewusst einen klaren Leerzustand mit:
+
+- dem erwarteten Dateipfad
+- dem Hinweis auf lokal zu erzeugende ML-Artefakte
+- den typischen Befehlen `cd StockPredictor.ML` und `.\.venv\Scripts\python.exe export_dashboard_payload.py`
+- einem Button `Datenstatus prüfen`
+
+Die App bietet zusätzlich:
+
+- eine Asset-Suche direkt auf Basis des vorhandenen Dashboard-Payloads
+- eine lokale Watchlist im Browser für Favoriten
+- Detailseiten unter `/assets/<ticker>`
+- einen stabilen Platzhalter für Ticker ohne vorbereitete Prognosedaten statt eines Absturzes
+- sichtbare Prognose-Metadaten wie Datenstand, `Prognose erzeugt am`, Horizont und Modell/Methode
+- einen Toggle für `Nur Kurse`, `Kurse + Prognose` und `Modellvergleich`
+- einen Warnhinweis, wenn eine Prognose auf einem älteren Export basiert
+- kleine Fragezeichen-Tooltips für wichtige Kennzahlen und Modellbegriffe
+- eine erweiterte `Hinweise`-Seite als FAQ- und Glossar-Bereich in einfacher Sprache, dort direkt mit Volltext statt überlagerndem Tooltip
+- einen News-Bereich mit Kategorie- und optionalem Ticker-Filter
+- klar markierte Demo-News ohne API-Schlüssel oder externe Pflichtabhängigkeit
+- den Hinweis, dass News aktuell nur als Kontext dienen und noch nicht im Modell verwendet werden
+- optionale lokale Browser-Benachrichtigungen für neue Payloads, aktualisierte Prognosedaten und Watchlist-Änderungen
+- neutrale In-App-Toasts als Fallback, wenn Browser-Benachrichtigungen nicht erlaubt sind
+- eine Testbenachrichtigung, die immer zusaetzlich als In-App-Hinweis sichtbar bleibt
+- einen lokalen FAQ-Chat unter `/chat` mit thematischer Begrenzung auf Dashboard, Kennzahlen, Modelle, Methoden und Bachelorarbeitskontext
+- automatischen Fallback auf lokale FAQ-Antworten, wenn Ollama fehlt oder nicht erreichbar ist
+
 Nach einem frischen Clone oder einem Rechnerwechsel ist die Web-App oft zunaechst leer.
 Der Grund ist in der Regel nicht Blazor, sondern fehlende lokale Laufzeit-Artefakte unter `StockPredictor.ML/storage/`.
-Diese Ordner sind standardmaessig in Git ignoriert und werden deshalb nicht automatisch auf einen zweiten Rechner mitgenommen.
+Viele dieser lokalen Laufzeit-Artefakte sind standardmaessig in Git ignoriert und werden deshalb nicht automatisch auf einen zweiten Rechner mitgenommen.
 
 Wenn die App keine Daten findet oder die UI aktualisiert werden soll und die benoetigten ML-Artefakte bereits lokal vorhanden sind:
 
@@ -187,6 +253,7 @@ Die aktuell wichtigsten BA-Notizen liegen in:
 - `StockPredictor.ML/README.md`
 - `StockPredictor.ML/storage/thesis/<run>/thesis_results_report.md`
 - `docs/ui-handoff.md`
+- `docs/future-integrations.md`
 
 Diese Dateien sollten bei jeder groesseren fachlichen oder technischen Aenderung aktualisiert werden, damit die Projektgeschichte und die Begruendungen nachvollziehbar bleiben.
 

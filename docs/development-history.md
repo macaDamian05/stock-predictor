@@ -1,6 +1,6 @@
 # Development History
 
-Stand: 2026-04-22
+Stand: 2026-05-05
 
 ## Zweck dieses Dokuments
 
@@ -276,6 +276,175 @@ Warum diese Phase wichtig ist:
 - der neue Mehrfachpfad ist damit nicht mehr nur technisch vorhanden, sondern systematisch auswertbar
 - Aktien- und ETF-Koerbe koennen jetzt mit demselben gepoolten Verfahren reproduzierbar gegeneinander gestellt werden
 - die Dashboard-UI zeigt damit nicht mehr nur Einzel-Ticker und klassische Korbvergleiche, sondern auch den besten gemeinsamen Multi-Asset-Stand
+
+## Phase 16: Stabilisierung fuer fehlende lokale Dashboard-Artefakte
+
+Im naechsten Schritt wurde die bestehende Blazor-App nicht fachlich erweitert, sondern fuer frische Clones und Rechnerwechsel robuster gemacht.
+
+Wichtige Merkmale dieser Phase:
+
+- klarer Leerzustand, wenn `storage/dashboard/LATEST/dashboard_payload.json` lokal fehlt
+- expliziter Hinweis, dass die ML-Artefakte lokal erzeugt werden muessen
+- direkte Anzeige des erwarteten Dateipfads und der typischen Export-Befehle
+- zusaetzlicher UI-Hinweis `Datenstatus pruefen`, damit der Nutzer den lokalen Stand erneut laden kann
+
+Warum diese Phase wichtig ist:
+
+- die App wirkt nach einem frischen Clone nicht mehr still leer oder kaputt
+- die Trennung zwischen versioniertem Code und lokal erzeugten Laufzeitdaten wird fuer Entwickler klarer
+- die technische Einstiegshuerde fuer neue Rechner oder spaetere Bewertungsumgebungen sinkt deutlich
+
+## Phase 17: Marktzentrierte Startseite statt theoriegetriebener Einfuehrung
+
+Im naechsten Schritt wurde die Blazor-Startseite nicht fachlich neu erfunden, sondern in ihrer Informationshierarchie neu geordnet.
+
+Wichtige Merkmale dieser Phase:
+
+- kompakter Hero-Bereich statt langer Erklaerung am Seitenanfang
+- Watchlist-/Ticker-Kacheln und letzte Schlusskurse direkt am Einstieg
+- Umschaltung zwischen `Kurse` und `Prognosen` auf derselben Uebersichtsseite
+- Prognosen bleiben optisch als Forschungs-/ML-Ergebnis markiert
+- laengere Einordnung wandert auf die bestehende Hinweise-Seite
+
+Warum diese Phase wichtig ist:
+
+- die Seite wirkt naeher an einem modernen Finanzdashboard und weniger wie ein reiner Projektbericht
+- relevante Tickerinformationen stehen vor Theorie und Methodik
+- gleichzeitig bleibt die wissenschaftliche Trennung gewahrt, weil Prognosen nicht als Handlungssignal praesentiert werden
+
+## Phase 18: Asset-Suche, lokale Watchlist und robuste Detailansichten
+
+Im naechsten Schritt wurde die bestehende Dashboard-UI nicht um neue ML-Logik erweitert, sondern um eine
+nutzerfreundlichere Navigation ueber vorhandene und fehlende Assets.
+
+Wichtige Merkmale dieser Phase:
+
+- Asset-Suche direkt auf dem vorhandenen `dashboard_payload.json`
+- lokale Watchlist im Browser mit Hinzufuegen und Entfernen ohne Serverzustand
+- eigene Detailroute pro Asset statt nur einer Fokusflaeche auf der Startseite
+- klare Platzhalter fuer Ticker ohne vorbereitete Prognosedaten
+- deutsche UI-Texte mit regulaeren Sonderzeichen statt Umschreibungen
+
+Warum diese Phase wichtig ist:
+
+- die App ist damit naeher an einem echten Finanzdashboard und weniger nur eine einmalige Uebersichtsseite
+- Nutzer koennen bekannte Assets schneller wiederfinden und lokal markieren
+- fehlende oder noch nicht vorbereitete Ticker fuehren nicht zu Verwirrung oder einem leeren Bildschirm
+- die Trennung bleibt sauber: die UI erklaert fehlende Daten, erzwingt aber kein spontanes ML-Training
+
+## Phase 19: Prognosekontext, Aktualitaet und Modellvergleich sichtbar gemacht
+
+Im naechsten Schritt wurde nicht die ML-Methodik selbst veraendert, sondern der vorhandene Dashboard-Handover
+und die Blazor-UI so erweitert, dass Prognosen besser eingeordnet werden koennen.
+
+Wichtige Merkmale dieser Phase:
+
+- defensive Erweiterung des Dashboard-Payloads um `data_until`, `stale_after_days`, `selected_model`, `available_models`, `model_metrics` und `forecast_horizon_days`
+- sichtbare Anzeige von Datenstand, Prognosezeitpunkt, Modell/Methode und Horizont auf Start- und Detailansicht
+- Toggle nicht mehr nur fuer Kurse und Prognosen, sondern zusaetzlich fuer einen kompakten Modellvergleich
+- direkte Gegenueberstellung von Persistence-Baseline, Ridge Regression, Decision Tree und Random Forest, sofern im Payload vorhanden
+- Warnhinweis fuer aeltere Exporte statt einer stillschweigend veralteten Prognoseanzeige
+
+Warum diese Phase wichtig ist:
+
+- die UI wirkt damit weniger wie ein Trading-Signal und staerker wie eine nachvollziehbare Forschungsoberflaeche
+- Nutzer erkennen schneller, ob ein Forecast aktuell ist, auf welchem Modell er basiert und wie Alternativen abgeschnitten haben
+- die vorhandenen ML-Artefakte werden besser erklaert, ohne die Trainingslogik neu zu schreiben oder zu brechen
+
+## Phase 20: Erklaersystem fuer Fachbegriffe, Kennzahlen und Dashboard-Karten
+
+Im naechsten Schritt wurde die bestehende App nicht um neue ML-Berechnungen erweitert, sondern um eine
+leichter zugängliche Erklaerschicht fuer Begriffe aus Prognose, Backtesting und Modellvergleich.
+
+Wichtige Merkmale dieser Phase:
+
+- zentraler Begriffskatalog in der App statt verteilter Einzeltexte
+- wiederverwendbare Fragezeichen-Tooltip-Komponente fuer wichtige Kennzahlen und Modellbegriffe
+- Integration dieser Erklaerungen in zentrale Start- und Detailkarten, ohne das Dashboard textlastig zu machen
+- Ausbau der bestehenden Hinweise-Seite zu einer kombinierten FAQ- und Glossar-Seite in einfacher Sprache
+
+Warum diese Phase wichtig ist:
+
+- Nutzer werden bei Begriffen wie RMSE, Baseline, Directional Accuracy oder Feature-Profil nicht allein gelassen
+- die App bleibt kompakt, weil Erklaerungen bei Bedarf an der Kennzahl geoeffnet werden koennen
+- fuer die Bachelorarbeit verbessert sich die Nachvollziehbarkeit, ohne dass die ML-Logik selbst geaendert werden musste
+
+## Phase 21: News-Bereich als reiner Kontextblock
+
+Im naechsten Schritt wurde die Blazor-App um einen News-Bereich erweitert, ohne die bestehenden ML-Modelle oder
+Prognosepfade fachlich zu veraendern.
+
+Wichtige Merkmale dieser Phase:
+
+- neue News-Architektur mit `NewsItem`, `INewsProvider`, `MockNewsProvider` und `NewsService`
+- eigene News-Seite mit Filterung nach Kategorie und optional nach betroffenem Ticker
+- kompakte News-Vorschau auf der Startseite
+- klar markierte Demo-Daten aus serioesen Quellenmustern, damit die Funktion ohne API-Schluessel lauffaehig bleibt
+- expliziter Hinweis in der UI, dass News aktuell nur als Kontext dienen und noch nicht im Modell verwendet werden
+
+Warum diese Phase wichtig ist:
+
+- das Dashboard bekommt mehr Marktumfeld, ohne daraus vorschnell ein Trading- oder Sentiment-System zu machen
+- die technische Schnittstelle fuer eine spaetere echte News-API ist vorbereitet
+- es werden keine Secrets oder kostenpflichtigen API-Zugaenge ins Repository gebracht
+
+## Phase 22: Lokale Browser-Benachrichtigungen und In-App-Statusmeldungen
+
+Im naechsten Schritt wurde die Blazor-App um optionale lokale Benachrichtigungen erweitert, ohne eine Server-Push-
+Infrastruktur oder handelnde Signale aufzubauen.
+
+Wichtige Merkmale dieser Phase:
+
+- lokale Browser-Notification-Schicht mit Berechtigungsstatus, Aktivieren/Deaktivieren und Testbenachrichtigung
+- neutrale Benachrichtigungstypen fuer neue Dashboard-Payloads, aktualisierte Prognosedaten und Watchlist-Assets mit neuem Datenstand
+- Erkennung neuer lokaler Exporte ueber `generated_at` im Payload
+- Fallback auf In-App-Toasts, wenn Browser-Benachrichtigungen nicht erlaubt oder nicht verfuegbar sind
+
+Warum diese Phase wichtig ist:
+
+- die App kann neue lokale Forschungsstaende aktiver sichtbar machen, ohne in Richtung Trading-App zu kippen
+- das Feature bleibt optional, rein lokal und ohne Secrets, Push-Server oder externe Infrastruktur
+- Nutzer erhalten Statusfeedback auch dann, wenn der Browser die Notification-API blockiert
+
+## Phase 23: Lokaler FAQ-Chat mit optionaler Ollama-Anbindung
+
+Im naechsten Schritt wurde die Blazor-App um einen lokal begrenzten FAQ- und Erklaer-Chat erweitert, ohne
+die bestehende ML-Logik oder den Dashboard-Export fachlich umzubauen.
+
+Wichtige Merkmale dieser Phase:
+
+- klare Chat-Schnittstelle ueber `IChatAssistantService`
+- lokaler `OllamaChatAssistantService` fuer die lokale Ollama-API sowie Modellpruefung ueber `api/tags`
+- `MockChatAssistantService` als eingebauter FAQ-/Glossar-Fallback ohne Cloud-API
+- eigene Chat-Seite unter `/chat` mit Provider-Status, Frageideen und Setup-Hinweisen
+- thematische Begrenzung auf Dashboard, Kennzahlen, Modelle, Methoden und Bachelorarbeitskontext
+- einfache Sicherheitsregeln gegen Kauf-, Verkaufs- oder Trading-Fragen
+- Testbenachrichtigung zeigt jetzt immer zusaetzlich einen sichtbaren In-App-Hinweis, damit der manuelle Test nicht ins Leere laeuft
+
+Warum diese Phase wichtig ist:
+
+- die Erklaerschicht wird interaktiver, ohne von einem externen LLM-Dienst abzuhaengen
+- die App bleibt auf jedem Rechner lauffaehig, auch wenn Ollama lokal fehlt oder nicht gestartet ist
+- der Chat bleibt klar als Forschungs- und Erklaerfunktion eingegrenzt und greift nicht in Prognoseberechnung oder Anlageentscheidungen ein
+
+## Phase 24: Robusterer Browser-Popup-Pfad und konzeptionelle Zukunftsintegrationen
+
+Im naechsten Schritt wurde der lokale Benachrichtigungspfad auf Browser-Seite robuster gemacht und parallel nur
+eine konzeptionelle Grundlage fuer spaetere Integrationen dokumentiert.
+
+Wichtige Merkmale dieser Phase:
+
+- Browser-Benachrichtigungen nutzen jetzt bevorzugt einen lokalen Service-Worker-Pfad statt nur den direkten `Notification`-Konstruktor
+- Statuskarte zeigt zusaetzlich, ob der Popup-Kanal technisch vorbereitet ist oder nur der In-App-Fallback verfuegbar bleibt
+- neue Doku `docs/future-integrations.md` fuer Nutzerprofile, gespeicherte Watchlists, persoenliche Dashboard-Einstellungen und moegliche Exportpfade
+- sichtbarer, aber deaktivierter UI-Platzhalter fuer `Profile: geplant`, `TradingView-Export: geplant` und `Broker-Anbindung: Zukunftsthema`
+- ausdrueckliche Klarstellung: keine Anlageberatung, kein automatisches Trading, keine Broker-Orders
+
+Warum diese Phase wichtig ist:
+
+- das Notification-Feature wird technisch nachvollziehbarer und weniger browserabhaengig
+- der Ausbaupfad fuer spaetere Integrationen ist dokumentiert, ohne die Bachelorarbeit in Richtung Trading-System zu verschieben
+- die App bleibt forschungsorientiert und seroes, obwohl kuenftige Optionen konzeptionell sichtbar gemacht werden
 
 ## Zwischenfazit fuer die Bachelorarbeit
 

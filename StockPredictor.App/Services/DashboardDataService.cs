@@ -12,7 +12,9 @@ public sealed class DashboardDataService(IWebHostEnvironment environment, ILogge
 
     public async Task<DashboardDataSnapshot> GetLatestAsync(CancellationToken cancellationToken = default)
     {
-        foreach (var candidatePath in GetCandidatePaths())
+        var candidatePaths = GetCandidatePaths();
+
+        foreach (var candidatePath in candidatePaths)
         {
             if (!File.Exists(candidatePath))
             {
@@ -22,12 +24,27 @@ public sealed class DashboardDataService(IWebHostEnvironment environment, ILogge
             try
             {
                 await using var stream = File.OpenRead(candidatePath);
-                var payload = await JsonSerializer.DeserializeAsync<DashboardPayload>(stream, SerializerOptions, cancellationToken);
+                var payload = await JsonSerializer.DeserializeAsync<DashboardPayload>(
+                    stream,
+                    SerializerOptions,
+                    cancellationToken);
 
                 if (payload is not null)
                 {
-                    return new DashboardDataSnapshot(payload, candidatePath, null);
+                    return new DashboardDataSnapshot(
+                        payload,
+                        candidatePath,
+                        DashboardDataState.Available,
+                        null,
+                        candidatePaths);
                 }
+
+                return new DashboardDataSnapshot(
+                    null,
+                    candidatePath,
+                    DashboardDataState.InvalidPayload,
+                    "Die Datei wurde gefunden, enth\u00e4lt aber keinen g\u00fcltigen Dashboard-Payload.",
+                    candidatePaths);
             }
             catch (Exception exception)
             {
@@ -35,20 +52,24 @@ public sealed class DashboardDataService(IWebHostEnvironment environment, ILogge
                 return new DashboardDataSnapshot(
                     null,
                     candidatePath,
-                    "Der Dashboard-Export ist vorhanden, aber das JSON konnte nicht gelesen werden.");
+                    DashboardDataState.InvalidPayload,
+                    "Die Datei wurde gefunden, aber das JSON konnte nicht gelesen werden. Erzeuge den Export erneut.",
+                    candidatePaths);
             }
         }
 
         return new DashboardDataSnapshot(
             null,
-            GetCandidatePaths().First(),
-            "Kein Dashboard-Payload gefunden. Führe export_dashboard_payload.py aus, um den UI-Export zu erzeugen.");
+            candidatePaths.First(),
+            DashboardDataState.Missing,
+            "Kein Dashboard-Payload gefunden.",
+            candidatePaths);
     }
 
     private IReadOnlyList<string> GetCandidatePaths()
     {
-        return
-        [
+        var candidatePaths = new[]
+        {
             Path.GetFullPath(Path.Combine(
                 environment.ContentRootPath,
                 "..",
@@ -68,11 +89,29 @@ public sealed class DashboardDataService(IWebHostEnvironment environment, ILogge
                 "dashboard",
                 "LATEST",
                 "dashboard_payload.json")),
-        ];
+        };
+
+        return candidatePaths
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
     }
 }
 
 public sealed record DashboardDataSnapshot(
     DashboardPayload? Payload,
     string ResolvedPath,
-    string? ErrorMessage);
+    DashboardDataState State,
+    string? ErrorMessage,
+    IReadOnlyList<string> CheckedPaths)
+{
+    public bool IsMissing => State == DashboardDataState.Missing;
+
+    public bool IsInvalidPayload => State == DashboardDataState.InvalidPayload;
+}
+
+public enum DashboardDataState
+{
+    Available,
+    Missing,
+    InvalidPayload,
+}

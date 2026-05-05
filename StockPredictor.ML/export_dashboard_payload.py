@@ -9,6 +9,7 @@ import pandas as pd
 
 from core.paths import (
     ensure_runtime_directories,
+    get_artifact_paths,
     get_classical_artifact_paths,
     get_dashboard_artifact_paths,
     get_multi_asset_suite_artifact_paths,
@@ -21,10 +22,18 @@ DEFAULT_DASHBOARD_RUN = "latest"
 DEFAULT_THESIS_RUN = "BACHELOR_THESIS_RESULTS"
 DEFAULT_MULTI_ASSET_SUITE_RUN = "latest"
 DEFAULT_TICKERS = ["AAPL", "TSLA", "DOU.DE"]
+DEFAULT_STALE_AFTER_DAYS = 3
 PROFILE_DISPLAY_NAMES = {
     "lag_only": "Lag Only",
     "technical_basic": "Technical Basic",
     "technical_extended": "Technical Extended",
+}
+MODEL_DISPLAY_NAMES = {
+    "baseline_persistence": "Persistence-Baseline",
+    "ridge_regression": "Ridge Regression",
+    "decision_tree": "Decision Tree",
+    "random_forest": "Random Forest",
+    "lstm": "LSTM",
 }
 MULTI_ASSET_BASKET_DISPLAY_NAMES = {
     "starter": "Starter Basket",
@@ -34,6 +43,13 @@ MULTI_ASSET_BASKET_DISPLAY_NAMES = {
     "etf_sectors": "ETF Sectors",
     "mixed_assets": "Mixed Assets",
 }
+MODEL_DISPLAY_ORDER = [
+    "baseline_persistence",
+    "ridge_regression",
+    "decision_tree",
+    "random_forest",
+    "lstm",
+]
 COMPANY_RANKING_WEIGHTS = {
     "forecast_horizon_change_pct": 0.45,
     "walk_forward_best_directional_accuracy": 0.25,
@@ -105,6 +121,150 @@ def infer_feature_profile(metadata_payload: dict[str, object]) -> str:
     return "lag_only"
 
 
+def format_model_label(model_key: str) -> str:
+    return MODEL_DISPLAY_NAMES.get(model_key, model_key.replace("_", " ").title())
+
+
+def get_artifact_timestamp(*paths: Path) -> str:
+    existing_paths = [path for path in paths if path.exists()]
+    if not existing_paths:
+        return datetime.now().isoformat(timespec="seconds")
+
+    latest_mtime = max(path.stat().st_mtime for path in existing_paths)
+    return datetime.fromtimestamp(latest_mtime).isoformat(timespec="seconds")
+
+
+def build_selected_model_record(model_key: str) -> dict[str, object]:
+    return {
+        "model_key": model_key,
+        "model_label": format_model_label(model_key),
+    }
+
+
+def try_build_lstm_model_metric_record(ticker: str) -> dict[str, object] | None:
+    lstm_artifacts = get_artifact_paths(ticker)
+    if not all(path.exists() for path in (lstm_artifacts.model, lstm_artifacts.scaler, lstm_artifacts.metadata)):
+        return None
+
+    lstm_metadata = try_load_json(lstm_artifacts.metadata) or {}
+
+    return {
+        "model_key": "lstm",
+        "model_label": "LSTM",
+        "is_selected": False,
+        "has_next_step_prediction": False,
+        "next_predicted_close": None,
+        "next_predicted_change_pct": None,
+        "holdout_mae": None,
+        "holdout_rmse": None,
+        "holdout_directional_accuracy": None,
+        "walk_forward_mae": None,
+        "walk_forward_rmse": None,
+        "walk_forward_directional_accuracy": None,
+        "walk_forward_rmse_gap_vs_baseline": None,
+        "walk_forward_mae_gap_vs_baseline": None,
+        "walk_forward_directional_accuracy_gap_vs_baseline": None,
+        "metadata_available": True,
+        "notes": "LSTM-Artefakte lokal vorhanden, aber nicht im klassischen Modellvergleich ausgewertet.",
+        "data_until": lstm_metadata.get("last_data_date"),
+    }
+
+
+def build_model_metric_records(
+    ticker: str,
+    summary_payload: dict[str, object],
+    last_close: float,
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    holdout_metrics = summary_payload.get("metrics", {}).get("holdout", {})
+    walk_forward_overall = summary_payload.get("metrics", {}).get("walk_forward", {}).get("overall", {})
+    model_predictions = summary_payload.get("next_forecast", {}).get("model_predictions", {})
+    selected_model_key = str(summary_payload["forecast_model"])
+
+    available_model_keys = {
+        *holdout_metrics.keys(),
+        *walk_forward_overall.keys(),
+        *model_predictions.keys(),
+        selected_model_key,
+    }
+    ordered_model_keys = [
+        model_key
+        for model_key in MODEL_DISPLAY_ORDER
+        if model_key in available_model_keys
+    ]
+    remaining_model_keys = sorted(available_model_keys.difference(ordered_model_keys))
+
+    baseline_holdout = holdout_metrics.get("baseline_persistence", {})
+    baseline_walk_forward = walk_forward_overall.get("baseline_persistence", {})
+
+    available_models = []
+    model_metrics = []
+
+    for model_key in [*ordered_model_keys, *remaining_model_keys]:
+        holdout_entry = holdout_metrics.get(model_key, {})
+        walk_forward_entry = walk_forward_overall.get(model_key, {})
+        prediction_entry = model_predictions.get(model_key, {})
+        predicted_close = prediction_entry.get("predicted_close")
+        predicted_return = prediction_entry.get("predicted_return")
+
+        available_models.append(build_selected_model_record(model_key))
+        model_metrics.append(
+            {
+                "model_key": model_key,
+                "model_label": format_model_label(model_key),
+                "is_selected": model_key == selected_model_key,
+                "has_next_step_prediction": predicted_close is not None,
+                "next_predicted_close": predicted_close,
+                "next_predicted_change_pct": (
+                    ((float(predicted_close) / last_close) - 1.0) * 100.0
+                    if predicted_close is not None
+                    else (
+                        float(predicted_return) * 100.0 if predicted_return is not None else None
+                    )
+                ),
+                "holdout_mae": holdout_entry.get("mae"),
+                "holdout_rmse": holdout_entry.get("rmse"),
+                "holdout_directional_accuracy": holdout_entry.get("directional_accuracy"),
+                "walk_forward_mae": walk_forward_entry.get("mae"),
+                "walk_forward_rmse": walk_forward_entry.get("rmse"),
+                "walk_forward_directional_accuracy": walk_forward_entry.get("directional_accuracy"),
+                "walk_forward_rmse_gap_vs_baseline": (
+                    None
+                    if walk_forward_entry.get("rmse") is None or baseline_walk_forward.get("rmse") is None
+                    else float(walk_forward_entry["rmse"]) - float(baseline_walk_forward["rmse"])
+                ),
+                "walk_forward_mae_gap_vs_baseline": (
+                    None
+                    if walk_forward_entry.get("mae") is None or baseline_walk_forward.get("mae") is None
+                    else float(walk_forward_entry["mae"]) - float(baseline_walk_forward["mae"])
+                ),
+                "walk_forward_directional_accuracy_gap_vs_baseline": (
+                    None
+                    if walk_forward_entry.get("directional_accuracy") is None
+                    or baseline_walk_forward.get("directional_accuracy") is None
+                    else float(walk_forward_entry["directional_accuracy"])
+                    - float(baseline_walk_forward["directional_accuracy"])
+                ),
+                "holdout_rmse_gap_vs_baseline": (
+                    None
+                    if holdout_entry.get("rmse") is None or baseline_holdout.get("rmse") is None
+                    else float(holdout_entry["rmse"]) - float(baseline_holdout["rmse"])
+                ),
+                "holdout_mae_gap_vs_baseline": (
+                    None
+                    if holdout_entry.get("mae") is None or baseline_holdout.get("mae") is None
+                    else float(holdout_entry["mae"]) - float(baseline_holdout["mae"])
+                ),
+            }
+        )
+
+    lstm_metric_record = try_build_lstm_model_metric_record(ticker)
+    if lstm_metric_record:
+        available_models.append(build_selected_model_record("lstm"))
+        model_metrics.append(lstm_metric_record)
+
+    return available_models, model_metrics
+
+
 def build_featured_ticker_record(ticker: str) -> dict[str, object]:
     artifacts = get_classical_artifact_paths(ticker)
     summary_payload = load_json(artifacts.summary)
@@ -139,11 +299,29 @@ def build_featured_ticker_record(ticker: str) -> dict[str, object]:
             forecast_prices,
             reference_value=last_close,
         )
+    available_models, model_metrics = build_model_metric_records(
+        ticker=ticker,
+        summary_payload=summary_payload,
+        last_close=last_close,
+    )
+    forecast_generated_at = get_artifact_timestamp(
+        artifacts.summary,
+        artifacts.forecast,
+        artifacts.metadata,
+        artifacts.metrics,
+        artifacts.walk_forward_metrics,
+    )
+    data_until = metadata_payload.get("data_end") or forecast_payload["last_close_date"]
 
     return {
         "ticker": ticker,
+        "forecast_generated_at": forecast_generated_at,
+        "data_until": data_until,
         "forecast_model": summary_payload["forecast_model"],
         "forecast_model_label": forecast_payload["forecast_model_label"],
+        "selected_model": build_selected_model_record(summary_payload["forecast_model"]),
+        "available_models": available_models,
+        "model_metrics": model_metrics,
         "last_close_date": forecast_payload["last_close_date"],
         "last_close": last_close,
         "next_forecast_date": next_step["date"],
@@ -153,6 +331,7 @@ def build_featured_ticker_record(ticker: str) -> dict[str, object]:
         "forecast_end_close": final_close,
         "forecast_horizon_change_pct": ((final_close / last_close) - 1.0) * 100.0,
         "forecast_days": int(summary_payload["forecast_days"]),
+        "forecast_horizon_days": int(summary_payload["forecast_days"]),
         "average_recent_rsi": summary_payload["average_recent_rsi"],
         "average_forecast_slope": summary_payload["average_forecast_slope"],
         "average_forecast_distance_to_last_close": average_forecast_distance_to_last_close,
@@ -359,10 +538,22 @@ def build_payload(
         notes.append(
             "Zusaetzlich werden gemeinsame Multi-Asset-Laeufe fuer Aktien- und ETF-Koerbe separat zusammengefasst."
         )
+    notes.append(
+        "Die UI zeigt den zuletzt exportierten ML-Stand und keine garantierte Live-Prognose."
+    )
+
+    data_until_candidates = [
+        str(record.get("data_until"))
+        for record in featured_records
+        if record.get("data_until")
+    ]
+    payload_data_until = max(data_until_candidates) if data_until_candidates else ""
 
     return {
-        "ui_contract_version": "1.2",
+        "ui_contract_version": "1.3",
         "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "data_until": payload_data_until,
+        "stale_after_days": DEFAULT_STALE_AFTER_DAYS,
         "source_runs": {
             "thesis_run": thesis_payload["run_name"],
             "multi_asset_suite_run": multi_asset_suite_run or "",

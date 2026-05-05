@@ -1,0 +1,812 @@
+@page "/assets/{TickerSymbol}"
+@using System.Globalization
+@inject AssetCatalogService AssetCatalogService
+@inject BrowserWatchlistService BrowserWatchlistService
+@inject DashboardDataService DashboardDataService
+
+<PageTitle>Asset-Details</PageTitle>
+
+@if (_isLoading)
+{
+    <section class="dashboard-empty panel-shell">
+        <span class="section-kicker">Laden</span>
+        <h1>Asset wird vorbereitet...</h1>
+        <p>Die App lädt die lokalen Dashboard-Daten und baut die Detailansicht auf.</p>
+    </section>
+}
+else if (_snapshot?.Payload is null)
+{
+    var isMissingPayload = _snapshot?.IsMissing == true;
+    var emptyStateKicker = isMissingPayload ? "Payload fehlt" : "Payload ungültig";
+    var emptyStateTitle = isMissingPayload
+        ? "Lokale Dashboard-Daten fehlen auf diesem Rechner"
+        : "Dashboard-Payload konnte nicht gelesen werden";
+    var emptyStateMessage = isMissingPayload
+        ? "Auch die Asset-Detailansicht benötigt den lokal exportierten Dashboard-Payload aus dem ML-Teil."
+        : (_snapshot?.ErrorMessage ?? "Der Dashboard-Payload konnte nicht geladen werden.");
+
+    <section class="dashboard-empty panel-shell">
+        <span class="section-kicker">@emptyStateKicker</span>
+        <h1>@emptyStateTitle</h1>
+        <p>@emptyStateMessage</p>
+
+        <div class="detail-stats-grid">
+            <article class="mini-stat">
+                <span>Fehlende Datei</span>
+                <strong>dashboard_payload.json</strong>
+                <small>@_snapshot?.ResolvedPath</small>
+            </article>
+            <article class="mini-stat">
+                <span>Typische Befehle</span>
+                <strong>ML-Export lokal erzeugen</strong>
+                <small>cd StockPredictor.ML und .\.venv\Scripts\python.exe export_dashboard_payload.py</small>
+            </article>
+        </div>
+
+        <div class="hero-actions">
+            <button class="action-button action-primary" type="button" @onclick="ReloadAsync">Datenstatus prüfen</button>
+            <a class="action-link action-secondary" href="/">Zur Startseite</a>
+        </div>
+    </section>
+}
+else if (_assetEntry is null)
+{
+    <section class="dashboard-empty panel-shell">
+        <span class="section-kicker">Asset nicht verfügbar</span>
+        <h1>Die Detailansicht konnte nicht aufgebaut werden.</h1>
+        <a class="action-link action-primary" href="/">Zur Startseite</a>
+    </section>
+}
+else
+{
+    var payload = _snapshot.Payload;
+    var asset = _assetEntry;
+    var featuredTicker = asset.FeaturedTicker;
+    var rankingEntry = asset.RankingEntry;
+
+    <div class="asset-page">
+        <section class="asset-hero panel-shell">
+            <div class="hero-copy">
+                <span class="section-kicker">Asset-Details</span>
+                <h1>@asset.Ticker</h1>
+                @if (!string.IsNullOrWhiteSpace(asset.DisplayName) || !string.IsNullOrWhiteSpace(asset.AssetType))
+                {
+                    <p class="asset-subtitle">
+                        @asset.DisplayName
+                        @if (!string.IsNullOrWhiteSpace(asset.DisplayName) && !string.IsNullOrWhiteSpace(asset.AssetType))
+                        {
+                            <span>·</span>
+                        }
+                        @asset.AssetType
+                    </p>
+                }
+                <p>@GetHeroSummary(asset)</p>
+            </div>
+
+            <div class="hero-meta">
+                <div class="meta-group">
+                    <span class="meta-pill">@GetForecastAvailabilityLabel(asset)</span>
+                    @if (featuredTicker is not null)
+                    {
+                        <span class="meta-pill">@GetFreshnessLabel(payload, featuredTicker)</span>
+                    }
+                    else if (asset.LastCloseDate is not null)
+                    {
+                        <span class="meta-pill">Stand @FormatDate(asset.LastCloseDate.Value)</span>
+                    }
+                </div>
+                <div class="hero-actions">
+                    <button class="action-button action-primary" type="button" @onclick="ToggleWatchlistAsync">
+                        @GetWatchlistButtonLabel()
+                    </button>
+                    <a class="action-link action-secondary" href="/">Zur Startseite</a>
+                </div>
+            </div>
+        </section>
+
+        @if (featuredTicker is not null)
+        {
+            <section class="asset-mode-shell panel-shell">
+                <div class="panel-header">
+                    <div>
+                        <span class="section-kicker">Ansicht</span>
+                        <h2>@GetModeHeading()</h2>
+                    </div>
+
+                    <div class="surface-toggle" role="tablist" aria-label="Ansicht wechseln">
+                        <button class="@GetModeTabClass(AssetDetailMode.PricesOnly)"
+                                type="button"
+                                @onclick="() => SetMode(AssetDetailMode.PricesOnly)">
+                            Nur Kurse
+                        </button>
+                        <button class="@GetModeTabClass(AssetDetailMode.PricesAndForecast)"
+                                type="button"
+                                @onclick="() => SetMode(AssetDetailMode.PricesAndForecast)">
+                            Kurse + Prognose
+                        </button>
+                        <button class="@GetModeTabClass(AssetDetailMode.ModelComparison)"
+                                type="button"
+                                @onclick="() => SetMode(AssetDetailMode.ModelComparison)">
+                            Modellvergleich
+                        </button>
+                    </div>
+                </div>
+
+                <div class="forecast-meta-grid">
+                    <article class="meta-card">
+                        <span>Datenstand</span>
+                        <strong>@FormatNullableDate(GetDataUntil(payload, featuredTicker))</strong>
+                        <small>Historische Kursdaten bis zum letzten im Export enthaltenen Handelstag</small>
+                    </article>
+                    <article class="meta-card">
+                        <span>Prognose erzeugt am</span>
+                        <strong>@FormatDateTime(GetForecastGeneratedAt(payload, featuredTicker))</strong>
+                        <small>Zuletzt exportierter ML-Stand, keine Live-Prognose</small>
+                    </article>
+                    <article class="meta-card">
+                        <span>Modell / Methode</span>
+                        <strong class="metric-value-with-help">
+                            @GetSelectedModelLabel(featuredTicker)
+                            @if (GetModelExplanationTermKey(featuredTicker.SelectedModel.ModelKey, featuredTicker.ForecastModel) is { } selectedModelTermKey)
+                            {
+                                <InfoTooltip TermKey="@selectedModelTermKey" />
+                            }
+                        </strong>
+                        <small>Holdout: @FormatModelKey(featuredTicker.HoldoutBestModel) · Walk-Forward: @FormatModelKey(featuredTicker.WalkForwardBestModel)</small>
+                    </article>
+                    <article class="meta-card">
+                        <span>Prognosehorizont</span>
+                        <strong>@GetForecastHorizonDays(featuredTicker) Handelstage</strong>
+                        <small>Von @FormatDate(featuredTicker.NextForecastDate) bis @FormatDate(featuredTicker.ForecastEndDate)</small>
+                    </article>
+                </div>
+
+                @if (IsTickerStale(payload, featuredTicker))
+                {
+                    <div class="stale-banner">
+                        Diese Prognose basiert auf einem älteren Export.
+                    </div>
+                }
+
+                @if (_activeMode == AssetDetailMode.PricesOnly)
+                {
+                    <div class="detail-stats-grid">
+                        <article class="mini-stat">
+                            <span>Letzter Schlusskurs</span>
+                            <strong>@FormatPrice(featuredTicker.LastClose)</strong>
+                            <small>@FormatDate(featuredTicker.LastCloseDate)</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span>Datenfenster</span>
+                            <strong>@FormatDate(featuredTicker.DataStart)</strong>
+                            <small>bis @FormatDate(featuredTicker.DataEnd)</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span class="metric-label">Modellprognose 5 Tage <InfoTooltip TermKey="forecast" /></span>
+                            <strong class="@GetTrendTone(featuredTicker.ForecastHorizonChangePct)">
+                                @FormatPercent(featuredTicker.ForecastHorizonChangePct)
+                            </strong>
+                            <small>Optional zuschaltbar</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span class="metric-label">Walk-Forward-RMSE <InfoTooltip TermKey="walk_forward_validation" /></span>
+                            <strong>@FormatRmse(featuredTicker.WalkForwardBestRmse)</strong>
+                            <small>Baseline @FormatRmse(featuredTicker.WalkForwardBaselineRmse)</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span class="metric-label">Richtungstreffer <InfoTooltip TermKey="directional_accuracy" /></span>
+                            <strong>@FormatRatePercent(featuredTicker.WalkForwardBestDirectionalAccuracy * 100)</strong>
+                            <small>Walk-Forward</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span class="metric-label">Feature-Profil <InfoTooltip TermKey="feature_profile" /></span>
+                            <strong>@FormatFeatureProfileLabel(featuredTicker.FeatureProfile)</strong>
+                            <small>@GetSelectedModelLabel(featuredTicker)</small>
+                        </article>
+                    </div>
+                }
+                else if (_activeMode == AssetDetailMode.PricesAndForecast)
+                {
+                    <div class="research-banner">
+                        Modellprognose als forschungsbasierte Schätzung. Keine Anlageberatung.
+                    </div>
+
+                    <div class="detail-stats-grid">
+                        <article class="mini-stat">
+                            <span>Letzter Schlusskurs</span>
+                            <strong>@FormatPrice(featuredTicker.LastClose)</strong>
+                            <small>@FormatDate(featuredTicker.LastCloseDate)</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span class="metric-label">Nächste Modellprognose <InfoTooltip TermKey="forecast" /></span>
+                            <strong>@FormatPrice(featuredTicker.NextPredictedClose)</strong>
+                            <small>@FormatPercent(featuredTicker.NextPredictedChangePct)</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span>Prognosehorizont</span>
+                            <strong class="@GetTrendTone(featuredTicker.ForecastHorizonChangePct)">
+                                @FormatPercent(featuredTicker.ForecastHorizonChangePct)
+                            </strong>
+                            <small>@GetForecastHorizonDays(featuredTicker) Handelstage</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span class="metric-label">Walk-Forward-RMSE <InfoTooltip TermKey="walk_forward_validation" /></span>
+                            <strong>@FormatRmse(featuredTicker.WalkForwardBestRmse)</strong>
+                            <small>@FormatSignedRmse(featuredTicker.WalkForwardBestRmse - featuredTicker.WalkForwardBaselineRmse)</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span>MAE / Abstand</span>
+                            <strong>@FormatPrice(featuredTicker.AverageForecastDistanceToLastClose)</strong>
+                            <small>@FormatPlainPercent(featuredTicker.AverageForecastDistancePctToLastClose)</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span class="metric-label">Richtungstreffer <InfoTooltip TermKey="directional_accuracy" /></span>
+                            <strong>@FormatRatePercent(featuredTicker.WalkForwardBestDirectionalAccuracy * 100)</strong>
+                            <small>Walk-Forward</small>
+                        </article>
+                    </div>
+
+                    <div class="forecast-panel">
+                        <div class="forecast-panel-header">
+                            <div>
+                                <span class="section-kicker">Prognosepfad</span>
+                                <h2>Prognostizierter Schlusskursverlauf</h2>
+                            </div>
+                            <div class="forecast-legend">
+                                <span class="legend-dot"></span>
+                                <span>Letzter Schlusskurs + Prognosepfad</span>
+                            </div>
+                        </div>
+
+                        <ForecastSparkline Values="@GetSparklineValues(featuredTicker)"
+                                           TrendTone="@MapToneToSparkline(featuredTicker.ForecastHorizonChangePct)"
+                                           AriaLabel="@($"{featuredTicker.Ticker} Prognosepfad")" />
+                    </div>
+
+                    <div class="forecast-strip">
+                        @foreach (var point in featuredTicker.ForecastPath)
+                        {
+                            <article class="forecast-day">
+                                <span>@FormatDate(point.Date)</span>
+                                <strong>@FormatPrice(point.PredictedClose)</strong>
+                                <small class="@GetTrendTone(point.PredictedReturn * 100)">
+                                    @FormatPercent(point.PredictedReturn * 100)
+                                </small>
+                            </article>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="research-banner">
+                        <span class="metric-label">Modellvergleich auf Basis von Backtesting <InfoTooltip TermKey="backtesting" /> und vorhandenen Test- und Walk-Forward-Metriken.</span>
+                        <span>Keine Anlageberatung.</span>
+                    </div>
+
+                    @if (featuredTicker.ModelMetrics.Count > 0)
+                    {
+                        <div class="model-compare-grid">
+                            @foreach (var modelMetric in featuredTicker.ModelMetrics)
+                            {
+                                <article class="model-compare-card @(modelMetric.IsSelected ? "is-selected" : string.Empty)">
+                                    <div class="model-card-header">
+                                        <div>
+                                            <span class="section-kicker">Modell / Methode</span>
+                                            <h3 class="metric-value-with-help">
+                                                @modelMetric.ModelLabel
+                                                @if (GetModelExplanationTermKey(modelMetric.ModelKey) is { } modelTermKey)
+                                                {
+                                                    <InfoTooltip TermKey="@modelTermKey" />
+                                                }
+                                            </h3>
+                                        </div>
+                                        <span class="tone-pill @(GetGapTone(modelMetric.WalkForwardRmseGapVsBaseline ?? 0))">
+                                            @(modelMetric.IsSelected ? "Aktive Modellprognose" : "Vergleichsmodell")
+                                        </span>
+                                    </div>
+
+                                    <div class="model-next-step">
+                                        <span>Nächste Schätzung</span>
+                                        <strong>@FormatNullablePrice(modelMetric.NextPredictedClose)</strong>
+                                        <small>@FormatNullablePercent(modelMetric.NextPredictedChangePct)</small>
+                                    </div>
+
+                                    <div class="model-metric-grid">
+                                        <div>
+                                            <span class="metric-label">Walk-Forward RMSE <InfoTooltip TermKey="walk_forward_validation" /></span>
+                                            <strong>@FormatNullableRmse(modelMetric.WalkForwardRmse)</strong>
+                                            <small>@FormatNullableSignedRmse(modelMetric.WalkForwardRmseGapVsBaseline)</small>
+                                        </div>
+                                        <div>
+                                            <span class="metric-label">Walk-Forward MAE <InfoTooltip TermKey="mae" /></span>
+                                            <strong>@FormatNullableRmse(modelMetric.WalkForwardMae)</strong>
+                                            <small>@FormatNullableSignedRmse(modelMetric.WalkForwardMaeGapVsBaseline)</small>
+                                        </div>
+                                        <div>
+                                            <span class="metric-label">Richtungstreffer <InfoTooltip TermKey="directional_accuracy" /></span>
+                                            <strong>@FormatNullableRatePercent(modelMetric.WalkForwardDirectionalAccuracy)</strong>
+                                            <small>gegen Baseline @FormatNullableRateGapPercent(modelMetric.WalkForwardDirectionalAccuracyGapVsBaseline)</small>
+                                        </div>
+                                        <div>
+                                            <span class="metric-label">Holdout RMSE <InfoTooltip TermKey="rmse" /></span>
+                                            <strong>@FormatNullableRmse(modelMetric.HoldoutRmse)</strong>
+                                            <small>@FormatNullableSignedRmse(modelMetric.HoldoutRmseGapVsBaseline)</small>
+                                        </div>
+                                        <div>
+                                            <span class="metric-label">Holdout MAE <InfoTooltip TermKey="mae" /></span>
+                                            <strong>@FormatNullableRmse(modelMetric.HoldoutMae)</strong>
+                                            <small>@FormatNullableSignedRmse(modelMetric.HoldoutMaeGapVsBaseline)</small>
+                                        </div>
+                                        <div>
+                                            <span class="metric-label">Holdout Richtung <InfoTooltip TermKey="directional_accuracy" /></span>
+                                            <strong>@FormatNullableRatePercent(modelMetric.HoldoutDirectionalAccuracy)</strong>
+                                            <small>Testsplit</small>
+                                        </div>
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(modelMetric.Notes))
+                                    {
+                                        <p class="model-note">@modelMetric.Notes</p>
+                                    }
+                                </article>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="side-copy">Für dieses Asset liegen aktuell keine Vergleichsmetriken im Payload vor.</p>
+                    }
+                }
+            </section>
+
+            <aside class="asset-sidebar">
+                <article class="panel-shell side-card">
+                    <span class="section-kicker">Forschungscharakter</span>
+                    <h3>Die UI zeigt keinen Live-Datenstrom</h3>
+                    <p class="side-copy">
+                        Diese Ansicht zeigt den zuletzt exportierten ML-Stand der Bachelorarbeit. Prognosen sind
+                        forschungsbasierte Schätzungen und keine Live-Trading-Funktion.
+                    </p>
+                    @if (rankingEntry is not null)
+                    {
+                        <div class="side-inline-stats">
+                            <span class="meta-pill">Ranking Platz @rankingEntry.Rank</span>
+                            <span class="meta-pill">Score @FormatScore(rankingEntry.RankingScore)</span>
+                        </div>
+                    }
+                </article>
+            </aside>
+        }
+        else if (rankingEntry is not null)
+        {
+            <section class="asset-grid">
+                <article class="panel-shell asset-main-panel">
+                    <span class="section-kicker">Kompakter Payload-Stand</span>
+                    <h2>Für dieses Asset liegen aktuell keine vorbereiteten Prognosedaten vor.</h2>
+                    <p>
+                        Im Dashboard-Payload ist derzeit nur eine kompakte Ranking- und Benchmark-Sicht vorhanden.
+                        Ein vollständiger ML-Lauf mit Detail-Forecast muss hierfür erzeugt werden.
+                    </p>
+
+                    <div class="detail-stats-grid">
+                        <article class="mini-stat">
+                            <span>Letzter Kurs</span>
+                            <strong>@FormatPrice(rankingEntry.LastClose)</strong>
+                            <small>Kompakter Payload-Wert</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span>5-Tage-Horizont</span>
+                            <strong class="@GetTrendTone(rankingEntry.ForecastHorizonChangePct)">
+                                @FormatPercent(rankingEntry.ForecastHorizonChangePct)
+                            </strong>
+                            <small>Ranking-Export</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span>Richtungstreffer</span>
+                            <strong>@FormatRatePercent(rankingEntry.WalkForwardBestDirectionalAccuracy * 100)</strong>
+                            <small>Walk-Forward</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span>Bestes Modell</span>
+                            <strong>@FormatModelLabel(rankingEntry.ForecastModel, rankingEntry.ForecastModelLabel)</strong>
+                            <small>@FormatFeatureProfileLabel(rankingEntry.FeatureProfile)</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span>Abstand zur Baseline</span>
+                            <strong class="@GetGapTone(rankingEntry.WalkForwardBestRmse - rankingEntry.WalkForwardBaselineRmse)">
+                                @FormatSignedRmse(rankingEntry.WalkForwardBestRmse - rankingEntry.WalkForwardBaselineRmse)
+                            </strong>
+                            <small>@GetBenchmarkLabel(rankingEntry.BeatsBaselineRmse)</small>
+                        </article>
+                        <article class="mini-stat">
+                            <span>Ranking</span>
+                            <strong>Platz @rankingEntry.Rank</strong>
+                            <small>Score @FormatScore(rankingEntry.RankingScore)</small>
+                        </article>
+                    </div>
+                </article>
+
+                <aside class="asset-sidebar">
+                    <article class="panel-shell side-card">
+                        <span class="section-kicker">Nächster Schritt</span>
+                        <h3>ML-Lauf für Detailansicht erzeugen</h3>
+                        <div class="command-list">
+                            <code>cd StockPredictor.ML</code>
+                            <code>.\.venv\Scripts\python.exe export_dashboard_payload.py</code>
+                        </div>
+                        <p class="side-copy">
+                            Falls dieses Asset noch gar nicht im lokalen ML-Stand enthalten ist, muss zuerst ein passender
+                            Pipeline-Lauf ausgeführt werden.
+                        </p>
+                    </article>
+                </aside>
+            </section>
+        }
+        else
+        {
+            <section class="asset-grid">
+                <article class="panel-shell asset-main-panel">
+                    <span class="section-kicker">Platzhalter</span>
+                    <h2>Für dieses Asset liegen aktuell keine vorbereiteten Prognosedaten vor.</h2>
+                    <p>ML-Lauf muss hierfür erzeugt werden.</p>
+                    <p>
+                        Die App bleibt bewusst stabil und zeigt zunächst nur eine Platzhalteransicht, bis lokale ML-Artefakte
+                        für dieses Asset erzeugt wurden.
+                    </p>
+                </article>
+
+                <aside class="asset-sidebar">
+                    <article class="panel-shell side-card">
+                        <span class="section-kicker">Typische Befehle</span>
+                        <h3>Lokalen Dashboard-Stand aktualisieren</h3>
+                        <div class="command-list">
+                            <code>cd StockPredictor.ML</code>
+                            <code>.\.venv\Scripts\python.exe export_dashboard_payload.py</code>
+                        </div>
+                    </article>
+                </aside>
+            </section>
+        }
+    </div>
+}
+
+@code {
+    private static readonly CultureInfo UiCulture = CultureInfo.GetCultureInfo("de-DE");
+
+    [Parameter]
+    public string TickerSymbol { get; set; } = string.Empty;
+
+    private DashboardDataSnapshot? _snapshot;
+    private AssetCatalogEntry? _assetEntry;
+    private List<string> _watchlistTickers = [];
+    private AssetDetailMode _activeMode = AssetDetailMode.PricesAndForecast;
+    private bool _isLoading = true;
+    private bool _watchlistLoaded;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadAssetAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _watchlistLoaded)
+        {
+            return;
+        }
+
+        await LoadWatchlistAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _isLoading = true;
+        await LoadAssetAsync();
+    }
+
+    private async Task LoadAssetAsync()
+    {
+        _snapshot = await DashboardDataService.GetLatestAsync();
+
+        if (_snapshot.Payload is not null)
+        {
+            _assetEntry = AssetCatalogService.FindEntry(_snapshot.Payload, TickerSymbol)
+                ?? AssetCatalogService.CreatePlaceholderEntry(TickerSymbol);
+        }
+        else
+        {
+            _assetEntry = AssetCatalogService.CreatePlaceholderEntry(TickerSymbol);
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task LoadWatchlistAsync()
+    {
+        try
+        {
+            _watchlistTickers = (await BrowserWatchlistService.GetAsync()).ToList();
+        }
+        catch (InvalidOperationException)
+        {
+            _watchlistTickers = [];
+        }
+        catch (JSDisconnectedException)
+        {
+            _watchlistTickers = [];
+        }
+        finally
+        {
+            _watchlistLoaded = true;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void SetMode(AssetDetailMode mode)
+    {
+        _activeMode = mode;
+    }
+
+    private string GetModeTabClass(AssetDetailMode mode)
+    {
+        return mode == _activeMode ? "surface-tab is-active" : "surface-tab";
+    }
+
+    private string GetModeHeading()
+    {
+        return _activeMode switch
+        {
+            AssetDetailMode.PricesOnly => "Kursübersicht ohne dominanten Prognoseblock",
+            AssetDetailMode.PricesAndForecast => "Kurse und Modellprognose gemeinsam",
+            AssetDetailMode.ModelComparison => "Modellvergleich und Backtest-Metriken",
+            _ => "Kurse und Modellprognose gemeinsam",
+        };
+    }
+
+    private async Task ToggleWatchlistAsync()
+    {
+        if (_assetEntry is null)
+        {
+            return;
+        }
+
+        var normalizedTicker = AssetCatalogService.NormalizeTicker(_assetEntry.Ticker);
+
+        if (IsInWatchlist())
+        {
+            _watchlistTickers = _watchlistTickers
+                .Where(existingTicker => !string.Equals(existingTicker, normalizedTicker, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+        else
+        {
+            _watchlistTickers.Add(normalizedTicker);
+        }
+
+        try
+        {
+            await BrowserWatchlistService.SaveAsync(_watchlistTickers);
+        }
+        catch (InvalidOperationException)
+        {
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+    }
+
+    private bool IsInWatchlist()
+    {
+        if (_assetEntry is null)
+        {
+            return false;
+        }
+
+        return _watchlistTickers.Any(existingTicker =>
+            string.Equals(existingTicker, _assetEntry.Ticker, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private string GetWatchlistButtonLabel()
+    {
+        return IsInWatchlist() ? "Aus Watchlist entfernen" : "Zur Watchlist hinzufügen";
+    }
+
+    private static string GetHeroSummary(AssetCatalogEntry asset)
+    {
+        if (asset.FeaturedTicker is not null)
+        {
+            return "Dieses Asset verfügt über eine vorbereitete Kurs- und Prognoseansicht aus dem lokalen Dashboard-Payload.";
+        }
+
+        if (asset.RankingEntry is not null)
+        {
+            return "Für dieses Asset liegt aktuell nur eine kompakte Ranking- und Benchmark-Sicht vor.";
+        }
+
+        return "Für dieses Asset ist aktuell nur ein Platzhalter verfügbar, bis lokale ML-Artefakte erzeugt wurden.";
+    }
+
+    private static string GetForecastAvailabilityLabel(AssetCatalogEntry asset)
+    {
+        if (asset.ForecastAvailable)
+        {
+            return "Forecast verfügbar";
+        }
+
+        return asset.HasPreparedPayloadData ? "Kompakte Daten" : "Noch kein Forecast";
+    }
+
+    private static DateOnly? GetDataUntil(DashboardPayload payload, FeaturedTicker ticker)
+    {
+        return ticker.DataUntil ?? payload.DataUntil ?? ticker.LastCloseDate;
+    }
+
+    private static DateTime GetForecastGeneratedAt(DashboardPayload payload, FeaturedTicker ticker)
+    {
+        return ticker.ForecastGeneratedAt ?? payload.GeneratedAt;
+    }
+
+    private static int GetForecastHorizonDays(FeaturedTicker ticker)
+    {
+        return ticker.ForecastHorizonDays > 0 ? ticker.ForecastHorizonDays : ticker.ForecastDays;
+    }
+
+    private static string GetSelectedModelLabel(FeaturedTicker ticker)
+    {
+        if (!string.IsNullOrWhiteSpace(ticker.SelectedModel.ModelLabel))
+        {
+            return ticker.SelectedModel.ModelLabel;
+        }
+
+        return FormatModelLabel(ticker.ForecastModel, ticker.ForecastModelLabel);
+    }
+
+    private static string? GetModelExplanationTermKey(string? primaryModelKey, string? fallbackModelKey = null)
+    {
+        var modelKey = !string.IsNullOrWhiteSpace(primaryModelKey)
+            ? primaryModelKey
+            : fallbackModelKey;
+
+        return modelKey switch
+        {
+            "baseline_persistence" => "persistence_baseline",
+            "random_forest" => "random_forest",
+            "decision_tree" => "decision_tree",
+            "ridge_regression" => "ridge_regression",
+            "lstm" => "lstm",
+            _ => null
+        };
+    }
+
+    private static bool IsTickerStale(DashboardPayload payload, FeaturedTicker ticker)
+    {
+        var staleAfterDays = payload.StaleAfterDays > 0 ? payload.StaleAfterDays : 3;
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var dataUntil = GetDataUntil(payload, ticker) ?? ticker.LastCloseDate;
+        var dataAgeDays = today.DayNumber - dataUntil.DayNumber;
+        var forecastGeneratedAt = GetForecastGeneratedAt(payload, ticker);
+        var forecastAgeDays = Math.Max(0, (DateTime.Now.Date - forecastGeneratedAt.Date).Days);
+
+        return dataAgeDays > staleAfterDays || forecastAgeDays > staleAfterDays;
+    }
+
+    private static string GetFreshnessLabel(DashboardPayload payload, FeaturedTicker ticker)
+    {
+        return IsTickerStale(payload, ticker)
+            ? "Älterer Export"
+            : "Aktueller Export";
+    }
+
+    private static string FormatDate(DateOnly date) => date.ToString("dd. MMM yyyy", UiCulture);
+
+    private static string FormatNullableDate(DateOnly? date) => date is null ? "nicht vorhanden" : FormatDate(date.Value);
+
+    private static string FormatDateTime(DateTime dateTime) => dateTime.ToString("dd. MMM yyyy | HH:mm", UiCulture);
+
+    private static string FormatPrice(double value) => value.ToString("N2", UiCulture);
+
+    private static string FormatNullablePrice(double? value) => value is null ? "nicht vorhanden" : FormatPrice(value.Value);
+
+    private static string FormatRmse(double value) => value.ToString("0.000", UiCulture);
+
+    private static string FormatNullableRmse(double? value) => value is null ? "nicht vorhanden" : FormatRmse(value.Value);
+
+    private static string FormatSignedRmse(double value) => $"{(value >= 0 ? "+" : string.Empty)}{value.ToString("0.000", UiCulture)}";
+
+    private static string FormatNullableSignedRmse(double? value)
+        => value is null ? "kein Vergleich" : FormatSignedRmse(value.Value);
+
+    private static string FormatPercent(double value) => $"{(value >= 0 ? "+" : string.Empty)}{value.ToString("0.00", UiCulture)}%";
+
+    private static string FormatNullablePercent(double? value)
+        => value is null ? "keine Schätzung" : FormatPercent(value.Value);
+
+    private static string FormatPlainPercent(double value) => $"{value.ToString("0.00", UiCulture)}%";
+
+    private static string FormatRatePercent(double value) => $"{value.ToString("0.00", UiCulture)}%";
+
+    private static string FormatNullableRatePercent(double? value)
+        => value is null ? "nicht vorhanden" : FormatRatePercent(value.Value * 100);
+
+    private static string FormatNullableRateGapPercent(double? value)
+        => value is null ? "kein Vergleich" : FormatRatePercent(value.Value * 100);
+
+    private static string FormatScore(double value) => value.ToString("0.0", UiCulture);
+
+    private static string FormatModelKey(string modelKey) => FormatModelLabel(modelKey, modelKey);
+
+    private static string FormatModelLabel(string rawValue, string fallback)
+    {
+        return rawValue switch
+        {
+            "baseline_persistence" => "Persistence-Baseline",
+            "random_forest" => "Random Forest",
+            "ridge_regression" => "Ridge-Regression",
+            "decision_tree" => "Entscheidungsbaum",
+            "lstm" => "LSTM",
+            _ when !string.IsNullOrWhiteSpace(rawValue) => rawValue.Replace("_", " "),
+            _ => fallback,
+        };
+    }
+
+    private static string FormatFeatureProfileLabel(string rawValue)
+    {
+        return rawValue switch
+        {
+            "technical_extended" => "Technisch erweitert",
+            "technical_basic" => "Technisch grundlegend",
+            "lag_only" => "Nur Lags",
+            _ => rawValue.Replace("_", " "),
+        };
+    }
+
+    private static string GetTrendTone(double value)
+    {
+        return value switch
+        {
+            > 0.01 => "tone-positive",
+            < -0.01 => "tone-negative",
+            _ => "tone-neutral",
+        };
+    }
+
+    private static string GetGapTone(double value)
+    {
+        return value switch
+        {
+            < 0 => "tone-positive",
+            > 0 => "tone-negative",
+            _ => "tone-neutral",
+        };
+    }
+
+    private static string GetBenchmarkLabel(bool beatsBaseline)
+    {
+        return beatsBaseline ? "Besser als Baseline" : "Baseline führt";
+    }
+
+    private static string MapToneToSparkline(double value)
+    {
+        return value switch
+        {
+            > 0.01 => "up",
+            < -0.01 => "down",
+            _ => "flat",
+        };
+    }
+
+    private static IReadOnlyList<double> GetSparklineValues(FeaturedTicker ticker)
+    {
+        var values = new List<double> { ticker.LastClose };
+        values.AddRange(ticker.ForecastPath.Select(point => point.PredictedClose));
+        return values;
+    }
+
+    private enum AssetDetailMode
+    {
+        PricesOnly,
+        PricesAndForecast,
+        ModelComparison,
+    }
+}

@@ -1,0 +1,158 @@
+@inject NotificationService NotificationService
+
+<div class="notification-settings">
+    <div class="notification-settings-copy">
+        <span class="section-kicker">Benachrichtigungen</span>
+        <h3>Lokale Forschungs- und Statusmeldungen</h3>
+        <p>
+            Benachrichtigungen bleiben optional und neutral. Sie informieren nur über neue lokale Datenstände,
+            aktualisierte Prognoseexports oder Watchlist-Änderungen.
+        </p>
+    </div>
+
+    @if (_isLoading)
+    {
+        <p class="notification-footnote">Benachrichtigungsstatus wird geladen...</p>
+    }
+    else
+    {
+        <div class="notification-status-row">
+            <span class="status-pill @GetStatusTone()">@GetStatusLabel()</span>
+            <span class="status-pill @(_settings.IsEnabled ? "status-enabled" : "status-disabled")">
+                @(_settings.IsEnabled ? "Aktiviert" : "Deaktiviert")
+            </span>
+            <span class="status-pill @GetDeliveryTone()">@GetDeliveryLabel()</span>
+        </div>
+
+        <div class="notification-actions">
+            <button class="action-button action-primary"
+                    type="button"
+                    @onclick="RequestPermissionAsync"
+                    disabled="@(!_settings.IsSupported || _settings.Permission == BrowserNotificationPermission.Granted)">
+                Berechtigung anfragen
+            </button>
+            <button class="action-button action-secondary" type="button" @onclick="ToggleEnabledAsync">
+                @(_settings.IsEnabled ? "Benachrichtigungen ausschalten" : "Benachrichtigungen einschalten")
+            </button>
+            <button class="action-button action-secondary" type="button" @onclick="SendTestNotificationAsync">
+                Testbenachrichtigung
+            </button>
+        </div>
+
+        <p class="notification-footnote notification-test-note">
+            Die Testbenachrichtigung erscheint zusätzlich immer als In-App-Hinweis, damit der Test auch ohne sichtbares Browser-Popup nachvollziehbar bleibt.
+        </p>
+        <p class="notification-footnote">@GetFootnote()</p>
+    }
+</div>
+
+@code {
+    private NotificationSettingsSnapshot _settings = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _settings = await NotificationService.GetSettingsAsync();
+        _isLoading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RequestPermissionAsync()
+    {
+        _settings = await NotificationService.RequestPermissionAsync();
+    }
+
+    private async Task ToggleEnabledAsync()
+    {
+        await NotificationService.SetEnabledAsync(!_settings.IsEnabled);
+        _settings = await NotificationService.GetSettingsAsync();
+    }
+
+    private async Task SendTestNotificationAsync()
+    {
+        await NotificationService.SendTestNotificationAsync();
+        _settings = await NotificationService.GetSettingsAsync();
+    }
+
+    private string GetStatusLabel()
+    {
+        return _settings.Permission switch
+        {
+            BrowserNotificationPermission.Granted => "Browser erlaubt",
+            BrowserNotificationPermission.Blocked => "Browser blockiert",
+            BrowserNotificationPermission.NotAsked => "Noch nicht gefragt",
+            _ => "Nicht unterstützt"
+        };
+    }
+
+    private string GetStatusTone()
+    {
+        return _settings.Permission switch
+        {
+            BrowserNotificationPermission.Granted => "status-granted",
+            BrowserNotificationPermission.Blocked => "status-blocked",
+            BrowserNotificationPermission.NotAsked => "status-pending",
+            _ => "status-unsupported"
+        };
+    }
+
+    private string GetFootnote()
+    {
+        if (!_settings.Environment.IsSecureContext)
+        {
+            return "Browser-Popups brauchen einen sicheren Kontext. Wenn die App nicht sauber unter HTTPS oder localhost läuft, bleiben nur lokale In-App-Hinweise.";
+        }
+
+        if (_settings.Permission == BrowserNotificationPermission.Granted && _settings.UsesServiceWorkerDelivery)
+        {
+            return "Der Browser-Popup-Kanal ist über einen lokalen Service Worker vorbereitet. Wenn trotzdem kein separates Popup erscheint, blockiert meist der Browser oder das Betriebssystem außerhalb der App.";
+        }
+
+        return _settings.Permission switch
+        {
+            BrowserNotificationPermission.Granted => "Bei erlaubten Browser-Benachrichtigungen wird der Popup-Kanal lokal vorbereitet. Falls der Browser kein separates Popup zeigt, bleibt der In-App-Hinweis als Fallback sichtbar.",
+            BrowserNotificationPermission.Blocked => "Wenn der Browser blockiert, nutzt die App stattdessen lokale In-App-Hinweise.",
+            BrowserNotificationPermission.NotAsked => "Ohne Browser-Erlaubnis nutzt die App bei aktivierten Benachrichtigungen lokale In-App-Hinweise als Fallback.",
+            _ => "Dieser Browser unterstützt die Notification-API nicht. Die App nutzt dann nur lokale In-App-Hinweise."
+        };
+    }
+
+    private string GetDeliveryLabel()
+    {
+        if (!_settings.Environment.IsSecureContext)
+        {
+            return "Nur In-App-Fallback";
+        }
+
+        if (_settings.UsesServiceWorkerDelivery)
+        {
+            return "Popup-Kanal bereit";
+        }
+
+        return _settings.Environment.ServiceWorkerSupported
+            ? "Popup-Kanal wird vorbereitet"
+            : "Popup ohne Service Worker";
+    }
+
+    private string GetDeliveryTone()
+    {
+        if (!_settings.Environment.IsSecureContext)
+        {
+            return "status-blocked";
+        }
+
+        if (_settings.UsesServiceWorkerDelivery)
+        {
+            return "status-granted";
+        }
+
+        return _settings.Environment.ServiceWorkerSupported
+            ? "status-pending"
+            : "status-unsupported";
+    }
+}
