@@ -422,7 +422,8 @@ else
 
             <article class="panel-shell teaser-card">
                 <span class="section-kicker">News-Kontext</span>
-                <h2>Aktuell nur ergänzender Kontext</h2>
+                <h2>Aktuelle News nur als Kontext</h2>
+                <p class="card-copy">News dienen aktuell nur als Kontext und fließen noch nicht automatisch in die Prognose ein.</p>
                 @if (_newsSnapshot?.Items.Count > 0)
                 {
                     <div class="run-list">
@@ -435,11 +436,15 @@ else
                             </div>
                         }
                     </div>
+                    @if (!string.IsNullOrWhiteSpace(_newsSnapshot.StatusNotice))
+                    {
+                        <p class="card-copy">@_newsSnapshot.StatusNotice</p>
+                    }
                     <a class="action-link action-secondary" href="news">Alle News ansehen</a>
                 }
                 else
                 {
-                    <p class="card-copy">Zurzeit sind keine lokalen News-Daten geladen.</p>
+                    <p class="card-copy">@(_newsSnapshot?.StatusNotice ?? "Zurzeit sind keine News verfügbar.")</p>
                 }
             </article>
 
@@ -511,7 +516,9 @@ else
         _snapshot = await DashboardDataService.GetLatestAsync();
         _newsSnapshot = await NewsService.GetSnapshotAsync(new NewsQuery
         {
-            MaxItems = 4
+            MaxItems = 4,
+            PreferredTickers = _watchlistTickers,
+            PreferTickerMatches = true,
         });
         _assetEntries = AssetCatalogService.BuildEntries(_snapshot.Payload);
         await RefreshMarketOverviewAsync();
@@ -560,6 +567,12 @@ else
         }
 
         await RefreshMarketOverviewAsync();
+        _newsSnapshot = await NewsService.GetSnapshotAsync(new NewsQuery
+        {
+            MaxItems = 4,
+            PreferredTickers = _watchlistTickers,
+            PreferTickerMatches = true,
+        });
 
         if (_snapshot?.Payload is not null)
         {
@@ -684,6 +697,12 @@ else
         }
 
         await RefreshMarketOverviewAsync();
+        _newsSnapshot = await NewsService.GetSnapshotAsync(new NewsQuery
+        {
+            MaxItems = 4,
+            PreferredTickers = _watchlistTickers,
+            PreferTickerMatches = true,
+        });
         if (_snapshot?.Payload is not null)
         {
             _notificationCheckPending = true;

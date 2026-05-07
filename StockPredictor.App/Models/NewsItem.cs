@@ -10,11 +10,17 @@ public sealed class NewsItem
 
     public DateTime PublishedAt { get; init; }
 
-    public string Link { get; init; } = string.Empty;
+    public string Url { get; init; } = string.Empty;
 
     public string Category { get; init; } = string.Empty;
 
     public List<string> AffectedTickers { get; init; } = [];
 
+    public string? Summary { get; init; }
+
     public bool IsDemo { get; init; }
+
+    public bool IsExternal { get; init; }
+
+    public NewsLoadStatus LoadStatus { get; init; } = NewsLoadStatus.Loaded;
 }

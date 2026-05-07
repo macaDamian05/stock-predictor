@@ -11,6 +11,7 @@ builder.Services.AddRazorComponents()
 builder.Services.Configure<ChatAssistantOptions>(builder.Configuration.GetSection(ChatAssistantOptions.SectionName));
 builder.Services.Configure<MarketDataOptions>(builder.Configuration.GetSection(MarketDataOptions.SectionName));
 builder.Services.Configure<ForecastAutomationOptions>(builder.Configuration.GetSection(ForecastAutomationOptions.SectionName));
+builder.Services.Configure<NewsOptions>(builder.Configuration.GetSection(NewsOptions.SectionName));
 builder.Services.AddSingleton<DashboardDataService>();
 builder.Services.AddSingleton<AssetCatalogService>();
 builder.Services.AddSingleton<ExplanationService>();
@@ -18,7 +19,14 @@ builder.Services.AddSingleton<LocalMlWorkspaceService>();
 builder.Services.AddSingleton<MarketDataService>();
 builder.Services.AddSingleton<ForecastJobService>();
 builder.Services.AddScoped<NotificationService>();
-builder.Services.AddSingleton<INewsProvider, MockNewsProvider>();
+builder.Services.AddHttpClient<RssNewsProvider>((serviceProvider, client) =>
+{
+    var newsOptions = serviceProvider.GetRequiredService<IOptions<NewsOptions>>().Value;
+    client.Timeout = TimeSpan.FromSeconds(Math.Clamp(newsOptions.TimeoutSeconds, 5, 30));
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("stock-predictor-news/1.0");
+});
+builder.Services.AddSingleton<MockNewsProvider>();
+builder.Services.AddSingleton<INewsProvider, ConfigurableNewsProvider>();
 builder.Services.AddSingleton<NewsService>();
 builder.Services.AddScoped<BrowserWatchlistService>();
 builder.Services.AddHttpClient<OllamaChatAssistantService>((serviceProvider, client) =>

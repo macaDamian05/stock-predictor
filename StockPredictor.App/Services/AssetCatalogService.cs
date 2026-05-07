@@ -173,6 +173,23 @@ public sealed class AssetCatalogService
         return Search(entries, query).FirstOrDefault()?.Ticker ?? normalizedTicker;
     }
 
+    public IReadOnlyList<string> InferTickersFromText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return [];
+        }
+
+        return KnownAssets
+            .Where(pair =>
+                BuildSearchKeywords(pair.Key, pair.Value).Any(keyword =>
+                    keyword.Length >= 3
+                    && text.Contains(keyword, StringComparison.OrdinalIgnoreCase)))
+            .Select(pair => pair.Key)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
     public string NormalizeTicker(string tickerSymbol)
     {
         return (tickerSymbol ?? string.Empty).Trim().ToUpperInvariant();

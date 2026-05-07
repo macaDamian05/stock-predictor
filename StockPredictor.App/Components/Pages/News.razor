@@ -7,8 +7,8 @@
 {
     <section class="news-shell news-empty">
         <span class="section-kicker">Laden</span>
-        <h1>News-Kontext wird vorbereitet...</h1>
-        <p>Die App lädt den aktuellen News-Block für die lokale Demo-Ansicht.</p>
+        <h1>News werden geladen...</h1>
+        <p>Die App lädt konfigurierbare externe Quellen oder einen klar markierten Demo-Modus.</p>
     </section>
 }
 else if (_snapshot is null)
@@ -16,7 +16,7 @@ else if (_snapshot is null)
     <section class="news-shell news-empty">
         <span class="section-kicker">News</span>
         <h1>Der News-Bereich konnte nicht geladen werden.</h1>
-        <p>Bitte die Seite erneut laden. Die News sind aktuell nur ein ergänzender Kontextblock und unabhängig vom ML-Training.</p>
+        <p>Die App bleibt nutzbar. News sind aktuell nur ergänzender Kontext und unabhängig vom ML-Training.</p>
     </section>
 }
 else
@@ -27,21 +27,32 @@ else
         <section class="news-shell news-hero">
             <div class="news-hero-copy">
                 <span class="section-kicker">News-Kontext</span>
-                <h1>Nachrichten als Einordnung, nicht als Signal</h1>
+                <h1>Echte Quellen, klarer Status, kein Trading-Signal</h1>
                 <p>@snapshot.ModelUsageNotice</p>
             </div>
 
             <div class="news-hero-meta">
                 <span class="meta-pill">Quelle: @snapshot.ProviderLabel</span>
                 <span class="meta-pill @(snapshot.IsDemoData ? "demo-pill" : string.Empty)">
-                    @(snapshot.IsDemoData ? "Demo-Daten" : "News-Feed")
+                    @GetLoadStatusLabel(snapshot.LoadStatus)
                 </span>
             </div>
         </section>
 
         <section class="news-shell news-callout">
             <p>@snapshot.ContextNotice</p>
-            <p>Keine Anlageberatung. Nachrichten werden aktuell nicht automatisch in die Modellprognosen übernommen.</p>
+            <p>@snapshot.StatusNotice</p>
+            <p>Keine Anlageberatung. News werden aktuell nicht automatisch in die Modellprognosen übernommen.</p>
+
+            @if (snapshot.SourceWarnings.Count > 0)
+            {
+                <div class="news-warning-list">
+                    @foreach (var warning in snapshot.SourceWarnings)
+                    {
+                        <span class="warning-pill">@warning</span>
+                    }
+                </div>
+            }
         </section>
 
         <section class="news-shell">
@@ -89,8 +100,8 @@ else
             @if (snapshot.Items.Count == 0)
             {
                 <section class="news-shell news-empty">
-                    <h3>Keine News für diese Filterkombination</h3>
-                    <p>Bitte eine andere Kategorie oder einen anderen Ticker auswählen.</p>
+                    <h3>@GetEmptyHeadline(snapshot.LoadStatus)</h3>
+                    <p>@GetEmptyMessage(snapshot)</p>
                 </section>
             }
             else
@@ -101,14 +112,25 @@ else
                         <article class="news-shell news-card">
                             <div class="news-card-head">
                                 <span class="category-pill">@item.Category</span>
-                                @if (item.IsDemo)
-                                {
-                                    <span class="meta-pill demo-pill">Demo</span>
-                                }
+                                <div class="news-card-badges">
+                                    @if (item.IsDemo)
+                                    {
+                                        <span class="meta-pill demo-pill">Demo</span>
+                                    }
+                                    @if (item.IsExternal)
+                                    {
+                                        <span class="meta-pill">Extern</span>
+                                    }
+                                </div>
                             </div>
 
                             <h3>@item.Title</h3>
                             <p class="news-meta">@FormatPublishedAt(item.PublishedAt) · @item.Source</p>
+
+                            @if (!string.IsNullOrWhiteSpace(item.Summary))
+                            {
+                                <p class="news-summary">@item.Summary</p>
+                            }
 
                             @if (item.AffectedTickers.Count > 0)
                             {
@@ -121,12 +143,19 @@ else
                             }
 
                             <div class="news-actions">
-                                <a class="action-link action-secondary"
-                                   href="@item.Link"
-                                   target="_blank"
-                                   rel="noreferrer noopener">
-                                    Quellenkontext öffnen
-                                </a>
+                                @if (!string.IsNullOrWhiteSpace(item.Url))
+                                {
+                                    <a class="action-link action-secondary"
+                                       href="@item.Url"
+                                       target="_blank"
+                                       rel="noreferrer noopener">
+                                        Artikel öffnen
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="meta-pill demo-pill">Kein Originalartikel im Demo-Modus</span>
+                                }
                             </div>
                         </article>
                     }
@@ -185,6 +214,37 @@ else
         _selectedCategory = NewsService.AllCategories;
         _selectedTicker = NewsService.AllTickers;
         await LoadSnapshotAsync();
+    }
+
+    private static string GetLoadStatusLabel(NewsLoadStatus loadStatus)
+    {
+        return loadStatus switch
+        {
+            NewsLoadStatus.Loaded => "Externe Artikel geladen",
+            NewsLoadStatus.Demo => "Demo-Modus aktiv",
+            NewsLoadStatus.SourceUnavailable => "Quelle nicht erreichbar",
+            _ => "Keine News verfügbar",
+        };
+    }
+
+    private static string GetEmptyHeadline(NewsLoadStatus loadStatus)
+    {
+        return loadStatus switch
+        {
+            NewsLoadStatus.SourceUnavailable => "Externe Quellen derzeit nicht erreichbar",
+            NewsLoadStatus.Demo => "Keine Demo-News für diesen Filter",
+            _ => "Keine News für diese Filterkombination",
+        };
+    }
+
+    private static string GetEmptyMessage(NewsFeedSnapshot snapshot)
+    {
+        return snapshot.LoadStatus switch
+        {
+            NewsLoadStatus.SourceUnavailable => "Bitte später erneut laden. Die App bleibt voll nutzbar und zeigt keine erfundenen Ersatzartikel.",
+            NewsLoadStatus.Demo => "Bitte eine andere Kategorie oder einen anderen Ticker auswählen.",
+            _ => snapshot.StatusNotice,
+        };
     }
 
     private static string FormatPublishedAt(DateTime value)

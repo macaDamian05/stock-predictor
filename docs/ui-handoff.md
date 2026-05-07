@@ -129,7 +129,7 @@ Die erste UI-Umsetzung in `StockPredictor.App/` ist erfolgt:
 - zentrales Erklaersystem fuer Fachbegriffe ueber kleine Fragezeichen-Tooltips
 - ausgebaute `hinweise`-Seite als FAQ- und Glossar-Bereich fuer Kennzahlen, Methoden und Modellbegriffe, dort mit ausgeschriebenen Volltexten statt zusaetzlicher Tooltip-Ueberlagerung
 - eigener News-Bereich mit kompakter Startseiten-Vorschau und separater News-Seite
-- Mock-News aus serioesen Quellenmustern funktionieren ohne API-Key und sind klar als Demo markiert
+- konfigurierbare externe RSS-/Atom-Quellen ohne API-Key-Hardcoding; bei Ausfall zeigt die App einen sauberen Leerzustand oder klar markierten Demo-Modus
 - News werden aktuell nur als Kontext gezeigt und nicht automatisch in die Modellprognose uebernommen
 - lokale Notification-Schicht fuer optionale Browser-Benachrichtigungen und In-App-Toasts
 - Erkennung neuer Exportstaende ueber `generated_at` sowie kompakte Watchlist-Statusmeldungen
@@ -143,5 +143,5 @@ Die erste UI-Umsetzung in `StockPredictor.App/` ist erfolgt:
 Die naechsten UI-Schritte sind damit nicht mehr Grundintegration, sondern Ausbau:
 
 - spaetere API-Schicht statt direktem Dateizugriff
-- spaetere echte News-API kann ueber die neue Provider-Schnittstelle angeschlossen werden
+- spaetere echte News-API kann ueber die neue Provider-Schnittstelle angeschlossen werden; aktuell werden bevorzugt RSS-/Atom-Feeds genutzt
 - Filter, Sortierung und eventuell Chart-Erweiterungen

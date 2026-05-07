@@ -2,30 +2,30 @@ using StockPredictor.App.Models;
 
 namespace StockPredictor.App.Services;
 
-public sealed class NewsService
+public sealed class NewsService(INewsProvider provider)
 {
     public const string AllCategories = "Alle Kategorien";
     public const string AllTickers = "Alle Ticker";
-
-    private readonly INewsProvider _provider;
-
-    public NewsService(INewsProvider provider)
-    {
-        _provider = provider;
-    }
 
     public async Task<NewsFeedSnapshot> GetSnapshotAsync(NewsQuery? query = null, CancellationToken cancellationToken = default)
     {
         var normalizedQuery = query ?? new NewsQuery();
         var requestedCategory = NormalizeFilter(normalizedQuery.Category, AllCategories);
         var requestedTicker = NormalizeFilter(normalizedQuery.Ticker, AllTickers);
+        var preferredTickers = (normalizedQuery.PreferredTickers ?? [])
+            .Where(ticker => !string.IsNullOrWhiteSpace(ticker))
+            .Select(ticker => ticker.Trim().ToUpperInvariant())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
-        var allItems = (await _provider.GetNewsAsync(cancellationToken))
+        var providerResult = await provider.GetNewsAsync(cancellationToken);
+        var allItems = providerResult.Items
             .OrderByDescending(item => item.PublishedAt)
             .ToList();
 
         var categories = allItems
             .Select(item => item.Category)
+            .Where(category => !string.IsNullOrWhiteSpace(category))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(category => category)
             .Prepend(AllCategories)
@@ -60,6 +60,13 @@ public sealed class NewsService
                 item.AffectedTickers.Any(ticker =>
                     string.Equals(ticker, selectedTicker, StringComparison.OrdinalIgnoreCase)));
         }
+        else if (normalizedQuery.PreferTickerMatches && preferredTickers.Length > 0)
+        {
+            filteredItems = filteredItems
+                .OrderByDescending(item => item.AffectedTickers.Any(ticker =>
+                    preferredTickers.Contains(ticker, StringComparer.OrdinalIgnoreCase)))
+                .ThenByDescending(item => item.PublishedAt);
+        }
 
         if (normalizedQuery.MaxItems is > 0)
         {
@@ -68,17 +75,30 @@ public sealed class NewsService
 
         return new NewsFeedSnapshot
         {
-            ProviderLabel = _provider.ProviderLabel,
-            IsDemoData = _provider.IsDemoData,
-            ContextNotice = _provider.IsDemoData
-                ? "Aktuell werden Demo-News aus seriösen Quellenmustern gezeigt, damit die Oberfläche ohne API-Schlüssel funktioniert."
-                : "Die News-Ansicht zeigt aktuell verfügbare Quellen als zusätzlichen Kontext.",
-            ModelUsageNotice = "News dienen aktuell nur als Kontext und werden noch nicht im Modell verwendet.",
+            ProviderLabel = providerResult.ProviderLabel,
+            IsDemoData = providerResult.IsDemoData,
+            IsExternalData = providerResult.IsExternalData,
+            LoadStatus = providerResult.LoadStatus,
+            ContextNotice = BuildContextNotice(providerResult),
+            ModelUsageNotice = "News dienen aktuell nur als Kontext und werden noch nicht automatisch in die Modellprognose übernommen.",
+            StatusNotice = providerResult.StatusNotice,
             SelectedCategory = selectedCategory,
             SelectedTicker = selectedTicker,
             AvailableCategories = categories,
             AvailableTickers = tickers,
-            Items = filteredItems.ToList()
+            Items = filteredItems.ToList(),
+            SourceWarnings = providerResult.SourceWarnings,
+        };
+    }
+
+    private static string BuildContextNotice(NewsProviderResult result)
+    {
+        return result.LoadStatus switch
+        {
+            NewsLoadStatus.Demo => "Demo-Modus ist aktiv. Diese Einträge sind klar als Demo markiert und keine echten Artikel.",
+            NewsLoadStatus.SourceUnavailable => "Externe Quellen konnten aktuell nicht erreicht werden. Die App bleibt nutzbar und zeigt keinen erfundenen Ersatz an.",
+            NewsLoadStatus.NoItems => "Es wurden aktuell keine verwertbaren News-Artikel geladen.",
+            _ => "Die News-Ansicht zeigt aktuell verfügbare externe Quellen als zusätzlichen Kontext.",
         };
     }
 

@@ -388,6 +388,26 @@ Warum diese Phase wichtig ist:
 - die technische Schnittstelle fuer eine spaetere echte News-API ist vorbereitet
 - es werden keine Secrets oder kostenpflichtigen API-Zugaenge ins Repository gebracht
 
+## Phase 21a: News-Layer auf echte Quellen umgestellt
+
+Der urspruengliche Kontextblock fuer News wurde danach gehaertet, weil beispielhafte Titel mit allgemeinen Medien-
+Homepages als Ziel fuer die Bachelorarbeitsdemo nicht serioes genug wirkten.
+
+Wichtige Merkmale dieser Phase:
+
+- neues News-Modell mit sauberem Ladezustand fuer `Loaded`, `NoItems`, `SourceUnavailable` und `Demo`
+- konfigurierbare externe RSS-/Atom-Quellen ohne hardcodierte API-Schluessel
+- echte Artikelkarten nur noch mit konkreten Artikel-URLs statt allgemeinen Start- oder Ressortseiten
+- klar sichtbare Trennung zwischen extern geladenen News, Demo-Modus und leerem Fehlerzustand
+- kompakte Startseiten-Vorschau mit 2 bis 4 Artikeln und separater News-Seite mit Kategorie- und Ticker-Filter
+- News bleiben ausdruecklich reiner Kontext und fliessen nicht automatisch in Prognosen oder Handlungsempfehlungen ein
+
+Warum diese Phase wichtig ist:
+
+- die App zeigt keine erfundenen Artikel mehr, die wie echte Quellen wirken
+- externe Feeds koennen ausfallen, ohne dass das Dashboard abstuerzt oder unechte Ersatzartikel anzeigt
+- die Architektur bleibt spaeter fuer News-APIs offen, ohne jetzt schon Secrets oder kostenpflichtige Zugaenge zu benoetigen
+
 ## Phase 22: Lokale Browser-Benachrichtigungen und In-App-Statusmeldungen
 
 Im naechsten Schritt wurde die Blazor-App um optionale lokale Benachrichtigungen erweitert, ohne eine Server-Push-

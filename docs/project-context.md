@@ -43,7 +43,7 @@ Stand: 2026-05-05
 - Warnhinweis fuer aeltere Exporte auf Basis von `data_until` und `stale_after_days`
 - zentrales Erklaersystem fuer Fachbegriffe, Kennzahlen und Modellnamen in der Blazor-App
 - ausgebaute Hinweise-Seite als FAQ- und Glossar-Bereich in einfacher Sprache
-- eigener News-Bereich in der Blazor-App mit Demo-Daten, Kategorie-Filter und optionalem Ticker-Filter
+- eigener News-Bereich in der Blazor-App mit konfigurierbaren externen RSS-/Atom-Quellen, sauberem Leerzustand und optionalem Demo-Modus
 - News dienen aktuell nur als Kontext und fliessen noch nicht in die ML-Prognose ein
 - optionale lokale Browser-Benachrichtigungen fuer neue Payloads, aktualisierte Prognosedaten und Watchlist-Assets
 - Fallback auf neutrale In-App-Toasts, wenn Browser-Benachrichtigungen nicht erlaubt sind

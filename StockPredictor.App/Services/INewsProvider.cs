@@ -8,5 +8,5 @@ public interface INewsProvider
 
     bool IsDemoData { get; }
 
-    Task<IReadOnlyList<NewsItem>> GetNewsAsync(CancellationToken cancellationToken = default);
+    Task<NewsProviderResult> GetNewsAsync(CancellationToken cancellationToken = default);
 }
