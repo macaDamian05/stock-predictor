@@ -1,0 +1,61 @@
+@using StockPredictor.App.Models
+
+@if (Job is not null)
+{
+    <article class="forecast-job-panel @GetToneClass()">
+        <div class="forecast-job-head">
+            <div>
+                <span class="section-kicker">Lokaler Forecast-Job</span>
+                <h3>@Job.Ticker</h3>
+            </div>
+            <span class="meta-pill">@GetStateLabel()</span>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Job.Message))
+        {
+            <p>@Job.Message</p>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Job.ErrorMessage))
+        {
+            <p class="forecast-job-error">@Job.ErrorMessage</p>
+        }
+
+        @if (Job.SuggestedCommands.Count > 0)
+        {
+            <div class="command-list">
+                @foreach (var command in Job.SuggestedCommands)
+                {
+                    <code>@command</code>
+                }
+            </div>
+        }
+    </article>
+}
+
+@code {
+    [Parameter]
+    public ForecastJobSnapshot? Job { get; set; }
+
+    private string GetStateLabel()
+    {
+        return Job?.State switch
+        {
+            ForecastJobState.Pending => "Pending",
+            ForecastJobState.Running => "Running",
+            ForecastJobState.Completed => "Completed",
+            ForecastJobState.Failed => "Failed",
+            _ => "Unbekannt",
+        };
+    }
+
+    private string GetToneClass()
+    {
+        return Job?.State switch
+        {
+            ForecastJobState.Completed => "is-success",
+            ForecastJobState.Failed => "is-failed",
+            _ => "is-active",
+        };
+    }
+}

@@ -15,6 +15,7 @@ Dieses Modul ueberfuehrt den frueheren Colab-Prototyp in eine reproduzierbare Py
 - `generate_profile_comparison.py`: konsolidiert mehrere Benchmark-Runs zu einem Profilvergleich
 - `generate_thesis_results.py`: konsolidiert vorhandene Experimente zu BA-tauglichen Tabellen, Grafiken und einem Kurzreport
 - `export_dashboard_payload.py`: erstellt einen UI-freundlichen JSON- und CSV-Handover fuer die spaetere App, inklusive Datenstand, Prognosezeitpunkt, Modellwahl und Modellvergleich
+- `export_market_data.py`: erstellt lokale Markt-Snapshots fuer echte Kursverlaeufe in der Blazor-App, auch ohne vorhandenen Forecast
 - `core/benchmark_presets.py`: feste Ticker-Koerbe fuer Starter- und Bachelor-Laeufe
 - `core/data_loader.py`: Download und Bereinigung der Marktdaten
 - `core/preprocessing.py`: Sequenzbildung und Skalierung
@@ -92,7 +93,7 @@ Die Blazor-App liest standardmaessig:
 
 - `storage/dashboard/LATEST/dashboard_payload.json`
 
-Wenn diese Datei auf dem aktuellen Rechner fehlt, startet die App jetzt mit einer klaren Leerzustandsmeldung statt mit einer scheinbar kaputten oder leeren Oberflaeche.
+Wenn diese Datei auf dem aktuellen Rechner fehlt, startet die App jetzt mit einer klaren Leerzustandsmeldung statt mit einer scheinbar kaputten oder leeren Oberflaeche. Fuer echte Kurscharts kann die App zusaetzlich lokale Markt-Snapshots ueber `export_market_data.py` erzeugen, auch wenn noch kein Forecast-Payload vorhanden ist.
 
 Wenn die Datei vorhanden ist, zeigt die UI den zuletzt exportierten ML-Stand. Es gibt bewusst keine garantierte Live-Prognose, sondern eine Leseschicht ueber vorhandene Artefakte.
 Wichtige Kennzahlen und Modellbegriffe werden in der App zusaetzlich ueber kleine Tooltips sowie eine FAQ-/Glossar-Seite erklaert.
@@ -106,6 +107,7 @@ Typische Befehle zum Wiederbefuellen:
 ```powershell
 cd StockPredictor.ML
 .\.venv\Scripts\python.exe export_dashboard_payload.py
+.\.venv\Scripts\python.exe export_market_data.py AAPL MSFT ENR.DE
 ```
 
 Wenn der Export danach immer noch nichts schreibt, fehlen in der Regel vorher lokale Eingaben wie:
@@ -134,6 +136,7 @@ python generate_thesis_results.py
 python export_dashboard_payload.py
 python export_dashboard_payload.py --multi-asset-suite-run latest
 python export_dashboard_payload.py AAPL TSLA DOU.DE NVDA SAP.DE
+python export_market_data.py AAPL TSLA MSFT NVDA ENR.DE
 python run_classical_pipeline.py --csv-path .\data\aapl.csv --date-column Date --close-column Close
 python main.py AAPL
 python main.py TSLA --retrain

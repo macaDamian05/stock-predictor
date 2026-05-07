@@ -4,6 +4,12 @@
     gap: 1rem;
 }
 
+.asset-main-shell,
+.asset-research-shell {
+    display: grid;
+    gap: 1rem;
+}
+
 .panel-shell {
     position: relative;
     overflow: hidden;
@@ -37,7 +43,9 @@
 .side-card,
 .hero-copy,
 .hero-meta,
-.meta-group {
+.meta-group,
+.chart-meta,
+.forecast-actions {
     display: grid;
     gap: 0.9rem;
 }
@@ -132,6 +140,12 @@
     background: rgba(255, 255, 255, 0.035);
 }
 
+.range-toggle {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
 .surface-tab {
     min-height: 2.3rem;
     padding: 0.45rem 0.9rem;
@@ -152,6 +166,12 @@
 .forecast-meta-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.market-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.8rem;
 }
 
@@ -300,6 +320,25 @@
     gap: 0.5rem;
 }
 
+.forecast-actions {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+}
+
+.forecast-action-note {
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.chart-meta {
+    grid-template-columns: repeat(auto-fit, minmax(14rem, max-content));
+    gap: 0.5rem;
+}
+
+.market-empty-state {
+    min-height: 14rem;
+}
+
 .command-list code {
     display: block;
     padding: 0.9rem 1rem;
@@ -390,6 +429,7 @@
 
 @media (max-width: 920px) {
     .forecast-meta-grid,
+    .market-summary-grid,
     .detail-stats-grid,
     .forecast-strip,
     .model-compare-grid,
@@ -402,6 +442,10 @@
     .model-card-header {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .forecast-actions {
+        grid-template-columns: 1fr;
     }
 }
 

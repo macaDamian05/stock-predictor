@@ -9,9 +9,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.Configure<ChatAssistantOptions>(builder.Configuration.GetSection(ChatAssistantOptions.SectionName));
+builder.Services.Configure<MarketDataOptions>(builder.Configuration.GetSection(MarketDataOptions.SectionName));
+builder.Services.Configure<ForecastAutomationOptions>(builder.Configuration.GetSection(ForecastAutomationOptions.SectionName));
 builder.Services.AddSingleton<DashboardDataService>();
 builder.Services.AddSingleton<AssetCatalogService>();
 builder.Services.AddSingleton<ExplanationService>();
+builder.Services.AddSingleton<LocalMlWorkspaceService>();
+builder.Services.AddSingleton<MarketDataService>();
+builder.Services.AddSingleton<ForecastJobService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddSingleton<INewsProvider, MockNewsProvider>();
 builder.Services.AddSingleton<NewsService>();

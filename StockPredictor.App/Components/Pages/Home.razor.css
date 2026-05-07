@@ -4,6 +4,33 @@
     gap: 1rem;
 }
 
+.status-banner,
+.market-card-grid,
+.jobs-grid,
+.watchlist-inline-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.market-card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.jobs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.watchlist-inline-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.85rem;
+    align-items: center;
+    padding: 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.025);
+}
+
 .panel-shell {
     position: relative;
     overflow: hidden;
@@ -795,10 +822,16 @@
     gap: 0.5rem;
 }
 
+.command-list {
+    display: grid;
+    gap: 0.5rem;
+}
+
 .empty-state-actions {
     justify-items: start;
 }
 
+.command-list code,
 .empty-state-meta code,
 .empty-state-command code {
     display: block;
@@ -904,6 +937,10 @@
         grid-template-columns: 1fr;
     }
 
+    .market-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .watchlist-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -915,6 +952,7 @@
 
 @media (max-width: 920px) {
     .hero-stats,
+    .jobs-grid,
     .forecast-meta-grid,
     .summary-grid,
     .benchmark-grid,
@@ -949,6 +987,7 @@
 
     .asset-result-row,
     .watchlist-saved-row,
+    .watchlist-inline-row,
     .search-form {
         grid-template-columns: 1fr;
     }
@@ -969,6 +1008,7 @@
     }
 
     .watchlist-grid,
+    .market-card-grid,
     .forecast-strip {
         grid-template-columns: 1fr;
     }

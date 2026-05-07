@@ -446,6 +446,28 @@ Warum diese Phase wichtig ist:
 - der Ausbaupfad fuer spaetere Integrationen ist dokumentiert, ohne die Bachelorarbeit in Richtung Trading-System zu verschieben
 - die App bleibt forschungsorientiert und seroes, obwohl kuenftige Optionen konzeptionell sichtbar gemacht werden
 
+## Phase 25: Markt-Datenebene, echte Kurscharts und lokale Forecast-Jobs
+
+Im naechsten Schritt wurde das zentrale Produktproblem der Web-App angegangen: Die App zeigt nicht mehr nur
+vorbereitete Payload-Ticker, sondern trennt jetzt eine echte Markt-Datenebene von der Forecast-/Research-Ebene.
+
+Wichtige Merkmale dieser Phase:
+
+- neue lokale Markt-Datenlogik ueber `StockPredictor.ML/export_market_data.py` mit historischen OHLCV-Snapshots unter `storage/market_data/`
+- erweiterbare Asset-Suche ueber bekannte Ticker- und Alias-Namen wie `apple`, `tesla`, `siemens` oder `siemens energy`
+- Startseite mit echten Kurskarten, Zeitraumveraenderungen und Watchlist-Fokus statt reinem Payload-Dashboard
+- Asset-Detailseite mit historischem Kurschart fuer `1T`, `1W`, `1M`, `6M`, `1J` und `MAX`, auch wenn noch kein Forecast existiert
+- klare Trennung zwischen `Kursdaten geladen bis ...` und `Forecast basiert auf lokalem Export vom ...`
+- lokale Forecast-Job-Struktur in der App fuer `Prognose fuer dieses Asset erzeugen` und `Forecast aktualisieren`
+- automatische Hintergrund-Aktualisierung fuer veraltete Forecasts, ohne blockierenden Ladescreen
+- robustere Fehlerpfade fuer fehlende Payloads, fehlende `.venv`, yfinance-/Netzprobleme und unbekannte Assets
+
+Warum diese Phase wichtig ist:
+
+- die App fuehlt sich erstmals wie ein nutzbares Finanzdashboard an und nicht nur wie ein Viewer fuer vorbereitete JSON-Ticker
+- Nutzer koennen neue Assets suchen und direkt als Marktansicht verwenden, auch bevor ein lokaler Forecast erzeugt wurde
+- Forecasts bleiben sichtbar als getrennte Forschungsartefakte und wirken dadurch weniger wie unveraenderliche Live-Signale
+
 ## Zwischenfazit fuer die Bachelorarbeit
 
 Der Entwicklungsverlauf zeigt bewusst keine lineare Bewegung zu einer sofort "perfekten" Loesung. Stattdessen ist sichtbar:

@@ -62,13 +62,7 @@ public sealed class NotificationService(IJSRuntime jsRuntime)
             "Die Testbenachrichtigung wurde lokal ausgelöst. Falls kein separates Browser-Popup erscheint, bleibt dieser In-App-Hinweis als sichtbarer Fallback bestehen.",
             "info");
 
-        await PublishAsync(
-            "Testbenachrichtigung",
-            "Dies ist eine neutrale lokale Statusmeldung der Stock-Predictor-App.",
-            "test",
-            cancellationToken,
-            ignoreEnabled: true,
-            suppressToastFallback: true);
+        await Task.CompletedTask;
     }
 
     public async Task CheckForPayloadUpdatesAsync(

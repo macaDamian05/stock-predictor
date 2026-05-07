@@ -1,0 +1,51 @@
+.price-history-chart-shell {
+    position: relative;
+    min-height: 18rem;
+    padding: 0.35rem 0;
+}
+
+.price-history-chart {
+    width: 100%;
+    height: 18rem;
+    color: #5ad7ff;
+}
+
+.chart-guide {
+    stroke: rgba(255, 255, 255, 0.08);
+    stroke-width: 0.45;
+}
+
+.chart-area {
+    color: #5ad7ff;
+}
+
+.chart-line {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.chart-forecast {
+    fill: none;
+    stroke: #ffb25c;
+    stroke-width: 1.15;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 3.2 2;
+}
+
+.chart-last-dot {
+    fill: #5ad7ff;
+}
+
+.price-history-chart-empty {
+    display: grid;
+    min-height: 12rem;
+    place-items: center;
+    border: 1px dashed rgba(255, 255, 255, 0.09);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text-muted);
+}

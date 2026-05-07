@@ -1,0 +1,178 @@
+@using System.Globalization
+@using StockPredictor.App.Models
+
+@if (CanRender)
+{
+    <div class="price-history-chart-shell">
+        <svg class="price-history-chart"
+             viewBox="0 0 100 52"
+             preserveAspectRatio="none"
+             role="img"
+             aria-label="@AriaLabel">
+            <defs>
+                <linearGradient id="@_gradientId" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="currentColor" stop-opacity="0.28" />
+                    <stop offset="100%" stop-color="currentColor" stop-opacity="0.02" />
+                </linearGradient>
+            </defs>
+
+            @foreach (var guideY in GuideLines)
+            {
+                <line class="chart-guide" x1="0" y1="@guideY" x2="100" y2="@guideY" />
+            }
+
+            <polygon class="chart-area" points="@HistoryAreaPoints" fill="url(#@_gradientId)" />
+            <polyline class="chart-line" points="@HistoryLinePoints" />
+
+            @if (ShowForecast && ForecastLinePoints is not null)
+            {
+                <polyline class="chart-forecast" points="@ForecastLinePoints" />
+            }
+
+            <circle class="chart-last-dot" cx="@LastHistoryPoint.X" cy="@LastHistoryPoint.Y" r="1.9" />
+        </svg>
+    </div>
+}
+else
+{
+    <div class="price-history-chart-empty">
+        Zu wenige Kursdaten für den Chart.
+    </div>
+}
+
+@code {
+    private readonly string _gradientId = $"market-chart-{Guid.NewGuid():N}";
+    private static readonly double[] GuideLines = [8, 20, 32, 44];
+
+    [Parameter]
+    public IReadOnlyList<MarketPricePoint>? HistoryPoints { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<ForecastPoint>? ForecastPoints { get; set; }
+
+    [Parameter]
+    public bool ShowForecast { get; set; }
+
+    [Parameter]
+    public string AriaLabel { get; set; } = "Historischer Kurschart";
+
+    private bool CanRender => (HistoryPoints?.Count ?? 0) >= 2;
+
+    private string HistoryLinePoints => BuildLinePoints(GetHistoryCoordinates());
+
+    private string HistoryAreaPoints => BuildAreaPoints(GetHistoryCoordinates());
+
+    private string? ForecastLinePoints
+    {
+        get
+        {
+            var coordinates = GetForecastCoordinates();
+            return coordinates.Count < 2 ? null : BuildLinePoints(coordinates);
+        }
+    }
+
+    private (string X, string Y) LastHistoryPoint
+    {
+        get
+        {
+            var last = GetHistoryCoordinates()[^1];
+            return (last.X, last.Y);
+        }
+    }
+
+    private List<ChartCoordinate> GetHistoryCoordinates()
+    {
+        var historyValues = GetHistoryValues();
+        return BuildCoordinates(historyValues, includeLastValueOnly: false);
+    }
+
+    private List<ChartCoordinate> GetForecastCoordinates()
+    {
+        if (!ShowForecast || ForecastPoints is null || ForecastPoints.Count == 0)
+        {
+            return [];
+        }
+
+        var historyValues = GetHistoryValues();
+        if (historyValues.Count == 0)
+        {
+            return [];
+        }
+
+        var combinedValues = historyValues
+            .Concat(ForecastPoints.Select(point => point.PredictedClose))
+            .ToList();
+
+        var forecastValues = new List<double> { historyValues[^1] };
+        forecastValues.AddRange(ForecastPoints.Select(point => point.PredictedClose));
+
+        return BuildCoordinates(
+            forecastValues,
+            includeLastValueOnly: true,
+            referenceValues: combinedValues,
+            startX: 100d * (Math.Max(historyValues.Count - 1, 0) / (double)Math.Max(combinedValues.Count - 1, 1)),
+            totalPointCount: combinedValues.Count);
+    }
+
+    private List<double> GetHistoryValues()
+    {
+        return (HistoryPoints ?? [])
+            .Where(point => point.Close is not null)
+            .Select(point => point.Close!.Value)
+            .ToList();
+    }
+
+    private static string BuildLinePoints(IReadOnlyList<ChartCoordinate> coordinates)
+    {
+        return string.Join(" ", coordinates.Select(point => $"{point.X},{point.Y}"));
+    }
+
+    private static string BuildAreaPoints(IReadOnlyList<ChartCoordinate> coordinates)
+    {
+        var points = coordinates.Select(point => $"{point.X},{point.Y}").ToList();
+        points.Insert(0, $"{coordinates[0].X},46");
+        points.Add($"{coordinates[^1].X},46");
+        return string.Join(" ", points);
+    }
+
+    private static List<ChartCoordinate> BuildCoordinates(
+        IReadOnlyList<double> values,
+        bool includeLastValueOnly,
+        IReadOnlyList<double>? referenceValues = null,
+        double startX = 0,
+        int? totalPointCount = null)
+    {
+        if (values.Count == 0)
+        {
+            return [];
+        }
+
+        var scaleValues = referenceValues ?? values;
+        var min = scaleValues.Min();
+        var max = scaleValues.Max();
+        if (Math.Abs(max - min) < double.Epsilon)
+        {
+            min -= 1;
+            max += 1;
+        }
+
+        var denominator = Math.Max((totalPointCount ?? values.Count) - 1, 1);
+        var step = 100d / denominator;
+        var coordinates = new List<ChartCoordinate>(values.Count);
+
+        for (var index = 0; index < values.Count; index++)
+        {
+            var xIndex = includeLastValueOnly ? index : index;
+            var x = startX + (step * xIndex);
+            var normalized = (values[index] - min) / (max - min);
+            var y = 46 - (normalized * 38);
+            coordinates.Add(new ChartCoordinate(
+                x.ToString("0.###", CultureInfo.InvariantCulture),
+                y.ToString("0.###", CultureInfo.InvariantCulture)));
+        }
+
+        return coordinates;
+    }
+
+    private sealed record ChartCoordinate(string X, string Y);
+}

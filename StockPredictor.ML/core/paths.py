@@ -15,6 +15,7 @@ MULTI_ASSET_DATA_DIR = STORAGE_DIR / "multi_asset"
 MULTI_ASSET_SUITE_DATA_DIR = STORAGE_DIR / "multi_asset_suites"
 THESIS_DATA_DIR = STORAGE_DIR / "thesis"
 DASHBOARD_DATA_DIR = STORAGE_DIR / "dashboard"
+MARKET_DATA_DIR = STORAGE_DIR / "market_data"
 
 
 @dataclass(frozen=True)
@@ -145,6 +146,14 @@ class DashboardArtifactPaths:
     multi_asset_summary_csv: Path
 
 
+@dataclass(frozen=True)
+class MarketDataArtifactPaths:
+    ticker: str
+    safe_ticker: str
+    base_dir: Path
+    snapshot_json: Path
+
+
 def ensure_runtime_directories() -> None:
     STORAGE_DIR.mkdir(parents=True, exist_ok=True)
     TRAINING_DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -155,6 +164,7 @@ def ensure_runtime_directories() -> None:
     MULTI_ASSET_SUITE_DATA_DIR.mkdir(parents=True, exist_ok=True)
     THESIS_DATA_DIR.mkdir(parents=True, exist_ok=True)
     DASHBOARD_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    MARKET_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def sanitize_name(value: str, uppercase: bool = False) -> str:
@@ -336,4 +346,17 @@ def get_dashboard_artifact_paths(run_name: str) -> DashboardArtifactPaths:
         basket_summary_csv=base_dir / "basket_summary.csv",
         company_ranking_csv=base_dir / "company_ranking.csv",
         multi_asset_summary_csv=base_dir / "multi_asset_summary.csv",
+    )
+
+
+def get_market_data_artifact_paths(ticker: str) -> MarketDataArtifactPaths:
+    safe_ticker = sanitize_ticker(ticker)
+    base_dir = MARKET_DATA_DIR / safe_ticker
+    base_dir.mkdir(parents=True, exist_ok=True)
+
+    return MarketDataArtifactPaths(
+        ticker=ticker.upper(),
+        safe_ticker=safe_ticker,
+        base_dir=base_dir,
+        snapshot_json=base_dir / "snapshot.json",
     )

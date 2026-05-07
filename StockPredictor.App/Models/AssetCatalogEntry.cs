@@ -16,6 +16,8 @@ public sealed class AssetCatalogEntry
 
     public double? ForecastHorizonChangePct { get; init; }
 
+    public IReadOnlyList<string> SearchKeywords { get; init; } = [];
+
     public FeaturedTicker? FeaturedTicker { get; init; }
 
     public CompanyRankingEntry? RankingEntry { get; init; }

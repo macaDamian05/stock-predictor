@@ -14,6 +14,11 @@ Primare Datei fuer die spaetere App:
 
 - `StockPredictor.ML/storage/dashboard/LATEST/dashboard_payload.json`
 
+Ergaenzende lokale Kursquelle fuer die neue Markt-Ebene:
+
+- `StockPredictor.ML/export_market_data.py`
+- lokale Snapshots unter `StockPredictor.ML/storage/market_data/<ticker>/snapshot.json`
+
 Ergaenzende Tabellen:
 
 - `StockPredictor.ML/storage/dashboard/LATEST/featured_tickers.csv`
@@ -91,12 +96,13 @@ Wenn die Blazor-App als naechstes umgesetzt wird, ist diese Reihenfolge sinnvoll
 
 ## Technische Empfehlung fuer die App
 
-- Die Blazor-App sollte zunaechst nur lesend auf `dashboard_payload.json` zugreifen.
+- Die Blazor-App darf fuer echte Kursverlaeufe einen getrennten lokalen Marktpfad nutzen, soll Forecasts aber weiterhin nur aus `dashboard_payload.json` lesen.
 - Kein direktes Parsen der rohen Benchmark- oder Thesis-Dateien in der UI.
 - Wenn spaeter Live-Aktualisierung gebraucht wird, kann um diese JSON-Datei herum eine API gelegt werden.
 - Wenn `dashboard_payload.json` lokal fehlt oder unlesbar ist, sollte die UI einen klaren Leerzustand mit Dateipfad und Export-Befehlen anzeigen statt einfach leer zu wirken.
 - Die UI sollte Prognosen immer als zuletzt exportierten Forschungsstand kennzeichnen, nicht als Live-Datenstrom oder Trading-Signal.
 - Ein aelterer Export sollte ueber `data_until` und `stale_after_days` sichtbar markiert werden.
+- Kursdaten und Forecast-Daten muessen sichtbar getrennt bleiben: `Kursdaten geladen bis ...` vs. `Forecast basiert auf lokalem Export vom ...`
 
 ## Aktueller Status
 
@@ -105,18 +111,21 @@ Die erste UI-Umsetzung in `StockPredictor.App/` ist erfolgt:
 - dunkles Dashboard statt Blazor-Template
 - Startseite jetzt marktzentriert statt textlastig
 - Asset-Suche direkt auf Basis des vorhandenen Payloads
+- Asset-Suche jetzt auch ueber bekannte Ticker- und Alias-Namen wie `apple`, `tesla`, `siemens` oder `siemens energy`
 - lokale Watchlist im Browser für Favoriten
-- eigene Detailroute `/assets/<ticker>` für vorbereitete und fehlende Assets
+- eigene Detailroute `/assets/<ticker>` mit echtem Kurschart auch fuer Assets ohne Forecast
 - Watchlist-/Ticker-Kacheln aus `featured_tickers` stehen vor den langen Benchmark-Bloecken
 - Toggle fuer `Nur Kurse`, `Kurse + Prognosen` und `Modellvergleich` auf Start- und Detailansicht
 - Prognosen sind optisch als Forschungsblock markiert und nicht wie Trading-Signale aufgebaut
+- Markt-/Kurskarten auf der Startseite laden echte historische Kursdaten und zeigen Zeitraumveraenderungen statt nur letzter Schlusskurse
 - Benchmark- und Multi-Asset-Bloecke bleiben vorhanden, aber weiter unten in der Hierarchie
 - direkter Dateizugriff der App auf `dashboard_payload.json` ueber einen kleinen C#-Datendienst
 - klarer Fehler-/Leerzustand mit Hinweis auf `cd StockPredictor.ML` und `.\.venv\Scripts\python.exe export_dashboard_payload.py`, falls die lokale Payload fehlt
-- unbekannte Ticker werden in der Detailansicht als Platzhalter erklärt, statt ein Training zu erzwingen
+- fuer fehlende Forecasts gibt es jetzt lokale Job-Aktionen sowie Fallback-Befehle statt nur einer Platzhalter-Sackgasse
 - sichtbare Prognose-Metadaten wie Datenstand, Prognosezeitpunkt, Modell/Methode und Prognosehorizont
 - kompakter Modellvergleich mit Baseline, Ridge Regression, Decision Tree und Random Forest, falls im Payload vorhanden
 - Warnhinweis fuer aeltere Exporte statt stillschweigend veralteter Prognosen
+- automatische Hintergrund-Aktualisierung fuer veraltete Forecasts bei App-Nutzung, ohne blockierenden Ladescreen
 - zentrales Erklaersystem fuer Fachbegriffe ueber kleine Fragezeichen-Tooltips
 - ausgebaute `hinweise`-Seite als FAQ- und Glossar-Bereich fuer Kennzahlen, Methoden und Modellbegriffe, dort mit ausgeschriebenen Volltexten statt zusaetzlicher Tooltip-Ueberlagerung
 - eigener News-Bereich mit kompakter Startseiten-Vorschau und separater News-Seite
@@ -136,4 +145,3 @@ Die naechsten UI-Schritte sind damit nicht mehr Grundintegration, sondern Ausbau
 - spaetere API-Schicht statt direktem Dateizugriff
 - spaetere echte News-API kann ueber die neue Provider-Schnittstelle angeschlossen werden
 - Filter, Sortierung und eventuell Chart-Erweiterungen
-- spaetere Erweiterung der Suche ueber den aktuellen Payload hinaus

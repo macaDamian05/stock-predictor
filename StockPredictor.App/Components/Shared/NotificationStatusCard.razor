@@ -34,13 +34,16 @@
             <button class="action-button action-secondary" type="button" @onclick="ToggleEnabledAsync">
                 @(_settings.IsEnabled ? "Benachrichtigungen ausschalten" : "Benachrichtigungen einschalten")
             </button>
-            <button class="action-button action-secondary" type="button" @onclick="SendTestNotificationAsync">
+            <button class="action-button action-secondary"
+                    type="button"
+                    onpointerdown="window.stockPredictorNotifications?.triggerTestClick?.()"
+                    @onclick="SendTestNotificationAsync">
                 Testbenachrichtigung
             </button>
         </div>
 
         <p class="notification-footnote notification-test-note">
-            Die Testbenachrichtigung erscheint zusätzlich immer als In-App-Hinweis, damit der Test auch ohne sichtbares Browser-Popup nachvollziehbar bleibt.
+            Die Testbenachrichtigung wird direkt im Browser-Klick ausgelöst und erscheint zusätzlich immer als In-App-Hinweis, damit der Test auch ohne sichtbares Browser-Popup nachvollziehbar bleibt.
         </p>
         <p class="notification-footnote">@GetFootnote()</p>
     }

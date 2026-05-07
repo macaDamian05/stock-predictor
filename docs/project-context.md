@@ -33,9 +33,10 @@ Stand: 2026-05-05
 - Dashboard-Handover und erste umgesetzte Blazor-UI unter `storage/dashboard/LATEST/dashboard_payload.json`
 - robuster Leerzustand in der Blazor-App, falls `storage/dashboard/LATEST/dashboard_payload.json` auf dem aktuellen Rechner fehlt
 - marktzentrierte Startseite mit Watchlist-/Ticker-Kacheln vor den laengeren Forschungs- und Benchmark-Bloecken
-- Asset-Suche auf Basis des vorhandenen Dashboard-Payloads
+- Asset-Suche ueber bekannte Ticker- und Alias-Namen, nicht nur ueber den vorhandenen Dashboard-Payload
 - lokale Watchlist im Browser fuer gespeicherte Favoriten
-- eigene Asset-Detailroute mit Platzhalteransicht fuer Ticker ohne vorbereitete Prognosedaten
+- echte Kursdatenebene fuer Detailseiten, Watchlist und Startkarten ueber einen lokalen Markt-Snapshot-Pfad
+- eigene Asset-Detailroute mit historischem Kurschart auch fuer Ticker ohne vorbereitete Prognosedaten
 - Toggle auf der Startseite fuer `Kurse` vs. `Prognosen`, wobei Prognosen bewusst als Forschungsblock markiert bleiben
 - sichtbarer Prognosekontext in Start- und Detailansicht mit Datenstand, Prognosezeitpunkt, Prognosehorizont und Modell/Methode
 - optionaler Modellvergleich fuer Persistence-Baseline und vorhandene gelernte Modelle
@@ -51,6 +52,8 @@ Stand: 2026-05-05
 - deaktivierter Platzhalter fuer spaetere Profile sowie Broker-/TradingView-Zukunftsthemen ohne aktive API-Anbindung
 - Unternehmensranking fuer die im Dashboard exportierten Ticker auf Basis von Forecast und Modellguete
 - Multi-Asset-Bestkonfigurationen aus der Suite im Dashboard-Export und auf der Startseite sichtbar
+- lokale Forecast-Jobs aus der Web-App heraus vorbereitet, inklusive Fallback-Befehlen fuer `run_classical_pipeline.py` und `export_dashboard_payload.py`
+- automatische Hintergrund-Aktualisierung fuer veraltete Forecasts, ohne die App zu blockieren
 - rekursiver Forecast im klassischen Pfad baut Features nun konsistent aus der fortgeschriebenen Close-Historie neu auf
 - Single-Ticker-Training und -Prognose mit einem LSTM auf Basis historischer Schlusskurse
 - persistente Speicherung pro Ticker
@@ -97,5 +100,4 @@ Aktuelle empirische Beobachtung:
 - Feature-Set weiter testen und dokumentieren
 - Thesis-Ergebnispaket nach groesseren neuen Runs aktualisieren
 - Dashboard-UI um weitere Detailansichten, Filter und spaetere API-Anbindung erweitern
-- Asset-Suche spaeter ueber den aktuellen Payload hinaus erweitern
 - spaetere Integrationen nur getrennt von der Forschungslogik betrachten; siehe `docs/future-integrations.md`

@@ -1,0 +1,205 @@
+@using System.Globalization
+@using StockPredictor.App.Models
+
+<article class="market-ticker-card">
+    <div class="market-ticker-head">
+        <div class="market-ticker-title">
+            <strong>@Asset.Ticker</strong>
+            @if (!string.IsNullOrWhiteSpace(Asset.DisplayName))
+            {
+                <small>@Asset.DisplayName</small>
+            }
+        </div>
+        <div class="market-ticker-badges">
+            @if (!string.IsNullOrWhiteSpace(Asset.AssetType))
+            {
+                <span class="meta-pill">@Asset.AssetType</span>
+            }
+            <span class="tone-pill @GetStatusTone()">@GetStatusLabel()</span>
+        </div>
+    </div>
+
+    @if (MarketSnapshot?.HasData == true)
+    {
+        <div class="market-ticker-price">
+            <span>Letzter Kurs</span>
+            <strong>@FormatPrice(MarketSnapshot.LastPoint?.Close)</strong>
+            <small>Kursdaten geladen bis: @FormatTimestamp(MarketSnapshot.LastPoint?.Timestamp)</small>
+        </div>
+
+        <div class="market-ticker-change-grid">
+            @foreach (var range in DisplayRanges)
+            {
+                if (RangeChanges?.TryGetValue(range, out var change) == true)
+                {
+                    <div>
+                        <span>@GetRangeLabel(range)</span>
+                        <strong class="@GetChangeTone(change.PercentChange)">@FormatPercent(change.PercentChange)</strong>
+                    </div>
+                }
+            }
+        </div>
+
+        @if (GetSparklineValues() is { Count: >= 2 } sparklineValues)
+        {
+            <ForecastSparkline Values="@sparklineValues"
+                               TrendTone="@MapSparklineTone()"
+                               AriaLabel="@($"{Asset.Ticker} Kursverlauf")" />
+        }
+    }
+    else
+    {
+        <div class="market-ticker-empty">
+            <span>Marktdaten</span>
+            <strong>Nicht geladen</strong>
+            <small>@(MarketSnapshot?.Error ?? "Für dieses Asset sind noch keine lokalen Kursdaten vorhanden.")</small>
+        </div>
+    }
+
+    <div class="market-ticker-footer">
+        <button class="action-button action-primary" type="button" @onclick="() => OnOpen.InvokeAsync(Asset.Ticker)">
+            Details
+        </button>
+        <button class="action-button action-secondary" type="button" @onclick="() => OnToggleWatchlist.InvokeAsync(Asset.Ticker)">
+            @(IsInWatchlist ? "Entfernen" : "Watchlist")
+        </button>
+    </div>
+</article>
+
+@code {
+    private static readonly CultureInfo UiCulture = CultureInfo.GetCultureInfo("de-DE");
+    private static readonly MarketTimeRange[] DisplayRanges =
+    [
+        MarketTimeRange.OneDay,
+        MarketTimeRange.OneMonth,
+        MarketTimeRange.OneYear,
+    ];
+
+    [Parameter]
+    public required AssetCatalogEntry Asset { get; set; }
+
+    [Parameter]
+    public MarketAssetSnapshot? MarketSnapshot { get; set; }
+
+    [Parameter]
+    public IReadOnlyDictionary<MarketTimeRange, MarketRangeChange>? RangeChanges { get; set; }
+
+    [Parameter]
+    public ForecastJobSnapshot? ForecastJob { get; set; }
+
+    [Parameter]
+    public bool IsInWatchlist { get; set; }
+
+    [Parameter]
+    public bool IsForecastStale { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnToggleWatchlist { get; set; }
+
+    private IReadOnlyList<double> GetSparklineValues()
+    {
+        return MarketSnapshot?.DailyPoints
+            .Where(point => point.Close is not null)
+            .Select(point => point.Close!.Value)
+            .TakeLast(20)
+            .ToArray()
+            ?? [];
+    }
+
+    private string MapSparklineTone()
+    {
+        if (RangeChanges?.TryGetValue(MarketTimeRange.OneMonth, out var oneMonthChange) == true)
+        {
+            return oneMonthChange.PercentChange switch
+            {
+                > 0.01 => "up",
+                < -0.01 => "down",
+                _ => "flat",
+            };
+        }
+
+        return "flat";
+    }
+
+    private string GetStatusLabel()
+    {
+        if (ForecastJob?.State is ForecastJobState.Pending or ForecastJobState.Running)
+        {
+            return "Wird aktualisiert";
+        }
+
+        if (Asset.ForecastAvailable && IsForecastStale)
+        {
+            return "Forecast veraltet";
+        }
+
+        if (Asset.ForecastAvailable)
+        {
+            return "Forecast verfügbar";
+        }
+
+        return Asset.HasPreparedPayloadData ? "Payload vorhanden" : "Noch kein Forecast";
+    }
+
+    private string GetStatusTone()
+    {
+        if (ForecastJob?.State is ForecastJobState.Pending or ForecastJobState.Running)
+        {
+            return "tone-neutral";
+        }
+
+        if (Asset.ForecastAvailable && IsForecastStale)
+        {
+            return "tone-negative";
+        }
+
+        if (Asset.ForecastAvailable)
+        {
+            return "tone-positive";
+        }
+
+        return Asset.HasPreparedPayloadData ? "tone-neutral" : "tone-negative";
+    }
+
+    private static string GetRangeLabel(MarketTimeRange range)
+    {
+        return range switch
+        {
+            MarketTimeRange.OneDay => "1T",
+            MarketTimeRange.OneWeek => "1W",
+            MarketTimeRange.OneMonth => "1M",
+            MarketTimeRange.SixMonths => "6M",
+            MarketTimeRange.OneYear => "1J",
+            MarketTimeRange.Max => "MAX",
+            _ => "n/a",
+        };
+    }
+
+    private static string FormatPrice(double? value)
+    {
+        return value is null ? "n/a" : value.Value.ToString("N2", UiCulture);
+    }
+
+    private static string FormatTimestamp(DateTime? value)
+    {
+        return value is null ? "n/a" : value.Value.ToString("dd. MMM yyyy | HH:mm", UiCulture);
+    }
+
+    private static string FormatPercent(double value)
+    {
+        return $"{(value >= 0 ? "+" : string.Empty)}{value.ToString("0.00", UiCulture)}%";
+    }
+
+    private static string GetChangeTone(double value)
+    {
+        return value switch
+        {
+            > 0.01 => "tone-positive",
+            < -0.01 => "tone-negative",
+            _ => "tone-neutral",
+        };
+    }
+}

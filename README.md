@@ -46,7 +46,7 @@ Der ML-Prototyp in `StockPredictor.ML/` kann derzeit:
 - historische Vorhersagen, Zukunftsprognosen, RSI, durchschnittliche Prognose-Steigung sowie einfache Guetemasse ausgeben
 - zusaetzlich den durchschnittlichen Preisabstand des Forecast-Pfads zum letzten realen Schlusskurs ausgeben
 
-Der Webteil in `StockPredictor.App/` liest jetzt den kompakt exportierten Dashboard-Payload und zeigt ihn als dunkles, marktzentriertes Dashboard: zuerst Ticker und Kurse, danach Asset-Suche, lokale Watchlist, Detailansichten sowie Benchmark- und Forschungsblöcke. Für Prognosen werden dabei Datenstand, Exportzeitpunkt, Prognosehorizont, gewähltes Modell und ein kompakter Modellvergleich sichtbar gemacht. Die UI zeigt bewusst den zuletzt exportierten ML-Stand und keinen garantierten Live-Datenstrom. Wichtige Fachbegriffe lassen sich zusätzlich direkt über kleine Fragezeichen-Tooltips und eine FAQ-/Glossar-Seite erklären. Ergänzend gibt es jetzt einen News-Bereich mit seriös markierten Demo-Daten als Kontext, der aktuell noch nicht in die Modelle einfließt. Optional kann die App lokale Browser-Benachrichtigungen für neue Exportstände und Watchlist-Updates auslösen, ohne daraus Handlungsempfehlungen abzuleiten.
+Der Webteil in `StockPredictor.App/` trennt jetzt zwei Ebenen klar voneinander: einen `Market Data Layer` für echte historische Kursdaten und einen `Forecast / Research Layer` für lokale ML-Artefakte aus `dashboard_payload.json`. Dadurch kann die App nicht nur vorbereitete Payload-Ticker anzeigen, sondern auch bekannte Aktien und ETFs wie `AAPL`, `TSLA`, `MSFT`, `NVDA`, `SIE.DE` oder `ENR.DE` direkt suchen, echte Kursverläufe laden und auf der Detailseite als historischen Chart mit `1T`, `1W`, `1M`, `6M`, `1J` und `MAX` darstellen. Forecasts bleiben davon getrennt: Für Prognosen werden Datenstand, Exportzeitpunkt, Prognosehorizont, gewähltes Modell und ein kompakter Modellvergleich sichtbar gemacht. Die UI zeigt bewusst den zuletzt exportierten ML-Stand und keinen garantierten Live-Datenstrom. Wichtige Fachbegriffe lassen sich zusätzlich direkt über kleine Fragezeichen-Tooltips und eine FAQ-/Glossar-Seite erklären. Ergänzend gibt es jetzt einen News-Bereich mit seriös markierten Demo-Daten als Kontext, der aktuell noch nicht in die Modelle einfließt. Optional kann die App lokale Browser-Benachrichtigungen für neue Exportstände und Watchlist-Updates auslösen, ohne daraus Handlungsempfehlungen abzuleiten.
 
 Ergaenzend steht jetzt ein lokaler FAQ-Chat zur Verfuegung, der bei erreichbarem Ollama lokal antwortet und sonst automatisch auf einen eingebauten FAQ-/Glossar-Fallback zurueckfaellt.
 
@@ -133,7 +133,7 @@ Die Startseite liest den aktuellen Export aus:
 
 - `StockPredictor.ML/storage/dashboard/LATEST/dashboard_payload.json`
 
-Die UI arbeitet damit rein auf dem zuletzt exportierten lokalen ML-Stand. Sie garantiert keine Live-Prognose und kennzeichnet ältere Exporte sichtbar.
+Zusätzlich lädt die App für Suchtreffer, Watchlist und Detailseiten echte historische Kursdaten über den lokalen Python-Helfer `StockPredictor.ML/export_market_data.py`. Die UI garantiert weiterhin keine Live-Prognose und kennzeichnet ältere Exporte sichtbar.
 
 ### Optional: lokaler FAQ-Chat mit Ollama
 
@@ -178,10 +178,13 @@ Die App zeigt bei fehlender Datei jetzt bewusst einen klaren Leerzustand mit:
 
 Die App bietet zusätzlich:
 
-- eine Asset-Suche direkt auf Basis des vorhandenen Dashboard-Payloads
+- eine Asset-Suche über bekannte Ticker- und Alias-Namen, nicht nur über den vorhandenen Dashboard-Payload
 - eine lokale Watchlist im Browser für Favoriten
 - Detailseiten unter `/assets/<ticker>`
-- einen stabilen Platzhalter für Ticker ohne vorbereitete Prognosedaten statt eines Absturzes
+- einen historischen Kurschart pro Asset mit `1T`, `1W`, `1M`, `6M`, `1J` und `MAX`
+- einen stabilen Kursmodus auch für Ticker ohne vorbereitete Prognosedaten statt einer Platzhalter-Sackgasse
+- eine lokale Aktion `Prognose für dieses Asset erzeugen` oder `Forecast aktualisieren` inklusive Fallback-Befehlen
+- automatische Hintergrund-Aktualisierung für veraltete Forecasts, ohne die App zu blockieren
 - sichtbare Prognose-Metadaten wie Datenstand, `Prognose erzeugt am`, Horizont und Modell/Methode
 - einen Toggle für `Nur Kurse`, `Kurse + Prognose` und `Modellvergleich`
 - einen Warnhinweis, wenn eine Prognose auf einem älteren Export basiert
@@ -214,6 +217,13 @@ Der reine Dashboard-Export setzt vorher mindestens diese lokalen Eingaben voraus
 - optional `StockPredictor.ML/storage/multi_asset_suites/<run>/...` fuer den Multi-Asset-Abschnitt
 
 Wenn diese Ordner auf dem aktuellen Rechner fehlen, muss zuerst die ML-Pipeline lokal neu ausgefuehrt oder ein bereits erzeugter `storage/`-Stand uebernommen werden.
+
+Wenn nur die Kursdatenansicht fuer ein Asset getestet werden soll, ohne gleich einen kompletten Dashboard-Export anzufassen:
+
+```powershell
+cd StockPredictor.ML
+.\.venv\Scripts\python.exe export_market_data.py AAPL MSFT ENR.DE
+```
 
 Wenn die neuen gemeinsamen Aktien-/ETF-Laeufe mit im Dashboard auftauchen sollen:
 

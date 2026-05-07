@@ -52,6 +52,32 @@ def download_price_data(ticker: str, start_date: str, end_date: str) -> pd.DataF
     return _normalize_price_frame(raw_data, source_label=ticker)
 
 
+def download_intraday_price_data(
+    ticker: str,
+    period: str = "5d",
+    interval: str = "15m",
+) -> pd.DataFrame:
+    local_cache_dir = STORAGE_DIR / "yfinance-cache"
+    local_cache_dir.mkdir(parents=True, exist_ok=True)
+    yf.set_tz_cache_location(str(local_cache_dir))
+
+    raw_data = yf.download(
+        tickers=ticker,
+        period=period,
+        interval=interval,
+        auto_adjust=False,
+        progress=False,
+        group_by="column",
+    )
+
+    if raw_data.empty:
+        raise ValueError(
+            f"No intraday market data returned for ticker '{ticker}' with period={period} and interval={interval}."
+        )
+
+    return _normalize_price_frame(raw_data, source_label=f"{ticker}:{period}:{interval}")
+
+
 def load_price_data_from_csv(
     csv_path: str | Path,
     date_column: str = "Date",
