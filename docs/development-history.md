@@ -1,6 +1,6 @@
 # Development History
 
-Stand: 2026-05-05
+Stand: 2026-06-28
 
 ## Zweck dieses Dokuments
 
@@ -507,6 +507,29 @@ Warum diese Phase wichtig ist:
 - die App fuehlt sich lokaler und persoenlicher an, ohne personenbezogene Konten oder Serverpersistenz einzufuehren
 - Einstellungen koennen manuell per JSON zwischen Rechnern uebertragen werden
 - die klare Grenze bleibt erhalten: keine Anlageberatung, keine Broker-Funktion und keine Secrets
+
+## Zwischenfazit fuer die Bachelorarbeit
+
+## Phase 27: Core-Rebuild und Rueckstellung halb integrierter Zusatzfeatures
+
+Im naechsten Schritt wurde ein neuer Branch `core-rebuild` angelegt, damit der bisherige Stand als Experimentier- und Funktionsspeicher erhalten bleibt.
+
+Wichtige Merkmale dieser Phase:
+
+- neuer Core-Orchestrator fuer Persistence-Baseline, Ridge Regression und Random Forest
+- chronologische Validierung ohne Shuffling als Grundlage fuer die Modellwahl
+- Core-Registry mit Modellpfaden, Metriken, Trainingszeitpunkt, Datenstand und Featureliste
+- Prediction-Service, der gespeicherte Modelle laedt und ohne Retraining Forecasts erzeugt
+- neuer Dashboard-Export aus Core-Registry und gespeicherten Predictions
+- Blazor-Hauptflow reduziert auf Dashboard, Asset-Suche, Kurscharts, Forecast-Status und Asset-Detailseite
+- Profile, Watchlist, News, Notifications und FAQ-Chat bleiben erhalten, sind aber als `Legacy / Experimental` aus dem Hauptflow herausgenommen
+
+Warum diese Phase wichtig ist:
+
+- die App wird wieder als stabiler Kern verstaendlich, statt von vielen halb integrierten Funktionen bestimmt zu werden
+- Training und Websitebesuch sind klar getrennt
+- spaetere Zusatzfeatures koennen kontrolliert wieder integriert werden, ohne die Core-Prognosekette zu verwischen
+- die Grenze bleibt klar: keine Anlageberatung, keine Broker-Funktion, keine TradingView-Orderlogik und keine Secrets
 
 ## Zwischenfazit fuer die Bachelorarbeit
 

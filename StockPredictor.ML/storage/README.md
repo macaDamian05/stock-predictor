@@ -13,6 +13,9 @@ Erwartete Unterordner:
 - `experiments/<run>/` auch fuer konsolidierte Profilvergleiche ueber mehrere Benchmark-Runs
 - `thesis/<run>/` fuer konsolidierte BA-taugliche Ergebnispakete
 - `dashboard/<run>/` fuer UI-freundliche JSON- und CSV-Exports
+- `model_registry/<ticker>/horizon_<n>/` fuer Core-Registry-Dateien mit Modellwahl und Metriken
+- `trained_models/<ticker>/horizon_<n>/` fuer gespeicherte Core-Untermodelle
+- `predictions/<ticker>/horizon_<n>/` fuer Forecasts aus gespeicherten Core-Modellen
 - `plots/` falls spaeter gespeicherte Diagramme abgelegt werden sollen
 - `yfinance-cache/` fuer lokale Paket-Caches, damit Datenabrufe reproduzierbar im Projektordner bleiben
 
@@ -73,6 +76,14 @@ Typische Artefakte des Dashboard-Exports:
 - `multi_asset_summary.csv`
 
 Der Payload ist fuer die Blazor-UI gedacht und enthaelt inzwischen neben Kennzahlen auch Prognose-Metadaten wie `generated_at`, `data_until`, `stale_after_days`, `selected_model`, `available_models` und kompakte `model_metrics`.
+
+Typische Artefakte des neuen Core-Rebuild-Pfads:
+
+- `model_registry/<ticker>/horizon_<n>/registry.json`
+- `trained_models/<ticker>/horizon_<n>/baseline_persistence.joblib`
+- `trained_models/<ticker>/horizon_<n>/ridge_regression.joblib`
+- `trained_models/<ticker>/horizon_<n>/random_forest.joblib`
+- `predictions/<ticker>/horizon_<n>/latest_prediction.json`
 
 ## Blazor-App nach frischem Clone wieder befuellen
 

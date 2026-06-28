@@ -16,6 +16,9 @@ MULTI_ASSET_SUITE_DATA_DIR = STORAGE_DIR / "multi_asset_suites"
 THESIS_DATA_DIR = STORAGE_DIR / "thesis"
 DASHBOARD_DATA_DIR = STORAGE_DIR / "dashboard"
 MARKET_DATA_DIR = STORAGE_DIR / "market_data"
+MODEL_REGISTRY_DIR = STORAGE_DIR / "model_registry"
+TRAINED_MODELS_DIR = STORAGE_DIR / "trained_models"
+CORE_PREDICTIONS_DIR = STORAGE_DIR / "predictions"
 
 
 @dataclass(frozen=True)
@@ -165,6 +168,9 @@ def ensure_runtime_directories() -> None:
     THESIS_DATA_DIR.mkdir(parents=True, exist_ok=True)
     DASHBOARD_DATA_DIR.mkdir(parents=True, exist_ok=True)
     MARKET_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    MODEL_REGISTRY_DIR.mkdir(parents=True, exist_ok=True)
+    TRAINED_MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    CORE_PREDICTIONS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def sanitize_name(value: str, uppercase: bool = False) -> str:

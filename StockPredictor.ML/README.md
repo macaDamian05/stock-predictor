@@ -4,6 +4,21 @@
 
 Dieses Modul ueberfuehrt den frueheren Colab-Prototyp in eine reproduzierbare Python-Struktur innerhalb des Hauptrepositories. Es ist fuer Training, Aktualisierung, Prognose und Auswertung der Modelle verantwortlich.
 
+## Core-Rebuild
+
+Der neue stabile Hauptpfad liegt unter `core/`, `models/` und `scripts/`. Er ersetzt die alten Skripte nicht, macht aber den zentralen Ablauf klarer:
+
+1. Kursdaten laden, bevorzugt aus lokalen Markt-Snapshots unter `storage/market_data/`, sonst per `yfinance`.
+2. Features konsistent ueber `core/tabular_features.py` erzeugen.
+3. Untermodelle trainieren: Persistence-Baseline, Ridge Regression und Random Forest.
+4. Modelle auf zeitlich spaeteren Validierungsdaten bewerten, ohne Shuffling und ohne Data Leakage.
+5. Registry unter `storage/model_registry/<symbol>/horizon_<n>/registry.json` speichern.
+6. Modelle unter `storage/trained_models/<symbol>/horizon_<n>/` speichern.
+7. Predictions aus gespeicherten Modellen unter `storage/predictions/<symbol>/horizon_<n>/latest_prediction.json` erzeugen.
+8. Dashboard-Payload fuer die App unter `storage/dashboard/LATEST/dashboard_payload.json` exportieren.
+
+Die Webapp trainiert beim normalen Besuch nicht neu. Retraining ist ein manueller CLI-Schritt, damit Trainingszeitpunkt, Datenstand und Forecast-Erzeugung nachvollziehbar bleiben.
+
 ## Enthaltene Bausteine
 
 - `main.py`: CLI-Einstiegspunkt
@@ -16,6 +31,9 @@ Dieses Modul ueberfuehrt den frueheren Colab-Prototyp in eine reproduzierbare Py
 - `generate_thesis_results.py`: konsolidiert vorhandene Experimente zu BA-tauglichen Tabellen, Grafiken und einem Kurzreport
 - `export_dashboard_payload.py`: erstellt einen UI-freundlichen JSON- und CSV-Handover fuer die spaetere App, inklusive Datenstand, Prognosezeitpunkt, Modellwahl und Modellvergleich
 - `export_market_data.py`: erstellt lokale Markt-Snapshots fuer echte Kursverlaeufe in der Blazor-App, auch ohne vorhandenen Forecast
+- `scripts/train_model_suite.py`: neuer Core-Orchestrator-Einstieg fuer mehrere Untermodelle pro Asset/Horizont
+- `scripts/predict_asset.py`: erzeugt Forecasts aus gespeicherten Core-Modellen ohne Retraining
+- `scripts/export_dashboard_payload.py`: exportiert den Core-Payload fuer die Blazor-App
 - `core/benchmark_presets.py`: feste Ticker-Koerbe fuer Starter- und Bachelor-Laeufe
 - `core/data_loader.py`: Download und Bereinigung der Marktdaten
 - `core/preprocessing.py`: Sequenzbildung und Skalierung
@@ -25,6 +43,31 @@ Dieses Modul ueberfuehrt den frueheren Colab-Prototyp in eine reproduzierbare Py
 - `core/indicators.py`: RSI-Berechnung
 - `core/tabular_features.py`: Lag-Feature-Erzeugung fuer klassische Modelle
 - `core/classical_models.py`: Persistence-Baseline, Ridge Regression, Decision Tree und Random Forest
+- `core/orchestrator.py`: koordiniert Core-Training, Bewertung, Modellwahl und Registry-Speicherung
+- `core/model_registry.py`: persistiert Modellpfade, Metriken, Datenstand und Auswahlentscheidung
+- `core/evaluation.py`: RMSE, MAE, MAPE und Directional Accuracy fuer chronologische Validierung
+- `core/prediction_service.py`: laedt gespeicherte Modelle und erzeugt Forecasts ohne Training
+- `core/dashboard_export.py`: baut den App-Payload aus Registry und Predictions
+- `models/`: schlanke Modellwrapper fuer die Core-Untermodelle
+
+## Neuer Core-Schnellstart
+
+```powershell
+cd StockPredictor.ML
+.\.venv\Scripts\python.exe scripts\train_model_suite.py --symbols AAPL TSLA MSFT NVDA ENR.DE SIE.DE --horizon 5
+.\.venv\Scripts\python.exe scripts\predict_asset.py --symbol AAPL --horizon 5
+.\.venv\Scripts\python.exe scripts\export_dashboard_payload.py
+```
+
+Danach:
+
+```powershell
+cd ..
+dotnet build StockPredictor.slnx
+dotnet run --project StockPredictor.App
+```
+
+Wenn fuer einen Ticker weder lokaler Snapshot noch yfinance-Zugriff verfuegbar ist, meldet das Trainingsskript diesen Ticker separat. Bereits erfolgreich trainierte Ticker bleiben erhalten.
 
 ## Erster sinnvoller Startpfad
 

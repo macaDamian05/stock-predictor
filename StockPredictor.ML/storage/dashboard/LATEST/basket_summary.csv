@@ -1,3 +1,1 @@
-basket_key,basket_label,best_profile,best_profile_label,mean_best_learned_rmse,mean_walk_forward_baseline_rmse,mean_gap_vs_baseline,dominant_best_model,dominant_best_model_label,technical_extended_better_count,lag_only_better_count
-core,Bachelor Core,technical_extended,Technical Extended,4.823623907129292,4.821796505389731,0.0018274017395604192,random_forest,Random Forest,2,2
-diversified,Bachelor Diversified,technical_extended,Technical Extended,4.823623907129292,4.821796505389731,0.0018274017395604192,random_forest,Random Forest,2,2
+basket_key,basket_label

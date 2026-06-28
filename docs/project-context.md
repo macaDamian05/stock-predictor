@@ -1,6 +1,6 @@
 # Project Context
 
-Stand: 2026-05-05
+Stand: 2026-06-28
 
 ## Kanonische Entscheidungen
 
@@ -11,6 +11,8 @@ Stand: 2026-05-05
 - Modelle, Scaler und Logs werden lokal unter `StockPredictor.ML/storage/trainingsdaten/` abgelegt und nicht committed.
 - `credentials.json` aus dem alten lokalen Ordner wird nicht mehr benoetigt.
 - feste Ticker-Koerbe liegen in `StockPredictor.ML/core/benchmark_presets.py`
+- fuer den stabilen Hauptpfad wird auf Branch `core-rebuild` eine Core-Version aufgebaut
+- halb integrierte Features bleiben als Legacy/Experimental erhalten, sollen aber den Core-Hauptflow nicht bestimmen
 
 ## Aktueller fachlicher Scope
 
@@ -62,10 +64,17 @@ Stand: 2026-05-05
 - inkrementelles Weitertraining bei neuen Marktdaten
 - zusaetzliche Bewertung ueber RSI, durchschnittliche Prognose-Steigung, durchschnittlichen Forecast-Abstand zum letzten Schlusskurs, MAE, RMSE und Directional Accuracy
 - ETF-Koerbe wie `etf_core` und `etf_sectors` sowie ein gemischter Korb `mixed_assets`
+- neuer Core-Orchestrator unter `StockPredictor.ML/core/orchestrator.py`
+- Core-Untermodelle unter `StockPredictor.ML/models/`
+- Core-Skripte unter `StockPredictor.ML/scripts/` fuer Training, Prediction und Dashboard-Export
+- Core-Registry unter `storage/model_registry/`, gespeicherte Modelle unter `storage/trained_models/`, Predictions unter `storage/predictions/`
+- Blazor-Hauptnavigation konzentriert sich auf Dashboard, Suche, Kurse, Forecasts und Methodik
+- Profile, Watchlist, News, Notifications und FAQ-Chat sind weiterhin vorhanden, aber als Legacy/Experimental vom Core-Hauptflow getrennt
 
 Noch nicht umgesetzt:
 
 - gemeinsames Training im LSTM-Pfad
+- LSTM ist noch nicht Teil der stabilen Core-Modellsuite, sondern bleibt Legacy/Research-Pfad
 - spezielle ETF-Detaildarstellung im Dashboard jenseits der neuen Multi-Asset-Zusammenfassungen
 - Sentimentdaten oder automatische News-Einbindung in die Prognose
 - Backtesting ueber mehrere Assets und Marktphasen auf Forschungsniveau
@@ -79,6 +88,7 @@ Aktuelle empirische Beobachtung:
 - Im `bachelor_diversified`-Vergleich zeigt sich dasselbe Muster: `technical_extended` ist im Mittel leicht besser als `lag_only`, obwohl der Vorteil tickerweise nicht einheitlich ist.
 - Fuer die App steht jetzt eine kompakte JSON-Schicht bereit. Die UI muss daher nicht direkt mit rohen Benchmark- oder Experimentdateien arbeiten.
 - Die erste Blazor-Startseite nutzt diese JSON-Schicht bereits direkt fuer ein dunkles Dashboard mit Kennzahlen, Tickerkarten und Korbvergleich.
+- Im ersten Core-Rebuild-Minilauf fuer `AAPL` wurde die Persistence-Baseline anhand der Validierungs-RMSE als bestes Modell gewaehlt; Ridge und Random Forest bleiben als Vergleichsmodelle mitgespeichert.
 
 ## Lokale Umgebungsannahmen
 
@@ -102,4 +112,5 @@ Aktuelle empirische Beobachtung:
 - Feature-Set weiter testen und dokumentieren
 - Thesis-Ergebnispaket nach groesseren neuen Runs aktualisieren
 - Dashboard-UI um weitere Detailansichten, Filter und spaetere API-Anbindung erweitern
+- Core-Suite fuer mehrere Assets vollstaendig neu trainieren und Dashboard-Payload mit allen gewuenschten Symbolen aktualisieren
 - spaetere Integrationen nur getrennt von der Forschungslogik betrachten; siehe `docs/future-integrations.md`

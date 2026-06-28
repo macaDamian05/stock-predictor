@@ -1,6 +1,6 @@
 # Thesis Notes
 
-Stand: 2026-04-22
+Stand: 2026-06-28
 
 ## Arbeitstitel
 
@@ -86,6 +86,7 @@ Erste Ergebnisbeobachtung:
 - Die Ergebnisse koennen jetzt als konsolidiertes BA-Ergebnispaket exportiert werden. Dadurch lassen sich Tabellen und Grafiken spaeter leichter in die schriftliche Auswertung uebernehmen.
 - Zusaetzlich koennen die Ergebnisse jetzt in eine kompakte Dashboard-Struktur exportiert werden. Das ist kein neuer Modellschritt, aber wichtig fuer die technische Uebergabe in die Anwendungsoberflaeche.
 - Gemeinsame Multi-Asset-Laeufe lassen sich nun als eigene Suite fuer `mixed_assets` und `etf_core` vergleichen und als Bestkonfigurationen direkt im Dashboard zeigen. Das verbindet die neue pooled-Training-Idee sauber mit der UI-Auswertung.
+- Der Branch `core-rebuild` fuehrt einen stabileren Core-Hauptpfad ein: Untermodelle werden offline trainiert, chronologisch validiert, in einer Registry gespeichert und erst danach fuer Predictions geladen. Die Webapp trainiert nicht beim Besuch.
 
 ## Forschungsfragen
 
@@ -102,6 +103,7 @@ Moegliche Leitfragen:
 - derzeit nur Tagesdaten, keine Intraday-Daten
 - Abhaengigkeit von Datenqualitaet und Verfuegbarkeit in `yfinance`
 - keine Nutzerprofile, keine Broker-Anbindung und kein automatisches Trading im aktuellen Bachelorarbeitsstand
+- Profile, Watchlist, News, Notifications und FAQ-Chat sind im Core-Rebuild Legacy/Experimental und nicht Teil der stabilen Prognosekette
 
 ## Moegliche Ausbaupfade
 

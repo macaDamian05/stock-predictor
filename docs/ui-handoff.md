@@ -1,6 +1,6 @@
 # UI Handoff
 
-Stand: 2026-05-05
+Stand: 2026-06-28
 
 ## Zweck
 
@@ -147,3 +147,14 @@ Die naechsten UI-Schritte sind damit nicht mehr Grundintegration, sondern Ausbau
 - spaetere API-Schicht statt direktem Dateizugriff
 - spaetere echte News-API kann ueber die neue Provider-Schnittstelle angeschlossen werden; aktuell werden bevorzugt RSS-/Atom-Feeds genutzt
 - Filter, Sortierung und eventuell Chart-Erweiterungen
+
+## Core-Rebuild-Status
+
+Auf Branch `core-rebuild` ist der UI-Hauptflow reduziert:
+
+- Startseite: Core-Dashboard mit Asset-Suche, Kurskarten, Forecast-Status und manuellem Core-Ablauf.
+- Asset-Detailseite: historischer Kurschart mit `1T`, `1W`, `1M`, `6M`, `1J`, `MAX`, Forecast-Overlay und Modellmetriken.
+- Forecasts kommen aus `storage/dashboard/LATEST/dashboard_payload.json`, der jetzt per `StockPredictor.ML/scripts/export_dashboard_payload.py` aus Core-Registry und gespeicherten Predictions entsteht.
+- Neue Payload-Felder fuer die UI: `model_trained_at`, `validation_start`, `validation_end` sowie `ui_contract_version = core-v1`.
+- Die Webapp startet kein Training beim Seitenbesuch. Retraining erfolgt manuell ueber `scripts/train_model_suite.py`.
+- Profile, Watchlist, News, Notifications und FAQ-Chat bleiben vorhanden, sind aber in der Navigation als `Legacy / Experimental` getrennt.
