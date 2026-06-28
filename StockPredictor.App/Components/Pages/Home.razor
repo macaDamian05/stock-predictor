@@ -9,6 +9,7 @@
 @inject ForecastJobService ForecastJobService
 @inject NewsService NewsService
 @inject NotificationService NotificationService
+@inject LocalUserProfileService ProfileService
 @inject NavigationManager NavigationManager
 
 <PageTitle>Stock-Predictor-Dashboard</PageTitle>
@@ -62,6 +63,7 @@ else
                 <div class="hero-actions">
                     <a class="action-link action-primary" href="#asset-discovery">Assets suchen</a>
                     <a class="action-link" href="news">News-Kontext</a>
+                    <a class="action-link" href="profile">Profil</a>
                     <a class="action-link" href="hinweise">FAQ & Methodik</a>
                 </div>
             </div>
@@ -300,6 +302,7 @@ else
                                       MarketSnapshot="marketSnapshot"
                                       RangeChanges="rangeChanges"
                                       ForecastJob="forecastJob"
+                                      PrimaryRange="@GetPreferredDashboardRange()"
                                       IsInWatchlist="IsInWatchlist(asset.Ticker)"
                                       IsForecastStale="IsAssetForecastStale(asset)"
                                       OnOpen="OpenAssetFromCard"
@@ -459,17 +462,18 @@ else
             </article>
 
             <article class="panel-shell teaser-card">
-                <span class="section-kicker">Zukunftsthemen</span>
-                <h2>Profile und Trading-Anbindungen bleiben deaktiviert</h2>
+                <span class="section-kicker">Profil</span>
+                <h2>Lokale Einstellungen für dieses Dashboard</h2>
                 <p>
-                    Kein automatisches Trading, keine Broker-Orders und keine TradingView-Signale. ML-Ergebnisse dienen
-                    Forschungs- und Demonstrationszwecken.
+                    Watchlist, bevorzugte Assets, Chart-Zeitraum, Forecast-Anzeige, News-Kategorien und
+                    Benachrichtigungen werden lokal im Browser gespeichert.
                 </p>
                 <div class="tag-list">
-                    <span class="meta-pill planned-pill">Profile: geplant</span>
-                    <span class="meta-pill planned-pill">TradingView-Export: geplant</span>
-                    <span class="meta-pill planned-pill">Broker-Anbindung: Zukunftsthema</span>
+                    <span class="meta-pill planned-pill">@(_profile?.ProfileName ?? "Mein Profil")</span>
+                    <span class="meta-pill planned-pill">Kein Login</span>
+                    <span class="meta-pill planned-pill">Keine Cloud</span>
                 </div>
+                <a class="action-link action-secondary" href="profile">Profil öffnen</a>
             </article>
         </section>
     </div>
@@ -481,6 +485,7 @@ else
 
     private DashboardDataSnapshot? _snapshot;
     private NewsFeedSnapshot? _newsSnapshot;
+    private LocalUserProfile? _profile;
     private IReadOnlyList<AssetCatalogEntry> _assetEntries = [];
     private readonly Dictionary<string, MarketAssetSnapshot> _marketSnapshots = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, IReadOnlyDictionary<MarketTimeRange, MarketRangeChange>> _marketChanges = new(StringComparer.OrdinalIgnoreCase);
@@ -518,6 +523,7 @@ else
         {
             MaxItems = 4,
             PreferredTickers = _watchlistTickers,
+            PreferredCategories = _profile?.News.PreferredNewsCategories,
             PreferTickerMatches = true,
         });
         _assetEntries = AssetCatalogService.BuildEntries(_snapshot.Payload);
@@ -551,7 +557,10 @@ else
     {
         try
         {
-            _watchlistTickers = (await BrowserWatchlistService.GetAsync()).ToList();
+            _profile = await ProfileService.GetProfileAsync(forceReload: true);
+            _watchlistTickers = _profile.Watchlist
+                .Select(item => item.Symbol)
+                .ToList();
         }
         catch (InvalidOperationException)
         {
@@ -571,6 +580,7 @@ else
         {
             MaxItems = 4,
             PreferredTickers = _watchlistTickers,
+            PreferredCategories = _profile?.News.PreferredNewsCategories,
             PreferTickerMatches = true,
         });
 
@@ -586,6 +596,11 @@ else
     private IReadOnlyList<string> GetHomeMarketTickers()
     {
         var tickers = new List<string>();
+        if (_profile?.Dashboard.PreferredDashboardAssets.Count > 0)
+        {
+            tickers.AddRange(_profile.Dashboard.PreferredDashboardAssets);
+        }
+
         tickers.AddRange(_watchlistTickers);
         if (_snapshot?.Payload is not null)
         {
@@ -679,15 +694,39 @@ else
             _watchlistTickers = _watchlistTickers
                 .Where(existingTicker => !string.Equals(existingTicker, normalizedTicker, StringComparison.OrdinalIgnoreCase))
                 .ToList();
+            try
+            {
+                await BrowserWatchlistService.RemoveAsync(normalizedTicker);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+            catch (JSDisconnectedException)
+            {
+            }
         }
         else
         {
+            var asset = _assetEntries.FirstOrDefault(entry =>
+                string.Equals(entry.Ticker, normalizedTicker, StringComparison.OrdinalIgnoreCase))
+                ?? AssetCatalogService.CreatePlaceholderEntry(normalizedTicker);
             _watchlistTickers.Add(normalizedTicker);
+            try
+            {
+                await BrowserWatchlistService.AddOrUpdateAsync(asset);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+            catch (JSDisconnectedException)
+            {
+            }
         }
 
         try
         {
-            await BrowserWatchlistService.SaveAsync(_watchlistTickers);
+            _profile = await ProfileService.GetProfileAsync(forceReload: true);
+            _watchlistTickers = _profile.Watchlist.Select(item => item.Symbol).ToList();
         }
         catch (InvalidOperationException)
         {
@@ -701,6 +740,7 @@ else
         {
             MaxItems = 4,
             PreferredTickers = _watchlistTickers,
+            PreferredCategories = _profile?.News.PreferredNewsCategories,
             PreferTickerMatches = true,
         });
         if (_snapshot?.Payload is not null)
@@ -729,6 +769,11 @@ else
     {
         _marketSnapshots.TryGetValue(AssetCatalogService.NormalizeTicker(ticker), out var snapshot);
         return snapshot;
+    }
+
+    private MarketTimeRange GetPreferredDashboardRange()
+    {
+        return LocalUserProfileService.ToMarketTimeRange(_profile?.Chart.DefaultChartRange);
     }
 
     private IReadOnlyDictionary<MarketTimeRange, MarketRangeChange> GetRangeChanges(string ticker)
@@ -881,6 +926,13 @@ else
     {
         _ = InvokeAsync(async () =>
         {
+            foreach (var job in ForecastJobService.GetJobs().Where(job =>
+                         job.State is (ForecastJobState.Completed or ForecastJobState.Failed)
+                         && job.CompletedAt >= DateTime.Now.AddMinutes(-2)))
+            {
+                await NotificationService.NotifyForecastJobChangedAsync(job);
+            }
+
             var completedRecently = ForecastJobService.GetJobs().Any(job =>
                 job.State == ForecastJobState.Completed
                 && job.CompletedAt >= DateTime.Now.AddMinutes(-2));

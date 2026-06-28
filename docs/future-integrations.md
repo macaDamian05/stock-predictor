@@ -1,6 +1,6 @@
 # Future Integrations
 
-Stand: 2026-05-05
+Stand: 2026-05-20
 
 ## Zweck
 
@@ -20,7 +20,10 @@ Es ist bewusst keine Anleitung fuer automatisiertes Trading und keine aktive Imp
 
 ### Nutzerprofile
 
-Moegliche spaetere Profilfunktionen:
+Aktuell existiert ein lokales Profil ohne Login. Es speichert Watchlist, bevorzugte Dashboard-Assets,
+Chart-Zeitraum, Forecast-Anzeige, News-Kategorien und Benachrichtigungseinstellungen nur im Browser.
+
+Moegliche spaetere Profilfunktionen darueber hinaus:
 
 - persoenliche Startansicht pro Nutzer
 - eigene Watchlists pro Nutzerkonto
@@ -29,12 +32,12 @@ Moegliche spaetere Profilfunktionen:
 
 Technische Konsequenz:
 
-- dafuer waeren spaeter Authentifizierung, Persistenz und ein Datenschutzkonzept noetig
-- im aktuellen Bachelorarbeitsstand ist bewusst noch keine Nutzerverwaltung enthalten
+- dafuer waeren spaeter Authentifizierung, serverseitige Persistenz und ein Datenschutzkonzept noetig
+- im aktuellen Bachelorarbeitsstand ist bewusst noch keine echte Nutzerverwaltung enthalten
 
 ### Gespeicherte Watchlists pro Nutzer
 
-Aktuell speichert die App Watchlists nur lokal im Browser.
+Aktuell speichert die App Watchlists im lokalen Browser-Profil.
 Ein spaeterer Ausbau koennte ermoeglichen:
 
 - geraeteuebergreifende Watchlists
@@ -111,10 +114,9 @@ Wichtig ist dabei:
 
 ## UI-Status im aktuellen Stand
 
-In der App gibt es bewusst nur einen deaktivierten Hinweisbereich fuer spaetere Themen wie:
+In der App gibt es jetzt einen aktiven lokalen Profilbereich. Deaktiviert bleiben weiterhin spaetere Integrationen wie:
 
-- `Profile: geplant`
 - `TradingView-Export: geplant`
 - `Broker-Anbindung: Zukunftsthema`
 
-Diese Hinweise haben aktuell keine technische Wirkung und keine externen API-Verbindungen.
+Diese Integrationshinweise haben aktuell keine technische Wirkung und keine externen API-Verbindungen.

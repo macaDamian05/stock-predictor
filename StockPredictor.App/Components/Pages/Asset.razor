@@ -8,6 +8,8 @@
 @inject MarketDataService MarketDataService
 @inject ForecastJobService ForecastJobService
 @inject LocalMlWorkspaceService LocalMlWorkspaceService
+@inject LocalUserProfileService ProfileService
+@inject NotificationService NotificationService
 
 <PageTitle>Asset-Details</PageTitle>
 
@@ -111,7 +113,7 @@ else
                     {
                         <button class="@GetRangeTabClass(range)"
                                 type="button"
-                                @onclick="() => SelectRange(range)">
+                                @onclick="() => SelectRangeAsync(range)">
                             @GetRangeLabel(range)
                         </button>
                     }
@@ -191,17 +193,17 @@ else
                     <div class="surface-toggle" role="tablist" aria-label="Ansicht wechseln">
                         <button class="@GetModeTabClass(AssetDetailMode.PricesOnly)"
                                 type="button"
-                                @onclick="() => SetMode(AssetDetailMode.PricesOnly)">
+                                @onclick="() => SetModeAsync(AssetDetailMode.PricesOnly)">
                             Nur Kurse
                         </button>
                         <button class="@GetModeTabClass(AssetDetailMode.PricesAndForecast)"
                                 type="button"
-                                @onclick="() => SetMode(AssetDetailMode.PricesAndForecast)">
+                                @onclick="() => SetModeAsync(AssetDetailMode.PricesAndForecast)">
                             Kurse + Prognose
                         </button>
                         <button class="@GetModeTabClass(AssetDetailMode.ModelComparison)"
                                 type="button"
-                                @onclick="() => SetMode(AssetDetailMode.ModelComparison)">
+                                @onclick="() => SetModeAsync(AssetDetailMode.ModelComparison)">
                             Modellvergleich
                         </button>
                     </div>
@@ -501,6 +503,7 @@ else
 
     private DashboardDataSnapshot? _snapshot;
     private AssetCatalogEntry? _assetEntry;
+    private LocalUserProfile? _profile;
     private MarketAssetSnapshot? _marketSnapshot;
     private IReadOnlyDictionary<MarketTimeRange, MarketRangeChange> _rangeChanges =
         new Dictionary<MarketTimeRange, MarketRangeChange>();
@@ -530,6 +533,7 @@ else
         }
 
         await LoadWatchlistAsync();
+        await LoadProfilePreferencesAsync();
     }
 
     private async Task LoadAssetAsync()
@@ -554,6 +558,8 @@ else
             _activeMode = AssetDetailMode.PricesOnly;
         }
 
+        ApplyProfilePreferences();
+
         _isLoading = false;
     }
 
@@ -561,7 +567,10 @@ else
     {
         try
         {
-            _watchlistTickers = (await BrowserWatchlistService.GetAsync()).ToList();
+            _profile = await ProfileService.GetProfileAsync(forceReload: true);
+            _watchlistTickers = _profile.Watchlist
+                .Select(item => item.Symbol)
+                .ToList();
         }
         catch (InvalidOperationException)
         {
@@ -574,6 +583,24 @@ else
         finally
         {
             _watchlistLoaded = true;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadProfilePreferencesAsync()
+    {
+        try
+        {
+            _profile = await ProfileService.GetProfileAsync(forceReload: true);
+            _watchlistTickers = _profile.Watchlist.Select(item => item.Symbol).ToList();
+            ApplyProfilePreferences();
+        }
+        catch (InvalidOperationException)
+        {
+        }
+        catch (JSDisconnectedException)
+        {
         }
 
         await InvokeAsync(StateHasChanged);
@@ -592,15 +619,36 @@ else
             _watchlistTickers = _watchlistTickers
                 .Where(existingTicker => !string.Equals(existingTicker, normalizedTicker, StringComparison.OrdinalIgnoreCase))
                 .ToList();
+            try
+            {
+                await BrowserWatchlistService.RemoveAsync(normalizedTicker);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+            catch (JSDisconnectedException)
+            {
+            }
         }
         else
         {
             _watchlistTickers.Add(normalizedTicker);
+            try
+            {
+                await BrowserWatchlistService.AddOrUpdateAsync(_assetEntry);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+            catch (JSDisconnectedException)
+            {
+            }
         }
 
         try
         {
-            await BrowserWatchlistService.SaveAsync(_watchlistTickers);
+            _profile = await ProfileService.GetProfileAsync(forceReload: true);
+            _watchlistTickers = _profile.Watchlist.Select(item => item.Symbol).ToList();
         }
         catch (InvalidOperationException)
         {
@@ -636,14 +684,71 @@ else
             _snapshot?.Payload);
     }
 
-    private void SetMode(AssetDetailMode mode)
+    private void ApplyProfilePreferences()
     {
-        _activeMode = mode;
+        if (_profile is null)
+        {
+            return;
+        }
+
+        var assetPreference = GetWatchlistPreference();
+        var preferredRange = assetPreference?.PreferredChartRange ?? _profile.Chart.DefaultChartRange;
+        _selectedRange = LocalUserProfileService.ToMarketTimeRange(preferredRange);
+
+        if (_assetEntry?.FeaturedTicker is not null)
+        {
+            var showForecast = assetPreference?.ShowForecastByDefault ?? _profile.Forecast.ShowForecastByDefault;
+            _activeMode = showForecast ? AssetDetailMode.PricesAndForecast : AssetDetailMode.PricesOnly;
+        }
     }
 
-    private void SelectRange(MarketTimeRange range)
+    private async Task SaveAssetChartRangePreferenceAsync(MarketTimeRange range)
+    {
+        if (_profile is null || _assetEntry is null || !IsInWatchlist())
+        {
+            return;
+        }
+
+        var item = GetWatchlistPreference();
+        if (item is null)
+        {
+            return;
+        }
+
+        item.PreferredChartRange = LocalUserProfileService.ToChartRangeLabel(range);
+        await ProfileService.SaveProfileAsync(_profile);
+    }
+
+    private async Task SaveAssetForecastPreferenceAsync(bool showForecast)
+    {
+        if (_profile is null || _assetEntry is null || !IsInWatchlist())
+        {
+            return;
+        }
+
+        var item = GetWatchlistPreference();
+        if (item is null)
+        {
+            return;
+        }
+
+        item.ShowForecastByDefault = showForecast;
+        await ProfileService.SaveProfileAsync(_profile);
+    }
+
+    private async Task SetModeAsync(AssetDetailMode mode)
+    {
+        _activeMode = mode;
+        if (mode is AssetDetailMode.PricesOnly or AssetDetailMode.PricesAndForecast)
+        {
+            await SaveAssetForecastPreferenceAsync(mode == AssetDetailMode.PricesAndForecast);
+        }
+    }
+
+    private async Task SelectRangeAsync(MarketTimeRange range)
     {
         _selectedRange = range;
+        await SaveAssetChartRangePreferenceAsync(range);
     }
 
     private IReadOnlyList<MarketPricePoint> GetChartPoints()
@@ -660,7 +765,7 @@ else
 
     private bool ShouldShowForecastOverlay(FeaturedTicker? featuredTicker)
     {
-        return featuredTicker is not null && _activeMode != AssetDetailMode.ModelComparison;
+        return featuredTicker is not null && _activeMode == AssetDetailMode.PricesAndForecast;
     }
 
     private ForecastJobSnapshot? GetForecastJob()
@@ -677,6 +782,17 @@ else
 
         return _watchlistTickers.Any(existingTicker =>
             string.Equals(existingTicker, _assetEntry.Ticker, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private WatchlistItem? GetWatchlistPreference()
+    {
+        if (_profile is null || _assetEntry is null)
+        {
+            return null;
+        }
+
+        return _profile.Watchlist.FirstOrDefault(item =>
+            string.Equals(item.Symbol, _assetEntry.Ticker, StringComparison.OrdinalIgnoreCase));
     }
 
     private string GetWatchlistButtonLabel()
@@ -887,6 +1003,13 @@ else
         _ = InvokeAsync(async () =>
         {
             var currentJob = GetForecastJob();
+            if (currentJob is not null
+                && currentJob.State is (ForecastJobState.Completed or ForecastJobState.Failed)
+                && currentJob.CompletedAt >= DateTime.Now.AddMinutes(-2))
+            {
+                await NotificationService.NotifyForecastJobChangedAsync(currentJob);
+            }
+
             if (!_reloadingAfterJob
                 && currentJob?.State == ForecastJobState.Completed
                 && currentJob.CompletedAt >= DateTime.Now.AddMinutes(-2))

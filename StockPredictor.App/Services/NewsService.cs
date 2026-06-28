@@ -17,6 +17,11 @@ public sealed class NewsService(INewsProvider provider)
             .Select(ticker => ticker.Trim().ToUpperInvariant())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
+        var preferredCategories = (normalizedQuery.PreferredCategories ?? [])
+            .Where(category => !string.IsNullOrWhiteSpace(category))
+            .Select(category => category.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
         var providerResult = await provider.GetNewsAsync(cancellationToken);
         var allItems = providerResult.Items
@@ -65,6 +70,13 @@ public sealed class NewsService(INewsProvider provider)
             filteredItems = filteredItems
                 .OrderByDescending(item => item.AffectedTickers.Any(ticker =>
                     preferredTickers.Contains(ticker, StringComparer.OrdinalIgnoreCase)))
+                .ThenByDescending(item => preferredCategories.Contains(item.Category, StringComparer.OrdinalIgnoreCase))
+                .ThenByDescending(item => item.PublishedAt);
+        }
+        else if (preferredCategories.Length > 0 && string.Equals(selectedCategory, AllCategories, StringComparison.OrdinalIgnoreCase))
+        {
+            filteredItems = filteredItems
+                .OrderByDescending(item => preferredCategories.Contains(item.Category, StringComparer.OrdinalIgnoreCase))
                 .ThenByDescending(item => item.PublishedAt);
         }
 

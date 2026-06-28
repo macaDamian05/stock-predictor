@@ -99,6 +99,7 @@ Wenn die Datei vorhanden ist, zeigt die UI den zuletzt exportierten ML-Stand. Es
 Wichtige Kennzahlen und Modellbegriffe werden in der App zusaetzlich ueber kleine Tooltips sowie eine FAQ-/Glossar-Seite erklaert.
 Ein separater News-Bereich in der App liefert derzeit nur Kontext ueber konfigurierbare externe RSS-/Atom-Quellen oder einen klar markierten Demo-Modus und wird noch nicht in die Modelllogik eingespeist.
 Zusätzlich kann die App lokale Browser-Benachrichtigungen für neue Exporte und Watchlist-Updates anzeigen; auch diese Hinweise bleiben rein statusbezogen und greifen nicht in die Modelllogik ein.
+Lokale Nutzerprofile speichern Watchlist, Chart-Standardzeitraum, Forecast-Anzeige, News-Kategorien und Benachrichtigungspraeferenzen nur im Browser. Es gibt weiterhin kein Login, keine Datenbank und keine Cloud-Synchronisation.
 
 Ebenfalls rein UI-seitig gibt es jetzt einen lokalen FAQ-Chat mit optionaler Ollama-Anbindung; ohne lokales Modell faellt die App auf einen eingebauten Erklaer-Fallback zurueck.
 

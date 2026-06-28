@@ -1,229 +1,229 @@
 {
   "fold_count": 5,
   "initial_train_size": 0.7,
-  "total_rows": 9132,
-  "total_predictions": 2739,
+  "total_rows": 9167,
+  "total_predictions": 2750,
   "overall": {
     "baseline_persistence": {
-      "mae": 1.4606114081459003,
-      "mse": 5.773507466452461,
-      "rmse": 2.402812407669908,
-      "directional_accuracy": 0.002190580503833516
+      "mae": 1.499228116122159,
+      "mse": 6.080589310569591,
+      "rmse": 2.465885096789709,
+      "directional_accuracy": 0.002181818181818182
     },
     "ridge_regression": {
-      "mae": 1.4698384029262686,
-      "mse": 5.790590313860568,
-      "rmse": 2.406364543011006,
-      "directional_accuracy": 0.5125958378970427
+      "mae": 1.5080541039480204,
+      "mse": 6.087683524130223,
+      "rmse": 2.4673231495145145,
+      "directional_accuracy": 0.5098181818181818
     },
     "decision_tree": {
-      "mae": 1.471249302913357,
-      "mse": 5.905038975885948,
-      "rmse": 2.4300285956930523,
-      "directional_accuracy": 0.5231836436655714
+      "mae": 1.5085712641713789,
+      "mse": 6.198813034924762,
+      "rmse": 2.4897415598661565,
+      "directional_accuracy": 0.5236363636363637
     },
     "random_forest": {
-      "mae": 1.4609989580127596,
-      "mse": 5.778975276265943,
-      "rmse": 2.4039499321462467,
-      "directional_accuracy": 0.5279299014238773
+      "mae": 1.4995509539067342,
+      "mse": 6.092056668664556,
+      "rmse": 2.4682092027752747,
+      "directional_accuracy": 0.5290909090909091
     }
   },
   "mean_across_folds": {
     "baseline_persistence": {
-      "mae": 1.4610453113244426,
-      "mse": 5.776802794967372,
-      "rmse": 2.038160451897054,
-      "directional_accuracy": 0.0021904482312280656
+      "mae": 1.499228116122159,
+      "mse": 6.080589310569591,
+      "rmse": 2.085323453088274,
+      "directional_accuracy": 0.002181818181818182
     },
     "ridge_regression": {
-      "mae": 1.470272644926324,
-      "mse": 5.793866118538036,
-      "rmse": 2.0420104454500483,
-      "directional_accuracy": 0.5126009154112011
+      "mae": 1.5080541039480204,
+      "mse": 6.087683524130222,
+      "rmse": 2.087587607943492,
+      "directional_accuracy": 0.5098181818181817
     },
     "decision_tree": {
-      "mae": 1.4716865939019415,
-      "mse": 5.908471769804316,
-      "rmse": 2.0581058427529038,
-      "directional_accuracy": 0.5231921963196734
+      "mae": 1.5085712641713787,
+      "mse": 6.198813034924761,
+      "rmse": 2.1031947887050655,
+      "directional_accuracy": 0.5236363636363637
     },
     "random_forest": {
-      "mae": 1.4614313626524953,
-      "mse": 5.78227395924573,
-      "rmse": 2.0395742286549625,
-      "directional_accuracy": 0.5279353874484581
+      "mae": 1.4995509539067342,
+      "mse": 6.092056668664556,
+      "rmse": 2.0875717188533227,
+      "directional_accuracy": 0.5290909090909091
     }
   },
-  "best_learned_model": "random_forest",
+  "best_learned_model": "ridge_regression",
   "folds": [
     {
       "fold": 1,
-      "train_rows": 6393,
-      "test_rows": 548,
+      "train_rows": 6417,
+      "test_rows": 550,
       "train_start": "1990-01-30",
-      "train_end": "2015-06-12",
-      "test_start": "2015-06-16",
-      "test_end": "2017-08-16",
+      "train_end": "2015-07-17",
+      "test_start": "2015-07-21",
+      "test_end": "2017-09-22",
       "baseline_persistence": {
-        "mae": 0.2965100490263779,
-        "mse": 0.18164724509432392,
-        "rmse": 0.4262009445019144,
-        "directional_accuracy": 0.0018248175182481751
+        "mae": 0.2969909043745561,
+        "mse": 0.1820546519794549,
+        "rmse": 0.42667862845408006,
+        "directional_accuracy": 0.0018181818181818182
       },
       "ridge_regression": {
-        "mae": 0.29753880484774514,
-        "mse": 0.1820792479724684,
-        "rmse": 0.4267074501019034,
-        "directional_accuracy": 0.5109489051094891
+        "mae": 0.298669393908214,
+        "mse": 0.18297285269390615,
+        "rmse": 0.427753261464955,
+        "directional_accuracy": 0.5072727272727273
       },
       "decision_tree": {
-        "mae": 0.29772168970957485,
-        "mse": 0.18293644216542748,
-        "rmse": 0.42771069914771537,
-        "directional_accuracy": 0.5145985401459854
+        "mae": 0.29893014725175643,
+        "mse": 0.1840676929956231,
+        "rmse": 0.4290311095895298,
+        "directional_accuracy": 0.5109090909090909
       },
       "random_forest": {
-        "mae": 0.297332680194036,
-        "mse": 0.18251612472360337,
-        "rmse": 0.4272190594105129,
-        "directional_accuracy": 0.5145985401459854
+        "mae": 0.298568389032563,
+        "mse": 0.1838151901202805,
+        "rmse": 0.42873673754447555,
+        "directional_accuracy": 0.5145454545454545
       },
       "best_learned_model": "ridge_regression"
     },
     {
       "fold": 2,
-      "train_rows": 6941,
-      "test_rows": 548,
+      "train_rows": 6967,
+      "test_rows": 550,
       "train_start": "1990-01-30",
-      "train_end": "2017-08-15",
-      "test_start": "2017-08-17",
-      "test_end": "2019-10-21",
+      "train_end": "2017-09-21",
+      "test_start": "2017-09-25",
+      "test_end": "2019-11-29",
       "baseline_persistence": {
-        "mae": 0.5576916297856909,
-        "mse": 0.616022554487623,
-        "rmse": 0.784871043221511,
-        "directional_accuracy": 0.0018248175182481751
+        "mae": 0.5679636660489169,
+        "mse": 0.6315889205625121,
+        "rmse": 0.7947256888779374,
+        "directional_accuracy": 0.0018181818181818182
       },
       "ridge_regression": {
-        "mae": 0.559818418409965,
-        "mse": 0.6179646562980514,
-        "rmse": 0.7861072804001064,
-        "directional_accuracy": 0.5
+        "mae": 0.5704159775856746,
+        "mse": 0.6333633700515535,
+        "rmse": 0.7958412970257032,
+        "directional_accuracy": 0.49636363636363634
       },
       "decision_tree": {
-        "mae": 0.5622030822316463,
-        "mse": 0.6223234399259441,
-        "rmse": 0.7888747935673595,
-        "directional_accuracy": 0.5255474452554745
+        "mae": 0.5714153028041836,
+        "mse": 0.6356500817563255,
+        "rmse": 0.7972766657543199,
+        "directional_accuracy": 0.5327272727272727
       },
       "random_forest": {
-        "mae": 0.5614911704334191,
-        "mse": 0.6249503820482879,
-        "rmse": 0.7905380332711943,
-        "directional_accuracy": 0.5255474452554745
+        "mae": 0.5706510413481695,
+        "mse": 0.6376072123409954,
+        "rmse": 0.7985031072832437,
+        "directional_accuracy": 0.5254545454545455
       },
       "best_learned_model": "ridge_regression"
     },
     {
       "fold": 3,
-      "train_rows": 7489,
-      "test_rows": 548,
+      "train_rows": 7517,
+      "test_rows": 550,
       "train_start": "1990-01-30",
-      "train_end": "2019-10-18",
-      "test_start": "2019-10-22",
-      "test_end": "2021-12-22",
+      "train_end": "2019-11-27",
+      "test_start": "2019-12-02",
+      "test_end": "2022-02-04",
       "baseline_persistence": {
-        "mae": 1.683325349849506,
-        "mse": 5.419851539907168,
-        "rmse": 2.3280574606111353,
-        "directional_accuracy": 0.0018248175182481751
+        "mae": 1.7663314403187145,
+        "mse": 5.893626891642025,
+        "rmse": 2.427679322242134,
+        "directional_accuracy": 0.0018181818181818182
       },
       "ridge_regression": {
-        "mae": 1.6823766315907307,
-        "mse": 5.447707415504067,
-        "rmse": 2.33403243668636,
-        "directional_accuracy": 0.5237226277372263
+        "mae": 1.7619479159430658,
+        "mse": 5.914946819070663,
+        "rmse": 2.4320663681467787,
+        "directional_accuracy": 0.5454545454545454
       },
       "decision_tree": {
-        "mae": 1.6952117705667729,
-        "mse": 5.513289571071094,
-        "rmse": 2.3480395165054384,
-        "directional_accuracy": 0.5383211678832117
+        "mae": 1.7822641085928472,
+        "mse": 5.994161662539455,
+        "rmse": 2.4482977070894494,
+        "directional_accuracy": 0.5290909090909091
       },
       "random_forest": {
-        "mae": 1.6717361420899348,
-        "mse": 5.365297268674386,
-        "rmse": 2.3163111338234303,
-        "directional_accuracy": 0.5583941605839416
+        "mae": 1.7583078128071976,
+        "mse": 5.84540990920833,
+        "rmse": 2.417728253797008,
+        "directional_accuracy": 0.5545454545454546
       },
       "best_learned_model": "random_forest"
     },
     {
       "fold": 4,
-      "train_rows": 8037,
-      "test_rows": 548,
+      "train_rows": 8067,
+      "test_rows": 550,
       "train_start": "1990-01-30",
-      "train_end": "2021-12-21",
-      "test_start": "2021-12-23",
-      "test_end": "2024-02-29",
+      "train_end": "2022-02-03",
+      "test_start": "2022-02-07",
+      "test_end": "2024-04-16",
       "baseline_persistence": {
-        "mae": 2.11819341060889,
-        "mse": 7.8637850380400245,
-        "rmse": 2.8042441117064016,
-        "directional_accuracy": 0.0036496350364963502
+        "mae": 2.117254472212358,
+        "mse": 7.758240715760357,
+        "rmse": 2.7853618644191203,
+        "directional_accuracy": 0.0036363636363636364
       },
       "ridge_regression": {
-        "mae": 2.151967886705048,
-        "mse": 7.9552841427902585,
-        "rmse": 2.820511326477924,
-        "directional_accuracy": 0.5018248175182481
+        "mae": 2.1435886219487306,
+        "mse": 7.819699545451291,
+        "rmse": 2.796372569142261,
+        "directional_accuracy": 0.4909090909090909
       },
       "decision_tree": {
-        "mae": 2.133869815367463,
-        "mse": 7.912915083644655,
-        "rmse": 2.8129904165575566,
-        "directional_accuracy": 0.4908759124087591
+        "mae": 2.131817402267567,
+        "mse": 7.823073369160414,
+        "rmse": 2.7969757541245177,
+        "directional_accuracy": 0.4909090909090909
       },
       "random_forest": {
-        "mae": 2.130809149656619,
-        "mse": 7.921239379898827,
-        "rmse": 2.814469644515433,
-        "directional_accuracy": 0.4981751824817518
+        "mae": 2.129383946861946,
+        "mse": 7.8159834378440065,
+        "rmse": 2.795708038734375,
+        "directional_accuracy": 0.5
       },
-      "best_learned_model": "decision_tree"
+      "best_learned_model": "random_forest"
     },
     {
       "fold": 5,
-      "train_rows": 8585,
-      "test_rows": 547,
+      "train_rows": 8617,
+      "test_rows": 550,
       "train_start": "1990-01-30",
-      "train_end": "2024-02-28",
-      "test_start": "2024-03-01",
-      "test_end": "2026-05-06",
+      "train_end": "2024-04-15",
+      "test_start": "2024-04-17",
+      "test_end": "2026-06-26",
       "baseline_persistence": {
-        "mae": 2.649506117351748,
-        "mse": 14.802707597307718,
-        "rmse": 3.8474286994443077,
-        "directional_accuracy": 0.0018281535648994515
+        "mae": 2.74760009765625,
+        "mse": 15.937435372903604,
+        "rmse": 3.9921717614480974,
+        "directional_accuracy": 0.0018181818181818182
       },
       "ridge_regression": {
-        "mae": 2.6596614830781307,
-        "mse": 14.766295130125334,
-        "rmse": 3.842693733583947,
-        "directional_accuracy": 0.526508226691042
+        "mae": 2.7656486103544173,
+        "mse": 15.8874350333837,
+        "rmse": 3.985904543937762,
+        "directional_accuracy": 0.509090909090909
       },
       "decision_tree": {
-        "mae": 2.6694266116342495,
-        "mse": 15.31089431221446,
-        "rmse": 3.9129137879864486,
-        "directional_accuracy": 0.546617915904936
+        "mae": 2.758429359940539,
+        "mse": 16.357112368171986,
+        "rmse": 4.0443927069675105,
+        "directional_accuracy": 0.5545454545454546
       },
       "random_forest": {
-        "mae": 2.6457876708884673,
-        "mse": 14.817366640883545,
-        "rmse": 3.8493332722542415,
-        "directional_accuracy": 0.5429616087751371
+        "mae": 2.7408435794837946,
+        "mse": 15.977467593809168,
+        "rmse": 3.9971824569075114,
+        "directional_accuracy": 0.5509090909090909
       },
       "best_learned_model": "ridge_regression"
     }

@@ -1,0 +1,197 @@
+.profile-page {
+    display: grid;
+    gap: 1.2rem;
+}
+
+.profile-shell {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1.1rem;
+}
+
+.profile-empty,
+.profile-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.profile-hero h1,
+.profile-shell h2 {
+    margin: 0;
+}
+
+.profile-hero p,
+.profile-copy,
+.profile-privacy p {
+    color: var(--text-muted);
+    margin-bottom: 0;
+}
+
+.profile-meta-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: 1.2rem;
+}
+
+.profile-field,
+.profile-toggle,
+.watchlist-settings-row label {
+    display: grid;
+    gap: 0.35rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.profile-field input,
+.profile-field select,
+.profile-inline-form input,
+.watchlist-settings-row input,
+.watchlist-settings-row select,
+.profile-json {
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0.7rem;
+    background: rgba(2, 6, 23, 0.65);
+    color: var(--text-primary);
+    padding: 0.7rem 0.8rem;
+}
+
+.profile-toggle {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    color: var(--text-primary);
+}
+
+.profile-toggle input,
+.preference-chip input {
+    accent-color: #79d2a6;
+}
+
+.compact-toggle {
+    align-self: end;
+}
+
+.profile-two-column,
+.profile-inline-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.8rem;
+    align-items: end;
+    margin-top: 1rem;
+}
+
+.preference-block {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.preference-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.preference-chip {
+    display: inline-flex;
+    gap: 0.45rem;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    padding: 0.42rem 0.7rem;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.watchlist-settings-list {
+    display: grid;
+    gap: 0.8rem;
+    margin-top: 1rem;
+}
+
+.watchlist-settings-row {
+    display: grid;
+    grid-template-columns: minmax(140px, 1fr) 120px 110px minmax(160px, 1fr) auto;
+    gap: 0.8rem;
+    align-items: end;
+    padding: 0.85rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.watchlist-settings-row strong,
+.watchlist-settings-row small {
+    display: block;
+}
+
+.watchlist-settings-row small {
+    color: var(--text-muted);
+}
+
+.profile-json {
+    min-height: 13rem;
+    margin-top: 1rem;
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    font-size: 0.86rem;
+    resize: vertical;
+}
+
+.profile-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 0.8rem;
+}
+
+.profile-status {
+    border-radius: 0.9rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.profile-status.is-info {
+    color: #b9f6d3;
+    background: rgba(34, 197, 94, 0.08);
+}
+
+.profile-status.is-error {
+    color: #fecaca;
+    background: rgba(248, 113, 113, 0.1);
+}
+
+.danger-link {
+    color: #fecaca;
+}
+
+@media (max-width: 1080px) {
+    .profile-grid,
+    .profile-two-column,
+    .profile-inline-form,
+    .watchlist-settings-row {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-empty,
+    .profile-hero {
+        display: grid;
+    }
+
+    .profile-meta-grid {
+        justify-content: flex-start;
+    }
+}

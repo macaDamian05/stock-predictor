@@ -1,0 +1,487 @@
+@page "/profile"
+@page "/settings"
+@using System.Globalization
+@using Microsoft.Extensions.Options
+@inject LocalUserProfileService ProfileService
+@inject BrowserWatchlistService BrowserWatchlistService
+@inject AssetCatalogService AssetCatalogService
+@inject DashboardDataService DashboardDataService
+@inject NotificationService NotificationService
+@inject IOptions<NewsOptions> NewsOptions
+
+<PageTitle>Profil & Einstellungen</PageTitle>
+
+@if (_isLoading || _profile is null)
+{
+    <section class="profile-shell profile-empty">
+        <span class="section-kicker">Profil</span>
+        <h1>Lokales Profil wird geladen...</h1>
+        <p>Einstellungen und Watchlist werden aus dem Browser-Storage gelesen.</p>
+    </section>
+}
+else
+{
+    <div class="profile-page">
+        <section class="profile-shell profile-hero">
+            <div>
+                <span class="section-kicker">Lokales Profil</span>
+                <h1>@_profile.ProfileName</h1>
+                <p>
+                    Einstellungen werden nur lokal in diesem Browser gespeichert. Es gibt kein Login, keine Datenbank
+                    und keine Cloud-Synchronisation.
+                </p>
+            </div>
+            <div class="profile-meta-grid">
+                <span class="meta-pill">Schema v@_profile.SchemaVersion</span>
+                <span class="meta-pill">Erstellt: @FormatDateTime(_profile.CreatedAt)</span>
+                <span class="meta-pill">Geändert: @FormatDateTime(_profile.UpdatedAt)</span>
+                <span class="meta-pill">@_profile.Watchlist.Count Watchlist-Werte</span>
+            </div>
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(_statusMessage))
+        {
+            <section class="profile-status @(_statusIsError ? "is-error" : "is-info")">
+                @_statusMessage
+            </section>
+        }
+
+        <section class="profile-grid">
+            <article class="profile-shell">
+                <div class="panel-header">
+                    <div>
+                        <span class="section-kicker">Basis</span>
+                        <h2>Profil und Dashboard</h2>
+                    </div>
+                    <button class="action-button action-primary" type="button" @onclick="SaveProfileAsync">
+                        Speichern
+                    </button>
+                </div>
+
+                <label class="profile-field">
+                    <span>Profilname</span>
+                    <input type="text" @bind="_profile.ProfileName" />
+                </label>
+
+                <div class="profile-two-column">
+                    <label class="profile-field">
+                        <span>Standard-Chart-Zeitraum</span>
+                        <select @bind="_profile.Chart.DefaultChartRange">
+                            @foreach (var range in ChartRanges)
+                            {
+                                <option value="@range">@range</option>
+                            }
+                        </select>
+                    </label>
+
+                    <label class="profile-toggle">
+                        <input type="checkbox" @bind="_profile.Forecast.ShowForecastByDefault" />
+                        <span>Forecasts standardmäßig einblenden</span>
+                    </label>
+                </div>
+
+                <div class="preference-block">
+                    <span class="preference-label">Prominente Dashboard-Assets</span>
+                    <div class="chip-grid">
+                        @foreach (var item in _profile.Watchlist)
+                        {
+                            <label class="preference-chip">
+                                <input type="checkbox"
+                                       checked="@IsPreferredDashboardAsset(item.Symbol)"
+                                       @onchange="args => TogglePreferredDashboardAsset(item.Symbol, args)" />
+                                <span>@item.Symbol</span>
+                            </label>
+                        }
+                    </div>
+                    @if (_profile.Watchlist.Count == 0)
+                    {
+                        <p class="profile-copy">Ohne Watchlist nutzt das Dashboard sinnvolle Standardwerte wie AAPL, MSFT, NVDA, TSLA, SPY und ENR.DE.</p>
+                    }
+                </div>
+            </article>
+
+            <article class="profile-shell">
+                <div class="panel-header">
+                    <div>
+                        <span class="section-kicker">Benachrichtigungen</span>
+                        <h2>Lokale Statusmeldungen</h2>
+                    </div>
+                    <button class="action-button action-secondary" type="button" @onclick="RequestNotificationPermissionAsync">
+                        Berechtigung anfragen
+                    </button>
+                </div>
+
+                <label class="profile-toggle">
+                    <input type="checkbox" @bind="_profile.Notifications.EnableBrowserNotifications" />
+                    <span>Browser-Benachrichtigungen lokal nutzen</span>
+                </label>
+                <label class="profile-toggle">
+                    <input type="checkbox" @bind="_profile.Notifications.NotifyWhenForecastUpdated" />
+                    <span>Forecast aktualisiert</span>
+                </label>
+                <label class="profile-toggle">
+                    <input type="checkbox" @bind="_profile.Notifications.NotifyWhenPayloadIsStale" />
+                    <span>Payload oder Forecast veraltet</span>
+                </label>
+                <label class="profile-toggle">
+                    <input type="checkbox" @bind="_profile.Notifications.NotifyWhenWatchlistAssetUpdated" />
+                    <span>Watchlist-Asset hat neue Daten</span>
+                </label>
+                <label class="profile-toggle">
+                    <input type="checkbox" @bind="_profile.Notifications.NotifyWhenBackgroundJobCompleted" />
+                    <span>Hintergrundjob abgeschlossen</span>
+                </label>
+                <label class="profile-toggle">
+                    <input type="checkbox" @bind="_profile.Notifications.NotifyWhenBackgroundJobFailed" />
+                    <span>Hintergrundjob fehlgeschlagen</span>
+                </label>
+            </article>
+        </section>
+
+        <section class="profile-grid">
+            <article class="profile-shell">
+                <div class="panel-header">
+                    <div>
+                        <span class="section-kicker">Watchlist</span>
+                        <h2>Favoriten lokal verwalten</h2>
+                    </div>
+                    <span class="meta-pill">@_profile.Watchlist.Count Werte</span>
+                </div>
+
+                <form class="profile-inline-form" @onsubmit="AddWatchlistTickerAsync" @onsubmit:preventDefault="true">
+                    <input type="search"
+                           placeholder="Ticker oder Name, z. B. AAPL, Siemens Energy"
+                           @bind="_newWatchlistTicker"
+                           @bind:event="oninput" />
+                    <button class="action-button action-primary" type="submit">
+                        Hinzufügen
+                    </button>
+                </form>
+
+                @if (_profile.Watchlist.Count == 0)
+                {
+                    <p class="profile-copy">Noch keine lokalen Favoriten gespeichert.</p>
+                }
+                else
+                {
+                    <div class="watchlist-settings-list">
+                        @foreach (var item in _profile.Watchlist)
+                        {
+                            <article class="watchlist-settings-row">
+                                <div>
+                                    <strong>@item.Symbol</strong>
+                                    <small>@GetWatchlistSubtitle(item)</small>
+                                </div>
+                                <label>
+                                    <span>Zeitraum</span>
+                                    <select @bind="item.PreferredChartRange">
+                                        <option value="">Profilstandard</option>
+                                        @foreach (var range in ChartRanges)
+                                        {
+                                            <option value="@range">@range</option>
+                                        }
+                                    </select>
+                                </label>
+                                <label class="profile-toggle compact-toggle">
+                                    <input type="checkbox" checked="@(item.ShowForecastByDefault ?? _profile.Forecast.ShowForecastByDefault)" @onchange="args => SetWatchlistForecastDefault(item, args)" />
+                                    <span>Forecast</span>
+                                </label>
+                                <label>
+                                    <span>Notiz</span>
+                                    <input type="text" @bind="item.Note" />
+                                </label>
+                                <button class="text-button danger-link" type="button" @onclick="() => RemoveWatchlistTickerAsync(item.Symbol)">
+                                    Entfernen
+                                </button>
+                            </article>
+                        }
+                    </div>
+                }
+            </article>
+
+            <article class="profile-shell">
+                <div class="panel-header">
+                    <div>
+                        <span class="section-kicker">News</span>
+                        <h2>Bevorzugte Kategorien</h2>
+                    </div>
+                    <span class="meta-pill">@_profile.News.PreferredNewsCategories.Count aktiv</span>
+                </div>
+
+                <div class="chip-grid">
+                    @foreach (var category in AvailableNewsCategories)
+                    {
+                        <label class="preference-chip">
+                            <input type="checkbox"
+                                   checked="@IsPreferredNewsCategory(category)"
+                                   @onchange="args => TogglePreferredNewsCategory(category, args)" />
+                            <span>@category</span>
+                        </label>
+                    }
+                </div>
+                <p class="profile-copy">News bleiben Kontextinformationen und fließen aktuell nicht automatisch in die ML-Prognosen ein.</p>
+            </article>
+        </section>
+
+        <section class="profile-grid">
+            <article class="profile-shell">
+                <div class="panel-header">
+                    <div>
+                        <span class="section-kicker">Transfer</span>
+                        <h2>Profil exportieren</h2>
+                    </div>
+                    <button class="action-button action-secondary" type="button" @onclick="ExportProfileAsync">
+                        JSON erzeugen
+                    </button>
+                </div>
+                <textarea class="profile-json" readonly>@_exportJson</textarea>
+                <div class="profile-actions">
+                    <button class="action-button action-secondary" type="button" @onclick="CopyExportAsync" disabled="@string.IsNullOrWhiteSpace(_exportJson)">
+                        JSON kopieren
+                    </button>
+                </div>
+            </article>
+
+            <article class="profile-shell">
+                <div class="panel-header">
+                    <div>
+                        <span class="section-kicker">Transfer</span>
+                        <h2>Profil importieren</h2>
+                    </div>
+                    <button class="action-button action-secondary" type="button" @onclick="ImportProfileAsync">
+                        Importieren
+                    </button>
+                </div>
+                <textarea class="profile-json" placeholder="Profil-JSON hier einfügen" @bind="_importJson"></textarea>
+                <div class="profile-actions">
+                    <button class="text-button danger-link" type="button" @onclick="ResetProfileAsync">
+                        Profil zurücksetzen
+                    </button>
+                </div>
+            </article>
+        </section>
+
+        <section class="profile-shell profile-privacy">
+            <span class="section-kicker">Datenschutz</span>
+            <p>
+                Dieses Profil bleibt lokal im Browser. Beim Löschen der Browserdaten können Watchlist und Einstellungen
+                verloren gehen. Export und Import dienen nur dem manuellen Rechnerwechsel. Bitte keine sensiblen Daten
+                in Notizen speichern.
+            </p>
+        </section>
+    </div>
+}
+
+@code {
+    private static readonly CultureInfo UiCulture = CultureInfo.GetCultureInfo("de-DE");
+    private static readonly string[] ChartRanges = ["1T", "1W", "1M", "6M", "1J", "MAX"];
+
+    private LocalUserProfile? _profile;
+    private IReadOnlyList<AssetCatalogEntry> _assetEntries = [];
+    private string _newWatchlistTicker = string.Empty;
+    private string _exportJson = string.Empty;
+    private string _importJson = string.Empty;
+    private string? _statusMessage;
+    private bool _statusIsError;
+    private bool _isLoading = true;
+
+    private IReadOnlyList<string> AvailableNewsCategories =>
+        NewsOptions.Value.Sources
+            .Where(source => source.Enabled && !string.IsNullOrWhiteSpace(source.Category))
+            .Select(source => source.Category.Trim())
+            .Concat(["Markt", "Wirtschaft", "Technologie", "Geopolitik"])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(category => category)
+            .ToArray();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var snapshot = await DashboardDataService.GetLatestAsync();
+        _assetEntries = AssetCatalogService.BuildEntries(snapshot.Payload);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        var result = await ProfileService.LoadAsync(forceReload: true);
+        _profile = result.Profile;
+        _statusMessage = result.Message;
+        _statusIsError = false;
+        _isLoading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SaveProfileAsync()
+    {
+        if (_profile is null)
+        {
+            return;
+        }
+
+        _profile.Chart.DefaultChartRange = LocalUserProfileService.NormalizeChartRange(_profile.Chart.DefaultChartRange);
+        await ProfileService.SaveProfileAsync(_profile);
+        await NotificationService.SetEnabledAsync(_profile.Notifications.EnableBrowserNotifications);
+        SetStatus("Profil wurde lokal gespeichert.", false);
+        _exportJson = string.Empty;
+    }
+
+    private async Task RequestNotificationPermissionAsync()
+    {
+        await NotificationService.RequestPermissionAsync();
+        _profile = await ProfileService.GetProfileAsync(forceReload: true);
+        SetStatus("Benachrichtigungsstatus wurde aktualisiert.", false);
+    }
+
+    private async Task AddWatchlistTickerAsync()
+    {
+        if (_profile is null || string.IsNullOrWhiteSpace(_newWatchlistTicker))
+        {
+            return;
+        }
+
+        var resolvedTicker = AssetCatalogService.ResolveTicker(_newWatchlistTicker, _assetEntries);
+        var asset = _assetEntries.FirstOrDefault(entry =>
+            string.Equals(entry.Ticker, resolvedTicker, StringComparison.OrdinalIgnoreCase))
+            ?? AssetCatalogService.CreatePlaceholderEntry(resolvedTicker);
+
+        await BrowserWatchlistService.AddOrUpdateAsync(asset);
+        _profile = await ProfileService.GetProfileAsync(forceReload: true);
+        if (!_profile.Dashboard.PreferredDashboardAssets.Contains(asset.Ticker, StringComparer.OrdinalIgnoreCase)
+            && _profile.Dashboard.PreferredDashboardAssets.Count < 6)
+        {
+            _profile.Dashboard.PreferredDashboardAssets.Add(asset.Ticker);
+            await ProfileService.SaveProfileAsync(_profile);
+        }
+
+        _newWatchlistTicker = string.Empty;
+        SetStatus($"{asset.Ticker} wurde zur Watchlist hinzugefügt.", false);
+    }
+
+    private async Task RemoveWatchlistTickerAsync(string symbol)
+    {
+        await BrowserWatchlistService.RemoveAsync(symbol);
+        _profile = await ProfileService.GetProfileAsync(forceReload: true);
+        SetStatus($"{symbol} wurde aus der Watchlist entfernt.", false);
+    }
+
+    private async Task ExportProfileAsync()
+    {
+        await SaveProfileAsync();
+        _exportJson = await ProfileService.ExportJsonAsync();
+        SetStatus("Profil-JSON wurde erzeugt.", false);
+    }
+
+    private async Task CopyExportAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_exportJson))
+        {
+            return;
+        }
+
+        var copied = await ProfileService.CopyToClipboardAsync(_exportJson);
+        SetStatus(copied ? "Profil-JSON wurde kopiert." : "Kopieren ist in diesem Browser nicht verfügbar. Das JSON kann manuell übernommen werden.", !copied);
+    }
+
+    private async Task ImportProfileAsync()
+    {
+        var result = await ProfileService.ImportJsonAsync(_importJson);
+        _profile = result.Profile ?? _profile;
+        SetStatus(result.Message, !result.Success);
+        if (result.Success)
+        {
+            await NotificationService.SetEnabledAsync(_profile?.Notifications.EnableBrowserNotifications == true);
+            _importJson = string.Empty;
+            _exportJson = string.Empty;
+        }
+    }
+
+    private async Task ResetProfileAsync()
+    {
+        _profile = await ProfileService.ResetAsync();
+        await NotificationService.SetEnabledAsync(false);
+        _exportJson = string.Empty;
+        _importJson = string.Empty;
+        SetStatus("Profil wurde auf lokale Standardwerte zurückgesetzt.", false);
+    }
+
+    private bool IsPreferredDashboardAsset(string symbol)
+    {
+        return _profile?.Dashboard.PreferredDashboardAssets.Contains(symbol, StringComparer.OrdinalIgnoreCase) == true;
+    }
+
+    private void TogglePreferredDashboardAsset(string symbol, ChangeEventArgs args)
+    {
+        if (_profile is null)
+        {
+            return;
+        }
+
+        var isChecked = args.Value is bool value && value;
+        if (isChecked && !IsPreferredDashboardAsset(symbol))
+        {
+            _profile.Dashboard.PreferredDashboardAssets.Add(symbol);
+        }
+        else if (!isChecked)
+        {
+            _profile.Dashboard.PreferredDashboardAssets = _profile.Dashboard.PreferredDashboardAssets
+                .Where(item => !string.Equals(item, symbol, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+    }
+
+    private bool IsPreferredNewsCategory(string category)
+    {
+        return _profile?.News.PreferredNewsCategories.Contains(category, StringComparer.OrdinalIgnoreCase) == true;
+    }
+
+    private void TogglePreferredNewsCategory(string category, ChangeEventArgs args)
+    {
+        if (_profile is null)
+        {
+            return;
+        }
+
+        var isChecked = args.Value is bool value && value;
+        if (isChecked && !IsPreferredNewsCategory(category))
+        {
+            _profile.News.PreferredNewsCategories.Add(category);
+        }
+        else if (!isChecked)
+        {
+            _profile.News.PreferredNewsCategories = _profile.News.PreferredNewsCategories
+                .Where(item => !string.Equals(item, category, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+    }
+
+    private void SetWatchlistForecastDefault(WatchlistItem item, ChangeEventArgs args)
+    {
+        item.ShowForecastByDefault = args.Value is bool value && value;
+    }
+
+    private void SetStatus(string message, bool isError)
+    {
+        _statusMessage = message;
+        _statusIsError = isError;
+    }
+
+    private static string GetWatchlistSubtitle(WatchlistItem item)
+    {
+        var parts = new[]
+        {
+            item.Name,
+            item.AssetType,
+            $"seit {FormatDate(item.AddedAt)}",
+        };
+
+        return string.Join(" · ", parts.Where(part => !string.IsNullOrWhiteSpace(part)));
+    }
+
+    private static string FormatDate(DateTime value) => value.ToString("dd. MMM yyyy", UiCulture);
+
+    private static string FormatDateTime(DateTime value) => value.ToString("dd. MMM yyyy | HH:mm", UiCulture);
+}

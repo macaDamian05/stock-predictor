@@ -8,6 +8,8 @@ public sealed class NewsQuery
 
     public IReadOnlyList<string>? PreferredTickers { get; init; }
 
+    public IReadOnlyList<string>? PreferredCategories { get; init; }
+
     public bool PreferTickerMatches { get; init; }
 
     public int? MaxItems { get; init; }

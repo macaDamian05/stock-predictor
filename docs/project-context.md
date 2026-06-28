@@ -49,7 +49,9 @@ Stand: 2026-05-05
 - Fallback auf neutrale In-App-Toasts, wenn Browser-Benachrichtigungen nicht erlaubt sind
 - Testbenachrichtigung bleibt zusaetzlich immer als sichtbarer In-App-Hinweis erhalten
 - lokaler FAQ-Chat mit optionaler Ollama-Anbindung und automatischem Fallback auf eingebettete FAQ-/Glossar-Antworten
-- deaktivierter Platzhalter fuer spaetere Profile sowie Broker-/TradingView-Zukunftsthemen ohne aktive API-Anbindung
+- lokaler Profil- und Preference-Layer im Browser fuer Watchlist, Dashboard-Assets, Chart-Zeitraum, Forecast-Anzeige, News-Kategorien und Notification-Praeferenzen
+- Profil-Export und -Import als JSON fuer manuelle Rechnerwechsel ohne Login, Datenbank oder Cloud-Synchronisation
+- deaktivierter Platzhalter fuer Broker-/TradingView-Zukunftsthemen ohne aktive API-Anbindung
 - Unternehmensranking fuer die im Dashboard exportierten Ticker auf Basis von Forecast und Modellguete
 - Multi-Asset-Bestkonfigurationen aus der Suite im Dashboard-Export und auf der Startseite sichtbar
 - lokale Forecast-Jobs aus der Web-App heraus vorbereitet, inklusive Fallback-Befehlen fuer `run_classical_pipeline.py` und `export_dashboard_payload.py`
@@ -65,7 +67,7 @@ Noch nicht umgesetzt:
 
 - gemeinsames Training im LSTM-Pfad
 - spezielle ETF-Detaildarstellung im Dashboard jenseits der neuen Multi-Asset-Zusammenfassungen
-- News- oder Sentimentdaten
+- Sentimentdaten oder automatische News-Einbindung in die Prognose
 - Backtesting ueber mehrere Assets und Marktphasen auf Forschungsniveau
 
 Aktuelle empirische Beobachtung:

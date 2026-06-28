@@ -68,13 +68,6 @@
 
 @code {
     private static readonly CultureInfo UiCulture = CultureInfo.GetCultureInfo("de-DE");
-    private static readonly MarketTimeRange[] DisplayRanges =
-    [
-        MarketTimeRange.OneDay,
-        MarketTimeRange.OneMonth,
-        MarketTimeRange.OneYear,
-    ];
-
     [Parameter]
     public required AssetCatalogEntry Asset { get; set; }
 
@@ -94,10 +87,24 @@
     public bool IsForecastStale { get; set; }
 
     [Parameter]
+    public MarketTimeRange PrimaryRange { get; set; } = MarketTimeRange.OneMonth;
+
+    [Parameter]
     public EventCallback<string> OnOpen { get; set; }
 
     [Parameter]
     public EventCallback<string> OnToggleWatchlist { get; set; }
+
+    private IReadOnlyList<MarketTimeRange> DisplayRanges =>
+        new[]
+        {
+            MarketTimeRange.OneDay,
+            PrimaryRange,
+            MarketTimeRange.OneYear,
+        }
+        .Distinct()
+        .Take(3)
+        .ToArray();
 
     private IReadOnlyList<double> GetSparklineValues()
     {

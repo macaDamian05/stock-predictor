@@ -488,6 +488,26 @@ Warum diese Phase wichtig ist:
 - Nutzer koennen neue Assets suchen und direkt als Marktansicht verwenden, auch bevor ein lokaler Forecast erzeugt wurde
 - Forecasts bleiben sichtbar als getrennte Forschungsartefakte und wirken dadurch weniger wie unveraenderliche Live-Signale
 
+## Phase 26: Lokale Profile und Browser-Praeferenzen
+
+Im naechsten Schritt wurde die Blazor-App um einen lokalen Profilbereich erweitert, ohne Login, Datenbank oder Cloud-
+Synchronisation einzufuehren.
+
+Wichtige Merkmale dieser Phase:
+
+- neues lokales Profilmodell mit Schema-Version, Profilname, Watchlist, Dashboard-, Chart-, Forecast-, News- und Notification-Praeferenzen
+- zentraler LocalStorage-Service mit Fallback-Profil, Migration der alten Browser-Watchlist, JSON-Export und JSON-Import
+- neue Seite `/profile` fuer Profilname, Standard-Chart-Zeitraum, Forecast-Standardanzeige, bevorzugte News-Kategorien, Benachrichtigungstypen und Watchlist-Verwaltung
+- Startseite nutzt bevorzugte Dashboard-Assets, Watchlist und News-Kategorien aus dem Profil
+- Asset-Detailseite nutzt Standard-Zeitraum und Forecast-Anzeige aus dem Profil und speichert Asset-spezifische Watchlist-Praeferenzen
+- Browser-Benachrichtigungen respektieren globale und typbezogene Profil-Einstellungen
+
+Warum diese Phase wichtig ist:
+
+- die App fuehlt sich lokaler und persoenlicher an, ohne personenbezogene Konten oder Serverpersistenz einzufuehren
+- Einstellungen koennen manuell per JSON zwischen Rechnern uebertragen werden
+- die klare Grenze bleibt erhalten: keine Anlageberatung, keine Broker-Funktion und keine Secrets
+
 ## Zwischenfazit fuer die Bachelorarbeit
 
 Der Entwicklungsverlauf zeigt bewusst keine lineare Bewegung zu einer sofort "perfekten" Loesung. Stattdessen ist sichtbar:

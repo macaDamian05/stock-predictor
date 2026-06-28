@@ -137,7 +137,9 @@ Die erste UI-Umsetzung in `StockPredictor.App/` ist erfolgt:
 - keine Server-Push-Infrastruktur und keine Trading-Signale in Benachrichtigungen
 - neuer lokaler FAQ-Chat unter `/chat` mit optionaler Ollama-Anbindung
 - Fallback auf eingebettete FAQ-/Glossar-Antworten, wenn lokal kein Ollama-Modell verfuegbar ist
-- deaktivierter Zukunftsblock fuer `Profile: geplant`, `TradingView-Export: geplant` und `Broker-Anbindung: Zukunftsthema`
+- neue Profilseite unter `/profile` mit lokal gespeicherten Einstellungen fuer Watchlist, bevorzugte Dashboard-Assets, Chart-Zeitraum, Forecast-Anzeige, News-Kategorien und Notification-Typen
+- Profil-Import und -Export als JSON; Speicherung bleibt lokal im Browser ohne Login, Datenbank oder Cloud
+- deaktivierter Zukunftsblock fuer `TradingView-Export: geplant` und `Broker-Anbindung: Zukunftsthema`
 - keine funktionalen Trading-APIs oder Broker-Schnittstellen in der aktuellen UI
 
 Die naechsten UI-Schritte sind damit nicht mehr Grundintegration, sondern Ausbau:

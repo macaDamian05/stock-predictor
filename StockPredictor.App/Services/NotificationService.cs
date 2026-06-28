@@ -3,9 +3,12 @@ using StockPredictor.App.Models;
 
 namespace StockPredictor.App.Services;
 
-public sealed class NotificationService(IJSRuntime jsRuntime)
+public sealed class NotificationService(
+    IJSRuntime jsRuntime,
+    LocalUserProfileService profileService)
 {
     private readonly List<AppNotificationToast> _toasts = [];
+    private readonly HashSet<string> _publishedJobNotifications = new(StringComparer.OrdinalIgnoreCase);
 
     public event Action? ToastsChanged;
 
@@ -25,9 +28,11 @@ public sealed class NotificationService(IJSRuntime jsRuntime)
             "stockPredictorNotifications.getEnvironmentStatus",
             cancellationToken);
 
+        var profile = await profileService.GetProfileAsync(false, cancellationToken);
+
         return new NotificationSettingsSnapshot
         {
-            IsEnabled = enabled,
+            IsEnabled = enabled && profile.Notifications.EnableBrowserNotifications,
             Permission = MapPermission(permissionRaw),
             Environment = environment ?? new NotificationBrowserEnvironment()
         };
@@ -53,6 +58,10 @@ public sealed class NotificationService(IJSRuntime jsRuntime)
             "stockPredictorNotifications.setEnabled",
             cancellationToken,
             isEnabled);
+
+        var profile = await profileService.GetProfileAsync(false, cancellationToken);
+        profile.Notifications.EnableBrowserNotifications = isEnabled;
+        await profileService.SaveProfileAsync(profile, cancellationToken);
     }
 
     public async Task SendTestNotificationAsync(CancellationToken cancellationToken = default)
@@ -84,8 +93,7 @@ public sealed class NotificationService(IJSRuntime jsRuntime)
                 "payload",
                 cancellationToken);
 
-            var previousDataUntil = persistedState.LastPayloadGeneratedAt;
-            if (payload.FeaturedTickers.Count > 0 && previousDataUntil is not null)
+            if (payload.FeaturedTickers.Count > 0)
             {
                 await PublishAsync(
                     "Prognosedaten aktualisiert",
@@ -93,6 +101,16 @@ public sealed class NotificationService(IJSRuntime jsRuntime)
                     "forecast",
                     cancellationToken);
             }
+        }
+
+        if (HasStaleForecast(payload)
+            && persistedState.LastStalePayloadGeneratedAt != payload.GeneratedAt)
+        {
+            await PublishAsync(
+                "Forecast-Daten veraltet",
+                "Mindestens ein lokaler Forecast basiert auf einem älteren Export. Eine Aktualisierung kann im Hintergrund laufen.",
+                "payload-stale",
+                cancellationToken);
         }
 
         var changedWatchlistTickers = GetChangedWatchlistTickers(persistedState, currentState);
@@ -110,6 +128,36 @@ public sealed class NotificationService(IJSRuntime jsRuntime)
         }
 
         await SetPersistenceStateAsync(currentState, cancellationToken);
+    }
+
+    public async Task NotifyForecastJobChangedAsync(ForecastJobSnapshot job, CancellationToken cancellationToken = default)
+    {
+        if (job.State is not (ForecastJobState.Completed or ForecastJobState.Failed))
+        {
+            return;
+        }
+
+        var marker = $"{job.Ticker}|{job.State}|{job.CompletedAt:O}";
+        if (!_publishedJobNotifications.Add(marker))
+        {
+            return;
+        }
+
+        if (job.State == ForecastJobState.Completed)
+        {
+            await PublishAsync(
+                "Hintergrundjob abgeschlossen",
+                $"Der lokale Forecast-Job für {job.Ticker} wurde abgeschlossen.",
+                "job-completed",
+                cancellationToken);
+            return;
+        }
+
+        await PublishAsync(
+            "Hintergrundjob fehlgeschlagen",
+            $"Der lokale Forecast-Job für {job.Ticker} ist fehlgeschlagen. Der alte Stand bleibt nutzbar.",
+            "job-failed",
+            cancellationToken);
     }
 
     public void DismissToast(string toastId)
@@ -135,7 +183,8 @@ public sealed class NotificationService(IJSRuntime jsRuntime)
         bool suppressToastFallback = false)
     {
         var settings = await GetSettingsAsync(cancellationToken);
-        if (!ignoreEnabled && !settings.IsEnabled)
+        var profile = await profileService.GetProfileAsync(false, cancellationToken);
+        if (!ignoreEnabled && (!settings.IsEnabled || !IsNotificationTypeEnabled(profile.Notifications, tag)))
         {
             return;
         }
@@ -222,6 +271,7 @@ public sealed class NotificationService(IJSRuntime jsRuntime)
         return new NotificationPersistenceState
         {
             LastPayloadGeneratedAt = payload.GeneratedAt,
+            LastStalePayloadGeneratedAt = HasStaleForecast(payload) ? payload.GeneratedAt : null,
             WatchlistDataMarkers = watchlistMarkers
         };
     }
@@ -253,6 +303,35 @@ public sealed class NotificationService(IJSRuntime jsRuntime)
         var dataUntil = ticker.DataUntil?.ToString("yyyy-MM-dd") ?? ticker.LastCloseDate.ToString("yyyy-MM-dd");
         var forecastGeneratedAt = ticker.ForecastGeneratedAt?.ToString("O") ?? string.Empty;
         return $"{dataUntil}|{forecastGeneratedAt}";
+    }
+
+    private static bool HasStaleForecast(DashboardPayload payload)
+    {
+        var staleAfterDays = payload.StaleAfterDays > 0 ? payload.StaleAfterDays : 3;
+        var today = DateOnly.FromDateTime(DateTime.Now);
+
+        return payload.FeaturedTickers.Any(ticker =>
+        {
+            var dataUntil = ticker.DataUntil ?? payload.DataUntil ?? ticker.LastCloseDate;
+            var dataAgeDays = today.DayNumber - dataUntil.DayNumber;
+            var forecastGeneratedAt = ticker.ForecastGeneratedAt ?? payload.GeneratedAt;
+            var forecastAgeDays = Math.Max(0, (DateTime.Now.Date - forecastGeneratedAt.Date).Days);
+            return dataAgeDays > staleAfterDays || forecastAgeDays > staleAfterDays;
+        });
+    }
+
+    private static bool IsNotificationTypeEnabled(NotificationPreferences preferences, string tag)
+    {
+        return tag switch
+        {
+            "payload" => preferences.NotifyWhenForecastUpdated,
+            "forecast" => preferences.NotifyWhenForecastUpdated,
+            "payload-stale" => preferences.NotifyWhenPayloadIsStale,
+            "watchlist" => preferences.NotifyWhenWatchlistAssetUpdated,
+            "job-completed" => preferences.NotifyWhenBackgroundJobCompleted,
+            "job-failed" => preferences.NotifyWhenBackgroundJobFailed,
+            _ => true,
+        };
     }
 
     private static BrowserNotificationPermission MapPermission(string? permissionRaw)

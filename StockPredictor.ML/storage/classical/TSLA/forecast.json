@@ -1,55 +1,55 @@
 {
   "forecast_model": "ridge_regression",
   "forecast_model_label": "Ridge Regression",
-  "forecast_date": "2026-05-07",
-  "last_close_date": "2026-05-06",
-  "last_close": 398.7300109863281,
-  "average_distance_to_last_close": 3.780278908404148,
-  "average_distance_pct_to_last_close": 0.9480798545995996,
+  "forecast_date": "2026-06-29",
+  "last_close_date": "2026-06-26",
+  "last_close": 379.7099914550781,
+  "average_distance_to_last_close": 4.4403664186029115,
+  "average_distance_pct_to_last_close": 1.1694099493108103,
   "model_predictions": {
     "baseline_persistence": {
       "predicted_return": 0.0,
-      "predicted_close": 398.7300109863281
+      "predicted_close": 379.7099914550781
     },
     "ridge_regression": {
-      "predicted_return": -0.0028459378282731434,
-      "predicted_close": 397.5952501647944
+      "predicted_return": -0.005927362064400329,
+      "predicted_close": 377.4593128562535
     },
     "decision_tree": {
-      "predicted_return": 0.0010529301636844066,
-      "predicted_close": 399.14984584206184
+      "predicted_return": 0.0010460548210785674,
+      "predicted_close": 380.10718892225145
     },
     "random_forest": {
-      "predicted_return": -0.013870786006893988,
-      "predicted_close": 393.1993123294103
+      "predicted_return": -0.011445450377431826,
+      "predicted_close": 375.36403959006395
     }
   },
   "forecast_days": 5,
   "forecast_path": [
     {
-      "date": "2026-05-07",
-      "predicted_return": -0.0028459378282731434,
-      "predicted_close": 397.5952501647944
+      "date": "2026-06-29",
+      "predicted_return": -0.005927362064400329,
+      "predicted_close": 377.4593128562535
     },
     {
-      "date": "2026-05-08",
-      "predicted_return": -0.003037378135073214,
-      "predicted_close": 396.38760304533486
+      "date": "2026-06-30",
+      "predicted_return": -0.0030289838653115623,
+      "predicted_close": 376.31599468780036
     },
     {
-      "date": "2026-05-11",
-      "predicted_return": -0.0034322615946739948,
-      "predicted_close": 395.02709709879747
+      "date": "2026-07-01",
+      "predicted_return": -0.0016505167051738654,
+      "predicted_close": 375.69487885214403
     },
     {
-      "date": "2026-05-12",
-      "predicted_return": -0.0036328581956237786,
-      "predicted_close": 393.5920196716086
+      "date": "2026-07-02",
+      "predicted_return": -0.004420959784160015,
+      "predicted_close": 374.03394690162384
     },
     {
-      "date": "2026-05-13",
-      "predicted_return": -0.0036721508320467517,
-      "predicted_close": 392.14669040908456
+      "date": "2026-07-03",
+      "predicted_return": -0.0031814091392685733,
+      "predicted_close": 372.8439918845543
     }
   ]
 }

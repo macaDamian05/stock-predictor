@@ -12,11 +12,11 @@
   "display_days": 200,
   "rsi_window": 14,
   "test_size": 0.2,
-  "train_rows": 7305,
-  "test_rows": 1827,
-  "data_rows": 9153,
+  "train_rows": 7333,
+  "test_rows": 1834,
+  "data_rows": 9188,
   "data_start": "1990-01-02",
-  "data_end": "2026-05-06",
+  "data_end": "2026-06-26",
   "feature_columns": [
     "close_current",
     "return_lag_0",
@@ -70,5 +70,5 @@
     "folds": 5,
     "initial_train_size": 0.7
   },
-  "forecast_model": "random_forest"
+  "forecast_model": "ridge_regression"
 }

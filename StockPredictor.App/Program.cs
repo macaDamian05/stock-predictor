@@ -28,6 +28,7 @@ builder.Services.AddHttpClient<RssNewsProvider>((serviceProvider, client) =>
 builder.Services.AddSingleton<MockNewsProvider>();
 builder.Services.AddSingleton<INewsProvider, ConfigurableNewsProvider>();
 builder.Services.AddSingleton<NewsService>();
+builder.Services.AddScoped<LocalUserProfileService>();
 builder.Services.AddScoped<BrowserWatchlistService>();
 builder.Services.AddHttpClient<OllamaChatAssistantService>((serviceProvider, client) =>
 {
