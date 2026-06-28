@@ -1,11 +1,21 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Options;
 using StockPredictor.App.Components;
 using StockPredictor.App.Services;
 using StockPredictor.App.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 // Add services to the container.
+var dataProtectionKeyDirectory = Path.Combine(builder.Environment.ContentRootPath, ".data-protection-keys");
+Directory.CreateDirectory(dataProtectionKeyDirectory);
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeyDirectory))
+    .SetApplicationName("StockPredictor.App.Core");
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.Configure<ChatAssistantOptions>(builder.Configuration.GetSection(ChatAssistantOptions.SectionName));

@@ -1,6 +1,6 @@
 # Future Integrations
 
-Stand: 2026-05-20
+Stand: 2026-06-28
 
 ## Zweck
 
@@ -22,6 +22,7 @@ Es ist bewusst keine Anleitung fuer automatisiertes Trading und keine aktive Imp
 
 Aktuell existiert ein lokales Profil ohne Login. Es speichert Watchlist, bevorzugte Dashboard-Assets,
 Chart-Zeitraum, Forecast-Anzeige, News-Kategorien und Benachrichtigungseinstellungen nur im Browser.
+Im Branch `core-rebuild` ist dieser Profilbereich nicht geloescht, aber als Legacy/Experimental vom stabilen Core-Hauptflow getrennt.
 
 Moegliche spaetere Profilfunktionen darueber hinaus:
 

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pandas as pd
 import yfinance as yf
 
-from .paths import STORAGE_DIR
+from .paths import STORAGE_DIR, get_market_data_artifact_paths
 
 
 def _normalize_price_frame(frame: pd.DataFrame, source_label: str) -> pd.DataFrame:
@@ -103,3 +104,79 @@ def load_price_data_from_csv(
         frame["Close"] = pd.to_numeric(frame["Close"], errors="coerce")
 
     return _normalize_price_frame(frame, source_label=str(path))
+
+
+def load_price_data_from_market_snapshot(
+    ticker: str,
+    start_date: str | None = None,
+    end_date: str | None = None,
+) -> pd.DataFrame:
+    paths = get_market_data_artifact_paths(ticker)
+    if not paths.snapshot_json.exists():
+        raise FileNotFoundError(
+            f"Local market snapshot not found for '{ticker}': {paths.snapshot_json}"
+        )
+
+    payload = json.loads(paths.snapshot_json.read_text(encoding="utf-8"))
+    daily_points = payload.get("daily_points") or []
+    if not daily_points:
+        raise ValueError(f"Local market snapshot for '{ticker}' does not contain daily points.")
+
+    frame = pd.DataFrame(daily_points)
+    if "timestamp" not in frame.columns or "close" not in frame.columns:
+        raise ValueError(
+            f"Local market snapshot for '{ticker}' must contain timestamp and close fields."
+        )
+
+    frame["timestamp"] = pd.to_datetime(frame["timestamp"], errors="raise")
+    frame = frame.set_index("timestamp")
+    frame = frame.rename(
+        columns={
+            "open": "Open",
+            "high": "High",
+            "low": "Low",
+            "close": "Close",
+            "volume": "Volume",
+        }
+    )
+    for column in ["Open", "High", "Low", "Close", "Volume"]:
+        if column in frame.columns:
+            frame[column] = pd.to_numeric(frame[column], errors="coerce")
+
+    if start_date:
+        frame = frame.loc[frame.index >= pd.Timestamp(start_date)]
+    if end_date:
+        frame = frame.loc[frame.index <= pd.Timestamp(end_date)]
+
+    return _normalize_price_frame(frame, source_label=f"market_snapshot:{ticker}")
+
+
+def load_price_data_for_symbol(
+    ticker: str,
+    start_date: str,
+    end_date: str | None = None,
+    prefer_cached_snapshot: bool = True,
+) -> pd.DataFrame:
+    resolved_end_date = end_date or pd.Timestamp.today().date().isoformat()
+
+    if prefer_cached_snapshot:
+        try:
+            return load_price_data_from_market_snapshot(
+                ticker,
+                start_date=start_date,
+                end_date=resolved_end_date,
+            )
+        except (FileNotFoundError, ValueError):
+            pass
+
+    try:
+        return download_price_data(ticker, start_date=start_date, end_date=resolved_end_date)
+    except Exception:
+        if prefer_cached_snapshot:
+            raise
+
+        return load_price_data_from_market_snapshot(
+            ticker,
+            start_date=start_date,
+            end_date=resolved_end_date,
+        )

@@ -1,6 +1,6 @@
 # Stock Predictor
 
-Stand: 2026-05-05
+Stand: 2026-06-28
 
 ## Projektziel
 
@@ -50,13 +50,42 @@ Der Webteil in `StockPredictor.App/` trennt jetzt zwei Ebenen klar voneinander: 
 
 Ergaenzend steht jetzt ein lokaler FAQ-Chat zur Verfuegung, der bei erreichbarem Ollama lokal antwortet und sonst automatisch auf einen eingebauten FAQ-/Glossar-Fallback zurueckfaellt.
 
+## Core-Rebuild auf Branch `core-rebuild`
+
+Die stabile Core-Version trennt den Hauptflow jetzt bewusst von den halb integrierten Zusatzfunktionen. Im Zentrum stehen:
+
+- Kursdaten laden und als konsistente Charts anzeigen
+- mehrere Untermodelle offline trainieren und bewerten
+- Modellregistry mit bestem Modell pro Asset und Horizont speichern
+- Predictions aus gespeicherten Modellen erzeugen, ohne beim Websitebesuch neu zu trainieren
+- Blazor-App zeigt Kurschart, Forecast, Datenstand, Modell, Metriken und klare Hinweise auf Forschungscharakter
+
+Die bisherigen Bereiche Profile, Watchlist, News, Notifications und FAQ-Chat bleiben im Code erhalten, sind aber in der Navigation als `Legacy / Experimental` eingeordnet und nicht mehr Teil des Core-Hauptflows.
+
+Neuer zentraler ML-Ablauf:
+
+```powershell
+cd StockPredictor.ML
+.\.venv\Scripts\python.exe scripts\train_model_suite.py --symbols AAPL TSLA MSFT NVDA ENR.DE SIE.DE --horizon 5
+.\.venv\Scripts\python.exe scripts\predict_asset.py --symbol AAPL --horizon 5
+.\.venv\Scripts\python.exe scripts\export_dashboard_payload.py
+cd ..
+dotnet build StockPredictor.slnx
+dotnet run --project StockPredictor.App
+```
+
+`train_model_suite.py` nutzt vorhandene lokale Markt-Snapshots als ersten Datenpfad und faellt bei fehlendem Snapshot auf `yfinance` zurueck. Einzelne Ticker koennen bei fehlendem Cache oder Netzwerkproblemen fehlschlagen, ohne dass erfolgreiche Ticker verworfen werden.
+
 ## Repository-Struktur
 
 - `StockPredictor.App/`: Blazor-Frontend auf .NET 10
 - `StockPredictor.ML/`: Python-Modul mit Training, Prognose und Notebook-Ablage
 - `StockPredictor.ML/core/`: fachliche Kernlogik fuer Datenzugriff, Vorverarbeitung, Modellbau und Persistenz
+- `StockPredictor.ML/models/`: Core-Untermodelle wie Persistence-Baseline, Ridge Regression und Random Forest
+- `StockPredictor.ML/scripts/`: neuer Core-Einstieg fuer Training, Prediction und Dashboard-Export
 - `StockPredictor.ML/notebooks/legacy/`: archivierte Colab-Quellen
 - `StockPredictor.ML/storage/`: lokale Laufzeitdaten wie Modelle, Scaler und Logs
+- `StockPredictor.ML/storage/model_registry/`, `trained_models/`, `predictions/`: lokale Core-Artefakte, nicht fuer Git gedacht
 - `docs/project-context.md`: dauerhaftes Projektgedaechtnis fuer spaetere Sessions
 - `docs/thesis-notes.md`: BA-relevante Notizen, Forschungsfragen und methodische Hinweise
 - `docs/development-history.md`: dokumentierter Entwicklungsverlauf mit frueheren Zwischenstaenden

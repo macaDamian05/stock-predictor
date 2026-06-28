@@ -157,6 +157,15 @@ public sealed class FeaturedTicker
     [JsonPropertyName("forecast_generated_at")]
     public DateTime? ForecastGeneratedAt { get; init; }
 
+    [JsonPropertyName("model_trained_at")]
+    public DateTime? ModelTrainedAt { get; init; }
+
+    [JsonPropertyName("validation_start")]
+    public DateOnly? ValidationStart { get; init; }
+
+    [JsonPropertyName("validation_end")]
+    public DateOnly? ValidationEnd { get; init; }
+
     [JsonPropertyName("data_until")]
     public DateOnly? DataUntil { get; init; }
 

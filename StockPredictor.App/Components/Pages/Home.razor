@@ -1,70 +1,59 @@
 @page "/"
 @using System.Globalization
-@using Microsoft.JSInterop
-@implements IDisposable
 @inject AssetCatalogService AssetCatalogService
-@inject BrowserWatchlistService BrowserWatchlistService
 @inject DashboardDataService DashboardDataService
 @inject MarketDataService MarketDataService
-@inject ForecastJobService ForecastJobService
-@inject NewsService NewsService
-@inject NotificationService NotificationService
-@inject LocalUserProfileService ProfileService
 @inject NavigationManager NavigationManager
 
-<PageTitle>Stock-Predictor-Dashboard</PageTitle>
+<PageTitle>Stock Predictor Core</PageTitle>
 
 @if (_isLoading)
 {
     <section class="dashboard-empty panel-shell">
-        <span class="section-kicker">Laden</span>
-        <h1>Dashboard wird aufgebaut...</h1>
-        <p>Die App lädt lokale Kursdaten, Watchlist und den aktuellen Forschungsstand.</p>
+        <span class="section-kicker">Core wird geladen</span>
+        <h1>Lokale Kursdaten und Modell-Payload werden vorbereitet.</h1>
+        <p>Es wird kein Training beim Websitebesuch gestartet.</p>
     </section>
 }
 else
 {
     var payload = _snapshot?.Payload;
     var searchResults = GetSearchResults();
-    var watchlistEntries = GetWatchlistEntries();
-    var homeMarketEntries = GetHomeMarketEntries();
-    var activeJobs = ForecastJobService.GetJobs()
-        .Where(job => job.State is ForecastJobState.Pending or ForecastJobState.Running or ForecastJobState.Failed)
-        .Take(4)
-        .ToArray();
+    var homeEntries = GetHomeEntries();
 
     <div class="dashboard-page">
-        @if (_snapshot?.Payload is null)
+        @if (payload is null)
         {
             <section class="panel-shell status-banner">
                 <div>
-                    <span class="section-kicker">Research Layer fehlt</span>
-                    <h2>Die App bleibt nutzbar, aber der lokale Dashboard-Payload fehlt.</h2>
+                    <span class="section-kicker">Core-Payload fehlt</span>
+                    <h2>Die App kann Kursdaten laden, aber noch keine gespeicherten Predictions anzeigen.</h2>
                     <p>
-                        Kursdaten können trotzdem geladen werden. Für Prognosen und Modellmetriken muss
-                        <code>StockPredictor.ML/storage/dashboard/LATEST/dashboard_payload.json</code> lokal vorhanden sein.
+                        Erzeuge zuerst lokal Modelle, Predictions und den Core-Dashboard-Payload.
+                        Die Webapp trainiert bewusst nicht automatisch.
                     </p>
                 </div>
                 <div class="command-list">
                     <code>cd StockPredictor.ML</code>
-                    <code>.\.venv\Scripts\python.exe export_dashboard_payload.py</code>
+                    <code>.\.venv\Scripts\python.exe scripts\train_model_suite.py --symbols AAPL TSLA MSFT NVDA ENR.DE SIE.DE --horizon 5</code>
+                    <code>.\.venv\Scripts\python.exe scripts\export_dashboard_payload.py</code>
                 </div>
             </section>
         }
 
         <section class="market-hero panel-shell" id="market">
             <div class="hero-copy">
-                <span class="section-kicker">Marktüberblick</span>
-                <h1>Echte Kursdaten zuerst, Forecasts als separater Research Layer.</h1>
+                <span class="section-kicker">Core-Version</span>
+                <h1>Kursdaten, gespeicherte Modelle und nachvollziehbare Modellprognosen.</h1>
                 <p>
-                    Die App trennt frische Marktdaten, lokale ML-Prognosen und veraltete Exporte sichtbar voneinander.
+                    Diese Version konzentriert sich auf Laden von Kursdaten, konsistente Charts,
+                    gespeicherte Modellartefakte und transparente Forecast-Metadaten. Keine Anlageberatung.
                 </p>
 
                 <div class="hero-actions">
                     <a class="action-link action-primary" href="#asset-discovery">Assets suchen</a>
-                    <a class="action-link" href="news">News-Kontext</a>
-                    <a class="action-link" href="profile">Profil</a>
-                    <a class="action-link" href="hinweise">FAQ & Methodik</a>
+                    <a class="action-link" href="#forecasts">Forecast-Status</a>
+                    <a class="action-link" href="hinweise">Methodik</a>
                 </div>
             </div>
 
@@ -72,32 +61,32 @@ else
                 <article class="hero-stat">
                     <span>Bekannte Assets</span>
                     <strong>@_assetEntries.Count</strong>
-                    <small>Ticker- und Alias-Suche</small>
+                    <small>Suche aus Katalog und Payload</small>
                 </article>
                 <article class="hero-stat">
-                    <span>Watchlist</span>
-                    <strong>@_watchlistTickers.Count</strong>
-                    <small>Lokal im Browser gespeichert</small>
+                    <span>Kurskarten</span>
+                    <strong>@homeEntries.Count</strong>
+                    <small>Lokaler Market Data Layer</small>
                 </article>
                 <article class="hero-stat">
-                    <span>Market Data Layer</span>
-                    <strong>@homeMarketEntries.Count</strong>
-                    <small>Aktuelle Kurskarten</small>
-                </article>
-                <article class="hero-stat">
-                    <span>Research Layer</span>
+                    <span>Forecasts</span>
                     <strong>@(payload?.FeaturedTickers.Count ?? 0)</strong>
-                    <small>@(payload is null ? "Kein Payload" : "Vorbereitete Forecasts")</small>
+                    <small>Aus gespeicherten Modellen</small>
                 </article>
                 <article class="hero-stat">
-                    <span>Datenstand Kurslayer</span>
-                    <strong>@FormatTimestamp(GetNewestMarketTimestamp(homeMarketEntries))</strong>
-                    <small>Frisch geladene Kursdaten</small>
+                    <span>Payload erzeugt</span>
+                    <strong>@(payload is null ? "n/a" : FormatDateTime(payload.GeneratedAt))</strong>
+                    <small>Kein Live-Training</small>
                 </article>
                 <article class="hero-stat">
-                    <span>Datenstand Forecastlayer</span>
+                    <span>Kursdaten bis</span>
+                    <strong>@FormatTimestamp(GetNewestMarketTimestamp(homeEntries))</strong>
+                    <small>Geladene Markt-Snapshots</small>
+                </article>
+                <article class="hero-stat">
+                    <span>Forecast-Daten bis</span>
                     <strong>@(payload is null ? "n/a" : FormatNullableDate(payload.DataUntil))</strong>
-                    <small>@(payload is null ? "Noch kein Export" : GetPayloadFreshnessLabel(payload))</small>
+                    <small>@(payload is null ? "Noch kein Payload" : GetPayloadFreshnessLabel(payload))</small>
                 </article>
             </div>
         </section>
@@ -107,7 +96,7 @@ else
                 <div class="panel-header">
                     <div>
                         <span class="section-kicker">Asset-Suche</span>
-                        <h2>Ticker oder Namen suchen, nicht nur Payload-Assets</h2>
+                        <h2>Ticker oder Namen suchen</h2>
                     </div>
                     <span class="meta-pill">@_assetEntries.Count bekannte Assets</span>
                 </div>
@@ -117,27 +106,13 @@ else
                     <input id="asset-search-input"
                            class="search-input"
                            type="search"
-                           placeholder="z. B. AAPL, apple, TSLA, siemens energy, SPY"
+                           placeholder="z. B. AAPL, TSLA, MSFT, siemens energy"
                            @bind="_assetSearchQuery"
                            @bind:event="oninput" />
                     <button class="status-button" type="submit" disabled="@string.IsNullOrWhiteSpace(GetSearchTargetTicker())">
                         Asset öffnen
                     </button>
                 </form>
-
-                <div class="search-meta">
-                    <span class="meta-pill">
-                        @(string.IsNullOrWhiteSpace(_assetSearchQuery)
-                            ? "Suche über bekannte Aktien, ETFs und lokale Payload-Ticker"
-                            : $"Treffer für „{_assetSearchQuery.Trim()}“")
-                    </span>
-                    @if (!string.IsNullOrWhiteSpace(_assetSearchQuery))
-                    {
-                        <button class="text-button" type="button" @onclick="ClearAssetSearch">
-                            Suche zurücksetzen
-                        </button>
-                    }
-                </div>
 
                 @if (searchResults.Count > 0)
                 {
@@ -164,23 +139,19 @@ else
                                             </span>
                                         </div>
                                     </div>
-
                                     <div class="asset-result-metrics">
                                         <span>Letzter Kurs <strong>@FormatNullablePrice(GetAssetLastPrice(asset))</strong></span>
                                         <span>Kursdaten <strong>@FormatTimestamp(GetAssetLastTimestamp(asset))</strong></span>
                                         @if (asset.ForecastHorizonChangePct is double horizonChange)
                                         {
-                                            <span>5 Tage <strong class="@GetTrendTone(horizonChange)">@FormatPercent(horizonChange)</strong></span>
+                                            <span>Forecast <strong class="@GetTrendTone(horizonChange)">@FormatPercent(horizonChange)</strong></span>
                                         }
                                     </div>
                                 </div>
 
                                 <div class="asset-result-actions">
                                     <button class="action-button action-primary" type="button" @onclick="() => OpenAsset(asset.Ticker)">
-                                        Öffnen
-                                    </button>
-                                    <button class="action-button action-secondary" type="button" @onclick="() => ToggleWatchlistAsync(asset.Ticker)">
-                                        @GetWatchlistButtonLabel(asset.Ticker)
+                                        Details
                                     </button>
                                 </div>
                             </article>
@@ -192,10 +163,9 @@ else
                     <article class="search-empty">
                         <span class="section-kicker">Kein bekannter Treffer</span>
                         <h3>@AssetCatalogService.NormalizeTicker(_assetSearchQuery)</h3>
-                        <p>Für dieses Asset liegen aktuell weder bekannte Aliasdaten noch vorbereitete Prognosedaten vor.</p>
-                        <p>Du kannst trotzdem die Detailansicht öffnen und dort einen lokalen Forecast-Lauf vorbereiten.</p>
+                        <p>Die Kursansicht kann trotzdem geöffnet werden. Ein Forecast braucht vorher ein gespeichertes Core-Modell.</p>
                         <button class="action-button action-secondary" type="button" @onclick="() => OpenAsset(AssetCatalogService.NormalizeTicker(_assetSearchQuery))">
-                            Kursansicht trotzdem öffnen
+                            Kursansicht öffnen
                         </button>
                     </article>
                 }
@@ -204,343 +174,112 @@ else
             <article class="panel-shell discovery-panel">
                 <div class="panel-header">
                     <div>
-                        <span class="section-kicker">Meine Watchlist</span>
-                        <h2>Favoriten lokal speichern und als Marktansicht laden</h2>
+                        <span class="section-kicker">Core-Ablauf</span>
+                        <h2>Training und Prediction laufen offline</h2>
                     </div>
-                    <span class="meta-pill">@_watchlistTickers.Count gespeicherte Ticker</span>
+                    <span class="meta-pill">Kein Auto-Retraining</span>
                 </div>
-
-                @if (!_watchlistLoaded)
-                {
-                    <p class="watchlist-empty-copy">Die lokale Watchlist wird geladen.</p>
-                }
-                else if (watchlistEntries.Count == 0)
-                {
-                    <div class="watchlist-empty">
-                        <p class="watchlist-empty-copy">
-                            Noch keine lokalen Favoriten gespeichert. Füge Ticker über die Suche oder die Detailansicht hinzu.
-                        </p>
+                <div class="run-list">
+                    <div>
+                        <span>1. Training</span>
+                        <strong>Untermodelle trainieren und bewerten</strong>
+                        <small>Persistence, Ridge und Random Forest mit chronologischer Validierung.</small>
                     </div>
-                }
-                else
-                {
-                    <div class="watchlist-inline-list">
-                        @foreach (var asset in watchlistEntries)
-                        {
-                            <article class="watchlist-inline-row">
-                                <div class="asset-result-copy">
-                                    <div class="asset-result-head">
-                                        <div class="asset-title-block">
-                                            <strong>@asset.Ticker</strong>
-                                            @if (!string.IsNullOrWhiteSpace(asset.DisplayName))
-                                            {
-                                                <small>@asset.DisplayName</small>
-                                            }
-                                        </div>
-                                        <div class="asset-result-badges">
-                                            <span class="tone-pill @GetForecastAvailabilityTone(asset)">
-                                                @GetForecastAvailabilityLabel(asset)
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="asset-result-metrics">
-                                        <span>Letzter Kurs <strong>@FormatNullablePrice(GetAssetLastPrice(asset))</strong></span>
-                                        <span>1M <strong class="@GetRangeTone(asset.Ticker, MarketTimeRange.OneMonth)">@FormatRangePercent(asset.Ticker, MarketTimeRange.OneMonth)</strong></span>
-                                    </div>
-                                </div>
-                                <div class="asset-result-actions">
-                                    <button class="action-button action-primary" type="button" @onclick="() => OpenAsset(asset.Ticker)">
-                                        Details
-                                    </button>
-                                    <button class="action-button action-secondary" type="button" @onclick="() => ToggleWatchlistAsync(asset.Ticker)">
-                                        Entfernen
-                                    </button>
-                                </div>
-                            </article>
-                        }
+                    <div>
+                        <span>2. Registry</span>
+                        <strong>Bestes Modell je Asset/Horizont speichern</strong>
+                        <small>Modellpfade, Featureliste, Metriken, Datenstand und Trainingszeitpunkt.</small>
                     </div>
-                }
+                    <div>
+                        <span>3. Prediction</span>
+                        <strong>Forecast aus gespeicherten Modellen erzeugen</strong>
+                        <small>Ohne neues Training beim Websitebesuch.</small>
+                    </div>
+                </div>
             </article>
         </section>
-
-        @if (activeJobs.Length > 0)
-        {
-            <section class="panel-shell">
-                <div class="panel-header">
-                    <div>
-                        <span class="section-kicker">Lokale Aktualisierung</span>
-                        <h2>Forecast-Daten werden im Hintergrund verarbeitet</h2>
-                    </div>
-                    <span class="meta-pill">Die App bleibt nutzbar</span>
-                </div>
-                <div class="jobs-grid">
-                    @foreach (var job in activeJobs)
-                    {
-                        <ForecastJobPanel Job="job" />
-                    }
-                </div>
-            </section>
-        }
 
         <section class="market-board panel-shell" id="ticker-board">
             <div class="panel-header board-header">
                 <div>
-                    <span class="section-kicker">Market Data Layer</span>
-                    <h2>Frische Kurskarten mit Verlauf und Zeitraumveränderungen</h2>
+                    <span class="section-kicker">Kurskarten</span>
+                    <h2>Marktdaten und Forecast-Status</h2>
                 </div>
-                <span class="meta-pill">Forecast-Status bleibt sekundär</span>
+                <span class="meta-pill">Core-Hauptflow</span>
             </div>
 
             <div class="market-card-grid">
-                @foreach (var asset in homeMarketEntries)
+                @foreach (var asset in homeEntries)
                 {
-                    var marketSnapshot = GetMarketSnapshot(asset.Ticker);
-                    var rangeChanges = GetRangeChanges(asset.Ticker);
-                    var forecastJob = ForecastJobService.GetJob(asset.Ticker);
-
                     <MarketTickerCard Asset="asset"
-                                      MarketSnapshot="marketSnapshot"
-                                      RangeChanges="rangeChanges"
-                                      ForecastJob="forecastJob"
-                                      PrimaryRange="@GetPreferredDashboardRange()"
-                                      IsInWatchlist="IsInWatchlist(asset.Ticker)"
+                                      MarketSnapshot="GetMarketSnapshot(asset.Ticker)"
+                                      RangeChanges="GetRangeChanges(asset.Ticker)"
+                                      ForecastJob="@null"
+                                      PrimaryRange="MarketTimeRange.OneMonth"
+                                      IsInWatchlist="false"
                                       IsForecastStale="IsAssetForecastStale(asset)"
-                                      OnOpen="OpenAssetFromCard"
-                                      OnToggleWatchlist="ToggleWatchlistFromCard" />
+                                      ShowSecondaryAction="false"
+                                      OnOpen="OpenAssetFromCard" />
                 }
             </div>
         </section>
 
-        @if (payload is not null)
-        {
-            <section class="summary-grid">
-                <article class="panel-shell summary-card accent-starter">
-                    <span class="section-kicker">Research Layer</span>
-                    <h2>Starter-Export</h2>
-                    <div class="card-value">@payload.SummaryCards.StarterBestExperiment.FeatureProfile</div>
-                    <div class="card-metrics">
-                        <span>Ticker <strong>@payload.SummaryCards.StarterBestExperiment.TickerCount</strong></span>
-                        <span>Dominantes Modell <strong>@payload.SummaryCards.StarterBestExperiment.DominantBestModelLabel</strong></span>
-                        <span>Baseline geschlagen <strong>@payload.SummaryCards.StarterTickersBeatingBaseline.Count</strong></span>
-                    </div>
-                </article>
-
-                <article class="panel-shell summary-card accent-core">
-                    <span class="section-kicker">Modelle</span>
-                    <h2>Kernprofil</h2>
-                    <div class="card-value">@payload.SummaryCards.BestCoreProfile.FeatureProfileLabel</div>
-                    <div class="card-metrics">
-                        <span>RMSE <strong>@FormatRmse(payload.SummaryCards.BestCoreProfile.MeanBestLearnedRmse)</strong></span>
-                        <span>Richtung <strong>@FormatRatePercent(payload.SummaryCards.BestCoreProfile.MeanBestLearnedDirectionalAccuracy * 100)</strong></span>
-                        <span>Modell <strong>@payload.SummaryCards.BestCoreProfile.DominantBestModelLabel</strong></span>
-                    </div>
-                </article>
-
-                <article class="panel-shell summary-card accent-diversified">
-                    <span class="section-kicker">Modelle</span>
-                    <h2>Diversifiziertes Profil</h2>
-                    <div class="card-value">@payload.SummaryCards.BestDiversifiedProfile.FeatureProfileLabel</div>
-                    <div class="card-metrics">
-                        <span>RMSE <strong>@FormatRmse(payload.SummaryCards.BestDiversifiedProfile.MeanBestLearnedRmse)</strong></span>
-                        <span>Richtung <strong>@FormatRatePercent(payload.SummaryCards.BestDiversifiedProfile.MeanBestLearnedDirectionalAccuracy * 100)</strong></span>
-                        <span>Modell <strong>@payload.SummaryCards.BestDiversifiedProfile.DominantBestModelLabel</strong></span>
-                    </div>
-                </article>
-
-                <article class="panel-shell summary-card accent-neutral">
-                    <span class="section-kicker">Payload-Status</span>
-                    <h2>Lokaler Exportstand</h2>
-                    <div class="card-value">@FormatDateTime(payload.GeneratedAt)</div>
-                    <div class="card-metrics">
-                        <span>Datenstand <strong>@FormatNullableDate(payload.DataUntil)</strong></span>
-                        <span>Verfügbare Forecasts <strong>@payload.FeaturedTickers.Count</strong></span>
-                        <span>Multi-Asset-Summaries <strong>@payload.MultiAssetSummaries.Count</strong></span>
-                    </div>
-                </article>
-            </section>
-
-            <section class="benchmark-grid">
-                <article class="panel-shell benchmark-card">
-                    <div class="panel-header">
-                        <div>
-                            <span class="section-kicker">Ranking</span>
-                            <h2>Unternehmensranking aus lokalem Payload</h2>
-                        </div>
-                        <span class="meta-pill">Forecasts bleiben Forschung</span>
-                    </div>
-                    <div class="compact-ranking">
-                        @foreach (var entry in payload.CompanyRanking.Take(5))
-                        {
-                            <button class="compact-ranking-row"
-                                    type="button"
-                                    @onclick="() => OpenAsset(entry.Ticker)">
-                                <span class="compact-rank">#@entry.Rank</span>
-                                <span>
-                                    <strong>@entry.Ticker</strong>
-                                    <small>@FormatModelLabel(entry.ForecastModel, entry.ForecastModelLabel) · @FormatFeatureProfileLabel(entry.FeatureProfile)</small>
-                                </span>
-                                <span class="@GetTrendTone(entry.ForecastHorizonChangePct)">
-                                    @FormatPercent(entry.ForecastHorizonChangePct)
-                                </span>
-                            </button>
-                        }
-                    </div>
-                </article>
-
-                <article class="panel-shell benchmark-card">
-                    <div class="panel-header">
-                        <div>
-                            <span class="section-kicker">Multi-Asset</span>
-                            <h2>Gemeinsame Körbe und ETFs</h2>
-                        </div>
-                        <span class="meta-pill">@payload.MultiAssetSummaries.Count Läufe</span>
-                    </div>
-                    @if (payload.MultiAssetSummaries.Count > 0)
-                    {
-                        <div class="run-list">
-                            @foreach (var summary in payload.MultiAssetSummaries.Take(4))
-                            {
-                                <div>
-                                    <span>@summary.BasketLabel</span>
-                                    <strong>@summary.SharedModelLabel · @summary.FeatureProfileLabel</strong>
-                                    <small>@summary.TickerCount Assets · RMSE @FormatRmse(summary.SharedModelRmse)</small>
-                                </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <p class="card-copy">Noch keine Multi-Asset-Zusammenfassung im lokalen Payload verfügbar.</p>
-                    }
-                </article>
-            </section>
-        }
-
-        <section class="teaser-grid">
-            <article class="panel-shell teaser-card">
-                <span class="section-kicker">Benachrichtigungen</span>
-                <h2>Lokale Statusmeldungen testen</h2>
-                <NotificationStatusCard />
-            </article>
-
-            <article class="panel-shell teaser-card">
-                <span class="section-kicker">News-Kontext</span>
-                <h2>Aktuelle News nur als Kontext</h2>
-                <p class="card-copy">News dienen aktuell nur als Kontext und fließen noch nicht automatisch in die Prognose ein.</p>
-                @if (_newsSnapshot?.Items.Count > 0)
-                {
-                    <div class="run-list">
-                        @foreach (var item in _newsSnapshot.Items.Take(3))
-                        {
-                            <div>
-                                <span>@item.Category · @item.Source</span>
-                                <strong>@item.Title</strong>
-                                <small>@FormatDateTime(item.PublishedAt)</small>
-                            </div>
-                        }
-                    </div>
-                    @if (!string.IsNullOrWhiteSpace(_newsSnapshot.StatusNotice))
-                    {
-                        <p class="card-copy">@_newsSnapshot.StatusNotice</p>
-                    }
-                    <a class="action-link action-secondary" href="news">Alle News ansehen</a>
-                }
-                else
-                {
-                    <p class="card-copy">@(_newsSnapshot?.StatusNotice ?? "Zurzeit sind keine News verfügbar.")</p>
-                }
-            </article>
-
-            <article class="panel-shell teaser-card">
-                <span class="section-kicker">Methodik</span>
-                <h2>Kurse und Forecasts werden bewusst getrennt</h2>
-                <p>
-                    Frische Kursdaten können für mehr Assets geladen werden. Forecasts bleiben lokale ML-Artefakte und
-                    können veraltet sein. Alte Forecasts sind keine Live-Prognose.
-                </p>
-                <a class="action-link action-secondary" href="hinweise">FAQ & Methodik öffnen</a>
-            </article>
-
-            <article class="panel-shell teaser-card">
-                <span class="section-kicker">Profil</span>
-                <h2>Lokale Einstellungen für dieses Dashboard</h2>
-                <p>
-                    Watchlist, bevorzugte Assets, Chart-Zeitraum, Forecast-Anzeige, News-Kategorien und
-                    Benachrichtigungen werden lokal im Browser gespeichert.
-                </p>
-                <div class="tag-list">
-                    <span class="meta-pill planned-pill">@(_profile?.ProfileName ?? "Mein Profil")</span>
-                    <span class="meta-pill planned-pill">Kein Login</span>
-                    <span class="meta-pill planned-pill">Keine Cloud</span>
+        <section class="panel-shell" id="forecasts">
+            <div class="panel-header">
+                <div>
+                    <span class="section-kicker">Forecast-Status</span>
+                    <h2>Gespeicherte Predictions aus der Core-Registry</h2>
                 </div>
-                <a class="action-link action-secondary" href="profile">Profil öffnen</a>
-            </article>
+                <span class="meta-pill">Keine Anlageberatung</span>
+            </div>
+
+            @if (payload?.FeaturedTickers.Count > 0)
+            {
+                <div class="compact-ranking">
+                    @foreach (var ticker in payload.FeaturedTickers)
+                    {
+                        <article>
+                            <span>@ticker.Ticker</span>
+                            <strong>@ticker.ForecastModelLabel</strong>
+                            <small>
+                                Training @FormatNullableDateTime(ticker.ModelTrainedAt) ·
+                                Forecast @FormatNullableDateTime(ticker.ForecastGeneratedAt) ·
+                                RMSE @FormatRmse(ticker.WalkForwardBestRmse)
+                            </small>
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="card-copy">Noch keine gespeicherten Core-Predictions im Dashboard-Payload vorhanden.</p>
+            }
         </section>
     </div>
 }
 
 @code {
     private static readonly CultureInfo UiCulture = CultureInfo.GetCultureInfo("de-DE");
-    private static readonly string[] DefaultHomeTickers = ["AAPL", "MSFT", "NVDA", "TSLA", "SPY", "ENR.DE"];
+    private static readonly string[] DefaultCoreTickers = ["AAPL", "TSLA", "MSFT", "NVDA", "ENR.DE", "SIE.DE"];
 
     private DashboardDataSnapshot? _snapshot;
-    private NewsFeedSnapshot? _newsSnapshot;
-    private LocalUserProfile? _profile;
     private IReadOnlyList<AssetCatalogEntry> _assetEntries = [];
     private readonly Dictionary<string, MarketAssetSnapshot> _marketSnapshots = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, IReadOnlyDictionary<MarketTimeRange, MarketRangeChange>> _marketChanges = new(StringComparer.OrdinalIgnoreCase);
-    private List<string> _watchlistTickers = [];
     private string _assetSearchQuery = string.Empty;
-    private bool _notificationCheckPending;
     private bool _isLoading = true;
-    private bool _watchlistLoaded;
-    private bool _reloadingAfterJob;
 
     protected override async Task OnInitializedAsync()
     {
-        ForecastJobService.JobsChanged += HandleJobsChanged;
-        await LoadHomeAsync();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && !_watchlistLoaded)
-        {
-            await LoadWatchlistAsync();
-        }
-
-        if (_notificationCheckPending && _snapshot?.Payload is not null)
-        {
-            _notificationCheckPending = false;
-            await NotificationService.CheckForPayloadUpdatesAsync(_snapshot.Payload, _watchlistTickers);
-        }
-    }
-
-    private async Task LoadHomeAsync()
-    {
         _snapshot = await DashboardDataService.GetLatestAsync();
-        _newsSnapshot = await NewsService.GetSnapshotAsync(new NewsQuery
-        {
-            MaxItems = 4,
-            PreferredTickers = _watchlistTickers,
-            PreferredCategories = _profile?.News.PreferredNewsCategories,
-            PreferTickerMatches = true,
-        });
         _assetEntries = AssetCatalogService.BuildEntries(_snapshot.Payload);
         await RefreshMarketOverviewAsync();
-
-        if (_snapshot.Payload is not null)
-        {
-            await ForecastJobService.QueueAutomaticRefreshesAsync(_snapshot.Payload, GetAutoRefreshTickers());
-            _notificationCheckPending = true;
-        }
-
         _isLoading = false;
     }
 
     private async Task RefreshMarketOverviewAsync()
     {
-        var tickers = GetHomeMarketTickers();
+        var tickers = GetHomeTickers();
         var snapshots = await MarketDataService.GetSnapshotsAsync(tickers);
 
         _marketSnapshots.Clear();
@@ -553,81 +292,25 @@ else
         }
     }
 
-    private async Task LoadWatchlistAsync()
-    {
-        try
-        {
-            _profile = await ProfileService.GetProfileAsync(forceReload: true);
-            _watchlistTickers = _profile.Watchlist
-                .Select(item => item.Symbol)
-                .ToList();
-        }
-        catch (InvalidOperationException)
-        {
-            _watchlistTickers = [];
-        }
-        catch (JSDisconnectedException)
-        {
-            _watchlistTickers = [];
-        }
-        finally
-        {
-            _watchlistLoaded = true;
-        }
-
-        await RefreshMarketOverviewAsync();
-        _newsSnapshot = await NewsService.GetSnapshotAsync(new NewsQuery
-        {
-            MaxItems = 4,
-            PreferredTickers = _watchlistTickers,
-            PreferredCategories = _profile?.News.PreferredNewsCategories,
-            PreferTickerMatches = true,
-        });
-
-        if (_snapshot?.Payload is not null)
-        {
-            await ForecastJobService.QueueAutomaticRefreshesAsync(_snapshot.Payload, GetAutoRefreshTickers());
-            _notificationCheckPending = true;
-        }
-
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private IReadOnlyList<string> GetHomeMarketTickers()
+    private IReadOnlyList<string> GetHomeTickers()
     {
         var tickers = new List<string>();
-        if (_profile?.Dashboard.PreferredDashboardAssets.Count > 0)
-        {
-            tickers.AddRange(_profile.Dashboard.PreferredDashboardAssets);
-        }
-
-        tickers.AddRange(_watchlistTickers);
         if (_snapshot?.Payload is not null)
         {
             tickers.AddRange(_snapshot.Payload.FeaturedTickers.Select(ticker => ticker.Ticker));
         }
 
-        tickers.AddRange(DefaultHomeTickers);
-
+        tickers.AddRange(DefaultCoreTickers);
         return tickers
             .Select(AssetCatalogService.NormalizeTicker)
             .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Take(9)
+            .Take(8)
             .ToArray();
     }
 
-    private IReadOnlyList<string> GetAutoRefreshTickers()
+    private IReadOnlyList<AssetCatalogEntry> GetHomeEntries()
     {
-        return (_snapshot?.Payload?.FeaturedTickers.Select(ticker => ticker.Ticker) ?? [])
-            .Concat(_watchlistTickers)
-            .Select(AssetCatalogService.NormalizeTicker)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-    }
-
-    private IReadOnlyList<AssetCatalogEntry> GetHomeMarketEntries()
-    {
-        return GetHomeMarketTickers()
+        return GetHomeTickers()
             .Select(ticker => _assetEntries.FirstOrDefault(entry =>
                 string.Equals(entry.Ticker, ticker, StringComparison.OrdinalIgnoreCase))
                 ?? AssetCatalogService.CreatePlaceholderEntry(ticker))
@@ -637,15 +320,6 @@ else
     private IReadOnlyList<AssetCatalogEntry> GetSearchResults()
     {
         return AssetCatalogService.Search(_assetEntries, _assetSearchQuery);
-    }
-
-    private IReadOnlyList<AssetCatalogEntry> GetWatchlistEntries()
-    {
-        return _watchlistTickers
-            .Select(ticker => _assetEntries.FirstOrDefault(entry =>
-                string.Equals(entry.Ticker, ticker, StringComparison.OrdinalIgnoreCase))
-                ?? AssetCatalogService.CreatePlaceholderEntry(ticker))
-            .ToArray();
     }
 
     private string? GetSearchTargetTicker()
@@ -669,11 +343,6 @@ else
         await Task.CompletedTask;
     }
 
-    private void ClearAssetSearch()
-    {
-        _assetSearchQuery = string.Empty;
-    }
-
     private void OpenAsset(string tickerSymbol)
     {
         NavigationManager.NavigateTo($"/assets/{Uri.EscapeDataString(AssetCatalogService.NormalizeTicker(tickerSymbol))}");
@@ -685,95 +354,10 @@ else
         return Task.CompletedTask;
     }
 
-    private async Task ToggleWatchlistAsync(string tickerSymbol)
-    {
-        var normalizedTicker = AssetCatalogService.NormalizeTicker(tickerSymbol);
-
-        if (IsInWatchlist(normalizedTicker))
-        {
-            _watchlistTickers = _watchlistTickers
-                .Where(existingTicker => !string.Equals(existingTicker, normalizedTicker, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-            try
-            {
-                await BrowserWatchlistService.RemoveAsync(normalizedTicker);
-            }
-            catch (InvalidOperationException)
-            {
-            }
-            catch (JSDisconnectedException)
-            {
-            }
-        }
-        else
-        {
-            var asset = _assetEntries.FirstOrDefault(entry =>
-                string.Equals(entry.Ticker, normalizedTicker, StringComparison.OrdinalIgnoreCase))
-                ?? AssetCatalogService.CreatePlaceholderEntry(normalizedTicker);
-            _watchlistTickers.Add(normalizedTicker);
-            try
-            {
-                await BrowserWatchlistService.AddOrUpdateAsync(asset);
-            }
-            catch (InvalidOperationException)
-            {
-            }
-            catch (JSDisconnectedException)
-            {
-            }
-        }
-
-        try
-        {
-            _profile = await ProfileService.GetProfileAsync(forceReload: true);
-            _watchlistTickers = _profile.Watchlist.Select(item => item.Symbol).ToList();
-        }
-        catch (InvalidOperationException)
-        {
-        }
-        catch (JSDisconnectedException)
-        {
-        }
-
-        await RefreshMarketOverviewAsync();
-        _newsSnapshot = await NewsService.GetSnapshotAsync(new NewsQuery
-        {
-            MaxItems = 4,
-            PreferredTickers = _watchlistTickers,
-            PreferredCategories = _profile?.News.PreferredNewsCategories,
-            PreferTickerMatches = true,
-        });
-        if (_snapshot?.Payload is not null)
-        {
-            _notificationCheckPending = true;
-        }
-    }
-
-    private Task ToggleWatchlistFromCard(string tickerSymbol)
-    {
-        return ToggleWatchlistAsync(tickerSymbol);
-    }
-
-    private bool IsInWatchlist(string tickerSymbol)
-    {
-        return _watchlistTickers.Any(existingTicker =>
-            string.Equals(existingTicker, tickerSymbol, StringComparison.OrdinalIgnoreCase));
-    }
-
-    private string GetWatchlistButtonLabel(string tickerSymbol)
-    {
-        return IsInWatchlist(tickerSymbol) ? "Aus Watchlist entfernen" : "Zur Watchlist hinzufügen";
-    }
-
     private MarketAssetSnapshot? GetMarketSnapshot(string ticker)
     {
         _marketSnapshots.TryGetValue(AssetCatalogService.NormalizeTicker(ticker), out var snapshot);
         return snapshot;
-    }
-
-    private MarketTimeRange GetPreferredDashboardRange()
-    {
-        return LocalUserProfileService.ToMarketTimeRange(_profile?.Chart.DefaultChartRange);
     }
 
     private IReadOnlyDictionary<MarketTimeRange, MarketRangeChange> GetRangeChanges(string ticker)
@@ -800,13 +384,10 @@ else
             return false;
         }
 
-        var staleAfterDays = _snapshot.Payload.StaleAfterDays > 0 ? _snapshot.Payload.StaleAfterDays : 3;
+        var staleAfterDays = _snapshot.Payload.StaleAfterDays > 0 ? _snapshot.Payload.StaleAfterDays : 5;
         var dataUntil = asset.FeaturedTicker.DataUntil ?? _snapshot.Payload.DataUntil ?? asset.FeaturedTicker.LastCloseDate;
-        var forecastGeneratedAt = asset.FeaturedTicker.ForecastGeneratedAt ?? _snapshot.Payload.GeneratedAt;
         var today = DateOnly.FromDateTime(DateTime.Now);
-        var dataAgeDays = today.DayNumber - dataUntil.DayNumber;
-        var forecastAgeDays = Math.Max(0, (DateTime.Now.Date - forecastGeneratedAt.Date).Days);
-        return dataAgeDays > staleAfterDays || forecastAgeDays > staleAfterDays;
+        return today.DayNumber - dataUntil.DayNumber > staleAfterDays;
     }
 
     private DateTime? GetNewestMarketTimestamp(IEnumerable<AssetCatalogEntry> entries)
@@ -815,26 +396,6 @@ else
             .Select(entry => GetMarketSnapshot(entry.Ticker)?.LastPoint?.Timestamp)
             .Where(timestamp => timestamp is not null)
             .Max();
-    }
-
-    private string FormatRangePercent(string ticker, MarketTimeRange range)
-    {
-        if (GetRangeChanges(ticker).TryGetValue(range, out var change))
-        {
-            return FormatPercent(change.PercentChange);
-        }
-
-        return "n/a";
-    }
-
-    private string GetRangeTone(string ticker, MarketTimeRange range)
-    {
-        if (GetRangeChanges(ticker).TryGetValue(range, out var change))
-        {
-            return GetTrendTone(change.PercentChange);
-        }
-
-        return "tone-neutral";
     }
 
     private static string GetForecastAvailabilityTone(AssetCatalogEntry entry)
@@ -859,11 +420,10 @@ else
 
     private static string GetPayloadFreshnessLabel(DashboardPayload payload)
     {
-        var staleAfterDays = payload.StaleAfterDays > 0 ? payload.StaleAfterDays : 3;
+        var staleAfterDays = payload.StaleAfterDays > 0 ? payload.StaleAfterDays : 5;
         if (payload.DataUntil is null)
         {
-            var exportAgeDays = Math.Max(0, (DateTime.Now.Date - payload.GeneratedAt.Date).Days);
-            return exportAgeDays > staleAfterDays ? $"Export älter als {staleAfterDays} Tage" : "Export aktuell";
+            return "Datenstand unbekannt";
         }
 
         var today = DateOnly.FromDateTime(DateTime.Now);
@@ -877,6 +437,8 @@ else
 
     private static string FormatDateTime(DateTime dateTime) => dateTime.ToString("dd. MMM yyyy | HH:mm", UiCulture);
 
+    private static string FormatNullableDateTime(DateTime? value) => value is null ? "n/a" : FormatDateTime(value.Value);
+
     private static string FormatTimestamp(DateTime? value) => value is null ? "n/a" : value.Value.ToString("dd. MMM yyyy | HH:mm", UiCulture);
 
     private static string FormatNullablePrice(double? value) => value is null ? "n/a" : value.Value.ToString("N2", UiCulture);
@@ -884,33 +446,6 @@ else
     private static string FormatRmse(double value) => value.ToString("0.000", UiCulture);
 
     private static string FormatPercent(double value) => $"{(value >= 0 ? "+" : string.Empty)}{value.ToString("0.00", UiCulture)}%";
-
-    private static string FormatRatePercent(double value) => $"{value.ToString("0.00", UiCulture)}%";
-
-    private static string FormatModelLabel(string rawValue, string fallback)
-    {
-        return rawValue switch
-        {
-            "baseline_persistence" => "Persistence-Baseline",
-            "random_forest" => "Random Forest",
-            "ridge_regression" => "Ridge-Regression",
-            "decision_tree" => "Entscheidungsbaum",
-            "lstm" => "LSTM",
-            _ when !string.IsNullOrWhiteSpace(rawValue) => rawValue.Replace("_", " "),
-            _ => fallback,
-        };
-    }
-
-    private static string FormatFeatureProfileLabel(string rawValue)
-    {
-        return rawValue switch
-        {
-            "technical_extended" => "Technisch erweitert",
-            "technical_basic" => "Technisch grundlegend",
-            "lag_only" => "Nur Lags",
-            _ => rawValue.Replace("_", " "),
-        };
-    }
 
     private static string GetTrendTone(double value)
     {
@@ -920,42 +455,5 @@ else
             < -0.01 => "tone-negative",
             _ => "tone-neutral",
         };
-    }
-
-    private void HandleJobsChanged()
-    {
-        _ = InvokeAsync(async () =>
-        {
-            foreach (var job in ForecastJobService.GetJobs().Where(job =>
-                         job.State is (ForecastJobState.Completed or ForecastJobState.Failed)
-                         && job.CompletedAt >= DateTime.Now.AddMinutes(-2)))
-            {
-                await NotificationService.NotifyForecastJobChangedAsync(job);
-            }
-
-            var completedRecently = ForecastJobService.GetJobs().Any(job =>
-                job.State == ForecastJobState.Completed
-                && job.CompletedAt >= DateTime.Now.AddMinutes(-2));
-
-            if (completedRecently && !_reloadingAfterJob)
-            {
-                _reloadingAfterJob = true;
-                try
-                {
-                    await LoadHomeAsync();
-                }
-                finally
-                {
-                    _reloadingAfterJob = false;
-                }
-            }
-
-            StateHasChanged();
-        });
-    }
-
-    public void Dispose()
-    {
-        ForecastJobService.JobsChanged -= HandleJobsChanged;
     }
 }

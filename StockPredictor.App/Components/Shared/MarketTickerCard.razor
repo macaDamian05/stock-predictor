@@ -60,9 +60,12 @@
         <button class="action-button action-primary" type="button" @onclick="() => OnOpen.InvokeAsync(Asset.Ticker)">
             Details
         </button>
-        <button class="action-button action-secondary" type="button" @onclick="() => OnToggleWatchlist.InvokeAsync(Asset.Ticker)">
-            @(IsInWatchlist ? "Entfernen" : "Watchlist")
-        </button>
+        @if (ShowSecondaryAction)
+        {
+            <button class="action-button action-secondary" type="button" @onclick="() => OnToggleWatchlist.InvokeAsync(Asset.Ticker)">
+                @(SecondaryActionLabel ?? (IsInWatchlist ? "Entfernen" : "Watchlist"))
+            </button>
+        }
     </div>
 </article>
 
@@ -85,6 +88,12 @@
 
     [Parameter]
     public bool IsForecastStale { get; set; }
+
+    [Parameter]
+    public bool ShowSecondaryAction { get; set; } = true;
+
+    [Parameter]
+    public string? SecondaryActionLabel { get; set; }
 
     [Parameter]
     public MarketTimeRange PrimaryRange { get; set; } = MarketTimeRange.OneMonth;
